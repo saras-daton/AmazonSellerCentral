@@ -1,4 +1,5 @@
--- depends_on: {{ref('ExchangeRates')}}
+--To disable the model, set the model name variable as False within your dbt_project.yml file.
+{{ config(enabled=var('ListFinancialEvents_OrderRevenue', True)) }}
 
 {% if var('table_partition_flag') %}
 {{config( 
@@ -28,7 +29,7 @@ SELECT MAX(_daton_batch_runtime) - 2592000000 FROM {{ this }}
 {%- endif -%}
 {% endif %}
 
-with unnested_refundeventlist as (
+with unnested_shipmenteventlist as (
 {% set table_name_query %}
 select concat('`', table_catalog,'.',table_schema, '.',table_name,'`') as tables 
 from {{ var('raw_projectid') }}.{{ var('raw_dataset') }}.INFORMATION_SCHEMA.TABLES 
@@ -46,6 +47,7 @@ where lower(table_name) like '%listfinancialevents%'
 {% if var('timezone_conversion_flag') %}
     {% set hr = var('timezone_conversion_hours') %}
 {% endif %}
+
 {% for i in results_list %}
     {% if var('brand_consolidation_flag') %}
         {% set id =i.split('.')[2].split('_')[var('brand_name_position')] %}
@@ -57,43 +59,43 @@ where lower(table_name) like '%listfinancialevents%'
     select 
     '{{id}}' as Brand,
     {% if var('timezone_conversion_flag') %}
-    cast(DATETIME_ADD(cast(RefundEventlist.posteddate as timestamp), INTERVAL {{hr}} HOUR ) as DATE) posteddate,
+        cast(DATETIME_ADD(cast(ShipmentEventlist.posteddate as timestamp), INTERVAL {{hr}} HOUR ) as DATE) posteddate,
     {% else %}
-    date(RefundEventlist.posteddate) as posteddate,
+        date(ShipmentEventlist.posteddate) as posteddate,
     {% endif %}
-    RefundEventlist.amazonorderid as amazonorderid,
-    RefundEventlist.marketplacename as marketplacename,
-    RefundEventlist.ShipmentItemAdjustmentList,
+    ShipmentEventlist.amazonorderid as amazonorderid,
+    ShipmentEventlist.marketplacename as marketplacename,
+    ShipmentEventlist.ShipmentItemList,
     _daton_user_id,
     _daton_batch_runtime,
     _daton_batch_id,
-    FROM  {{i}} cross join unnest(RefundEventlist) RefundEventlist
+    FROM  {{i}} cross join unnest(ShipmentEventlist) ShipmentEventlist
             {% if is_incremental() %}
             {# /* -- this filter will only be applied on an incremental run */ #}
             WHERE _daton_batch_runtime  >= {{max_loaded}}
             {% endif %}
-    )
+        )
     {% if not loop.last %} union all {% endif %}
 {% endfor %}
 ),
 
-ShipmentItemAdjustmentList as (
+ShipmentItemList as (
         select 
-        Brand,
-        posteddate, 
+        Brand, 
+        posteddate,
         amazonorderid,
         marketplacename,
-        ShipmentItemAdjustmentList.sellerSKU as sellerSKU,
-        ShipmentItemAdjustmentList.quantityshipped as quantityshipped,
-        ShipmentItemAdjustmentList.ItemChargeAdjustmentList,
+        ShipmentItemList.sellerSKU as sellerSKU,
+        ShipmentItemList.quantityshipped as quantityshipped,
+        ShipmentItemList.ItemChargeList,
         _daton_user_id,
         _daton_batch_runtime,
-        _daton_batch_id   
-        from unnested_refundeventlist
-        cross join unnest(ShipmentItemAdjustmentList) ShipmentItemAdjustmentList        
+        _daton_batch_id,
+        from unnested_shipmenteventlist
+        cross join unnest(ShipmentItemList) ShipmentItemList        
 ),
 
-ItemChargeAdjustmentList as (
+ItemChargeList as (
         select 
         Brand,
         posteddate, 
@@ -101,13 +103,13 @@ ItemChargeAdjustmentList as (
         marketplacename,
         sellerSKU,
         quantityshipped,
-        ItemChargeAdjustmentList.ChargeType,
-        ItemChargeAdjustmentList.ChargeAmount,
+        ItemChargeList.ChargeType,
+        ItemChargeList.ChargeAmount,
         _daton_user_id,
         _daton_batch_runtime,
         _daton_batch_id,
-        from ShipmentItemAdjustmentList
-        cross join unnest(ItemChargeAdjustmentList) ItemChargeAdjustmentList
+        from ShipmentItemList
+        cross join unnest(ItemChargeList) ItemChargeList
 ),
 
 ChargeAmount as (
@@ -115,7 +117,7 @@ ChargeAmount as (
         Brand,
         posteddate,
         'Revenue' as AmountType,
-        'Refund' as TransactionType,
+        'Order' as TransactionType,
         amazonorderid,
         marketplacename,
         sellerSKU,
@@ -128,22 +130,22 @@ ChargeAmount as (
             c.from_currency_code as conversion_currency, 
         {% else %}
             cast(1 as decimal) as conversion_rate,
-            cast(null as string) as conversion_currency,
+            cast(null as string) as conversion_currency, 
         {% endif %}
-        ItemChargeAdjustmentList._daton_user_id,
-        ItemChargeAdjustmentList._daton_batch_runtime,
-        ItemChargeAdjustmentList._daton_batch_id,
+        ItemChargeList._daton_user_id,
+        ItemChargeList._daton_batch_runtime,
+        ItemChargeList._daton_batch_id,
         {% if var('timezone_conversion_flag') %}
            DATETIME_ADD(cast(posteddate as timestamp), INTERVAL {{hr}} HOUR ) as _edm_eff_strt_ts,
         {% else %}
            CAST(posteddate as timestamp) as _edm_eff_strt_ts,
         {% endif %}
         null as _edm_eff_end_ts,
-        unix_micros(current_timestamp()) as _edm_runtime, 
-        from ItemChargeAdjustmentList
+        unix_micros(current_timestamp()) as _edm_runtime,
+        from ItemChargeList
         cross join unnest(ChargeAmount) ChargeAmount
         {% if var('currency_conversion_flag') %}
-            left join {{ var('stg_projectid') }}.{{ var('stg_dataset_common') }}.ExchangeRates c on date(posteddate) = c.date and ChargeAmount.CurrencyCode = c.to_currency_code
+            left join {{ref('ExchangeRates')}} c on date(posteddate) = c.date and ChargeAmount.CurrencyCode = c.to_currency_code
         {% endif %}
 )
 
@@ -153,5 +155,5 @@ from (
         select *,
         DENSE_RANK() OVER (PARTITION BY posteddate, marketplacename, amazonorderid, ChargeType, TransactionType, AmountType order by _daton_batch_runtime desc) rank
         from ChargeAmount
-        ) where rank=1
+    ) where rank = 1
 )

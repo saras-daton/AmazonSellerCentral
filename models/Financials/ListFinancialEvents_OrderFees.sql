@@ -1,4 +1,5 @@
--- depends_on: {{ref('ExchangeRates')}}
+--To disable the model, set the model name variable as False within your dbt_project.yml file.
+{{ config(enabled=var('ListFinancialEvents_OrderFees', True)) }}
 
 {% if var('table_partition_flag') %}
 {{config( 
@@ -6,12 +7,12 @@
     incremental_strategy='merge', 
     partition_by = { 'field': 'posteddate', 'data_type': 'date' },
     cluster_by = ['marketplacename', 'amazonorderid'], 
-    unique_key = ['posteddate', 'marketplacename', 'amazonorderid', 'ChargeType', 'TransactionType', 'AmountType', '_seq_id'])}}
+    unique_key = ['posteddate', 'marketplacename', 'amazonorderid', 'FeeType', 'TransactionType', 'AmountType', '_seq_id'])}}
 {% else %}
 {{config( 
     materialized='incremental', 
     incremental_strategy='merge', 
-    unique_key = ['posteddate', 'marketplacename', 'amazonorderid', 'ChargeType', 'TransactionType', 'AmountType', '_seq_id'])}}
+    unique_key = ['posteddate', 'marketplacename', 'amazonorderid', 'FeeType', 'TransactionType', 'AmountType', '_seq_id'])}}
 {% endif %}
 
 {% if is_incremental() %}
@@ -35,6 +36,7 @@ from {{ var('raw_projectid') }}.{{ var('raw_dataset') }}.INFORMATION_SCHEMA.TABL
 where lower(table_name) like '%listfinancialevents%' 
 {% endset %}  
 
+
 {% set results = run_query(table_name_query) %}
 {% if execute %}
 {# Return the first column #}
@@ -46,6 +48,7 @@ where lower(table_name) like '%listfinancialevents%'
 {% if var('timezone_conversion_flag') %}
     {% set hr = var('timezone_conversion_hours') %}
 {% endif %}
+
 
 {% for i in results_list %}
     {% if var('brand_consolidation_flag') %}
@@ -67,26 +70,26 @@ where lower(table_name) like '%listfinancialevents%'
     ShipmentEventlist.ShipmentItemList,
     _daton_user_id,
     _daton_batch_runtime,
-    _daton_batch_id,
+    _daton_batch_id
     FROM  {{i}} cross join unnest(ShipmentEventlist) ShipmentEventlist
             {% if is_incremental() %}
             {# /* -- this filter will only be applied on an incremental run */ #}
             WHERE _daton_batch_runtime  >= {{max_loaded}}
             {% endif %}
-        )
+    )
     {% if not loop.last %} union all {% endif %}
 {% endfor %}
 ),
 
 ShipmentItemList as (
         select 
-        Brand, 
-        posteddate,
+        Brand,
+        posteddate, 
         amazonorderid,
         marketplacename,
         ShipmentItemList.sellerSKU as sellerSKU,
         ShipmentItemList.quantityshipped as quantityshipped,
-        ShipmentItemList.ItemChargeList,
+        ShipmentItemList.ItemFeeList,
         _daton_user_id,
         _daton_batch_runtime,
         _daton_batch_id,
@@ -94,7 +97,7 @@ ShipmentItemList as (
         cross join unnest(ShipmentItemList) ShipmentItemList        
 ),
 
-ItemChargeList as (
+ItemFeeList as (
         select 
         Brand,
         posteddate, 
@@ -102,28 +105,29 @@ ItemChargeList as (
         marketplacename,
         sellerSKU,
         quantityshipped,
-        ItemChargeList.ChargeType,
-        ItemChargeList.ChargeAmount,
+        ItemFeeList.FeeType,
+        ItemFeeList.FeeAmount,
         _daton_user_id,
         _daton_batch_runtime,
         _daton_batch_id,
+        unix_micros(current_timestamp()) as _edm_runtime,
         from ShipmentItemList
-        cross join unnest(ItemChargeList) ItemChargeList
+        cross join unnest(ItemFeeList) ItemFeeList
 ),
 
-ChargeAmount as (
+FeeAmount as (
         select 
         Brand,
         posteddate,
-        'Revenue' as AmountType,
+        'Fees' as AmountType,
         'Order' as TransactionType,
         amazonorderid,
         marketplacename,
         sellerSKU,
         quantityshipped,
-        ChargeType,
-        ChargeAmount.CurrencyCode as CurrencyCode,
-        ChargeAmount.CurrencyAmount as CurrencyAmount,
+        FeeType,
+        FeeAmount.CurrencyCode as CurrencyCode,
+        FeeAmount.CurrencyAmount as CurrencyAmount,
         {% if var('currency_conversion_flag') %}
             c.value as conversion_rate,
             c.from_currency_code as conversion_currency, 
@@ -131,28 +135,28 @@ ChargeAmount as (
             cast(1 as decimal) as conversion_rate,
             cast(null as string) as conversion_currency, 
         {% endif %}
-        ItemChargeList._daton_user_id,
-        ItemChargeList._daton_batch_runtime,
-        ItemChargeList._daton_batch_id,
+        ItemFeeList._daton_user_id,
+        ItemFeeList._daton_batch_runtime,
+        ItemFeeList._daton_batch_id,
         {% if var('timezone_conversion_flag') %}
            DATETIME_ADD(cast(posteddate as timestamp), INTERVAL {{hr}} HOUR ) as _edm_eff_strt_ts,
         {% else %}
            CAST(posteddate as timestamp) as _edm_eff_strt_ts,
         {% endif %}
         null as _edm_eff_end_ts,
-        unix_micros(current_timestamp()) as _edm_runtime,
-        from ItemChargeList
-        cross join unnest(ChargeAmount) ChargeAmount
+        unix_micros(current_timestamp()) as _edm_runtime
+        from ItemFeeList
+        cross join unnest(FeeAmount) FeeAmount
         {% if var('currency_conversion_flag') %}
-            left join {{ var('stg_projectid') }}.{{ var('stg_dataset_common') }}.ExchangeRates c on date(posteddate) = c.date and ChargeAmount.CurrencyCode = c.to_currency_code
+            left join {{ref('ExchangeRates')}} c on date(posteddate) = c.date and FeeAmount.CurrencyCode = c.to_currency_code
         {% endif %}
 )
 
-select *, ROW_NUMBER() OVER (PARTITION BY posteddate, marketplacename, amazonorderid order by _daton_batch_runtime, ChargeType, TransactionType, AmountType, quantityshipped) _seq_id
+select *, ROW_NUMBER() OVER (PARTITION BY posteddate, marketplacename, amazonorderid order by _daton_batch_runtime, FeeType, TransactionType, AmountType, quantityshipped) _seq_id
 from (
     select * except(rank) from (
         select *,
-        DENSE_RANK() OVER (PARTITION BY posteddate, marketplacename, amazonorderid, ChargeType, TransactionType, AmountType order by _daton_batch_runtime desc) rank
-        from ChargeAmount
+        DENSE_RANK() OVER (PARTITION BY posteddate, marketplacename, amazonorderid, FeeType, TransactionType, AmountType order by _daton_batch_runtime desc) rank
+        from FeeAmount
     ) where rank = 1
 )
