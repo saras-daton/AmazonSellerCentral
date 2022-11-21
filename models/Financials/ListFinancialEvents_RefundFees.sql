@@ -1,4 +1,5 @@
--- depends_on: {{ref('ExchangeRates')}}
+--To disable the model, set the model name variable as False within your dbt_project.yml file.
+{{ config(enabled=var('ListFinancialEvents_RefundFees', True)) }}
 
 {% if var('table_partition_flag') %}
 {{config( 
@@ -146,7 +147,7 @@ FeeAmount as (
         from ItemFeeAdjustmentList
         cross join unnest(FeeAmount) FeeAmount
         {% if var('currency_conversion_flag') %}
-            left join {{ var('stg_projectid') }}.{{ var('stg_dataset_common') }}.ExchangeRates c on date(posteddate) = c.date and FeeAmount.CurrencyCode = c.to_currency_code
+            left join {{ref('ExchangeRates')}} c on date(posteddate) = c.date and FeeAmount.CurrencyCode = c.to_currency_code
         {% endif %}
 )
 

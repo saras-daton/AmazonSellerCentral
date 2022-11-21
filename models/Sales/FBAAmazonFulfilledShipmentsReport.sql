@@ -1,3 +1,6 @@
+--To disable the model, set the model name variable as False within your dbt_project.yml file.
+{{ config(enabled=var('FBAAmazonFulfilledShipmentsReport', True)) }}
+
 {% if var('table_partition_flag') %}
 {{config(
     materialized='incremental',
@@ -143,7 +146,7 @@ where lower(table_name) like '%fulfilledshipments%'
             DENSE_RANK() OVER (PARTITION BY purchase_date, sku, amazon_order_id order by a._daton_batch_runtime desc) rank
             from {{i}} a
                 {% if var('currency_conversion_flag') %}
-                     left join {{ var('stg_projectid') }}.{{ var('stg_dataset_common') }}.ExchangeRates c on date(a.purchase_date) = c.date and a.currency = c.to_currency_code
+                     left join {{ref('ExchangeRates')}} c on date(a.purchase_date) = c.date and a.currency = c.to_currency_code
                 {% endif %}
                 {% if is_incremental() %}
                 {# /* -- this filter will only be applied on an incremental run */ #}

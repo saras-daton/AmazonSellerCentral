@@ -1,3 +1,6 @@
+--To disable the model, set the model name variable as False within your dbt_project.yml file.
+{{ config(enabled=var('InventoryLedgerDetailedReport', True)) }}
+
 {% if var('table_partition_flag') %}
 {{config( 
     materialized='incremental', 

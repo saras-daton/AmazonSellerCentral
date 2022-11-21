@@ -1,4 +1,4 @@
-# Amazon Ads Data Modelling
+# Amazon Seller Partner Data Modelling
 This DBT package models the Amazon Selling Partner data coming from [Daton](https://sarasanalytics.com/daton/). [Daton](https://sarasanalytics.com/daton/) is the Unified Data Platform for Global Commerce with 100+ pre-built connectors and data sets designed for accelerating the eCommerce data and analytics journey by [Saras Analytics](https://sarasanalytics.com).
 
 Daton Connectors for Amazon Selling Partner Data - Amazon Selling Partner
@@ -19,7 +19,7 @@ If you haven't already, you will need to create a packages.yml file in your proj
 
 ```yaml
 packages:
-  - package: daton/amazon_advertising_bigquery
+  - package: daton/amazon_sellerpartner_bigquery
     version: [">=0.1.0", "<0.3.0"]
 ```
 
@@ -32,7 +32,7 @@ This package assumes that you have an existing DBT project with a BigQuery profi
 ```
 vars:
     raw_projectid: "your_gcp_project"
-    raw_dataset: "your_amazon_sellingpartner_dataset"
+    raw_dataset: "your_amazon_sellerpartner_dataset"
 ```
 
 ## Optional Variables
@@ -53,7 +53,7 @@ To enable timezone conversion, which converts the major date columns according t
 ```
 vars:
     timezone_conversion_flag: False
-    hr: 7
+    timezone_conversion_hours: 7
 ```
 
 ### Table Partitions
@@ -67,11 +67,11 @@ vars:
 
 ### Table Exclusions
 
-Setting these table exclusions will remove the modelling enabled for the below tables. By default, these tables are tagged True. 
+Setting these table exclusions will remove the modelling enabled for the below tables. By declaring the model names as variables as below, they get disabled. Refer the table below for model details. By default, these tables are tagged True. 
 
 ```
 vars:
-    sp_flatfilev2settlement: True
+    ListOrder: True
 ```
 
 ## Scheduling the Package for refresh
@@ -92,14 +92,14 @@ This package contains models from the Amazon Selling Partner API which includes 
 |Inventory | [FBAManageInventoryHealthReport](models/Inventory/FBAManageInventoryHealthReport.sql)  | A detailed report which gives details about inventory age , current inventory levels, recommended inventory levels |
 |Inventory | [FBAManageInventory](models/Inventory/FBAManageInventory.sql)  | A list of ad groups associated with the accountA report which gives details about inventory movement - inbound, outbound, sellable |
 |Inventory | [InventoryLedgerDetailedReport](models/Inventory/InventoryLedgerDetailedReport.sql)| A report about available quantity at the warehouse level |
-|Margin | [ListFinancialEvents_OrderFees](models/Margin/ListFinancialEvents_OrderFees.sql)| A list of fees associated with the shipment item. |
-|Margin | [ListFinancialEvents_OrderPromotions](models/Margin/ListFinancialEvents_OrderPromotions.sql)| A list of promotions which gives the amount of promotional discount applied to the item at an item & order level.|
-|Margin | [ListFinancialEvents_OrderRevenue](models/Margin/ListFinancialEvents_OrderRevenue.sql)| A list of shipment items which includes order & product level revenue |
-|Margin | [ListFinancialEvents_OrderTaxes](models/Margin/ListFinancialEvents_OrderTaxes.sql)| A list of order taxes |
-|Margin | [ListFinancialEvents_RefundFees](models/Margin/ListFinancialEvents_RefundFees.sql)| A list of fees associated with the refunded item.	 |
-|Margin | [ListFinancialEvents_RefundPromotions](models/Margin/ListFinancialEvents_RefundPromotions.sql)|A list of promotions which gives the amount of promotional discount applied to the item at an refunded item level. |
-|Margin | [ListFinancialEvents_RefundRevenue](models/Margin/ListFinancialEvents_RefundRevenue.sql)| A list of refunded items which includes refund & product level revenue |
-|Margin | [ListFinancialEvents_RefundTaxes](models/Margin/ListFinancialEvents_RefundTaxes.sql)| A list of refund taxes |
+|Financials | [ListFinancialEvents_OrderFees](models/Margin/ListFinancialEvents_OrderFees.sql)| A list of fees associated with the shipment item. |
+|Financials | [ListFinancialEvents_OrderPromotions](models/Margin/ListFinancialEvents_OrderPromotions.sql)| A list of promotions which gives the amount of promotional discount applied to the item at an item & order level.|
+|Financials | [ListFinancialEvents_OrderRevenue](models/Margin/ListFinancialEvents_OrderRevenue.sql)| A list of shipment items which includes order & product level revenue |
+|Financials | [ListFinancialEvents_OrderTaxes](models/Margin/ListFinancialEvents_OrderTaxes.sql)| A list of order taxes |
+|Financials | [ListFinancialEvents_RefundFees](models/Margin/ListFinancialEvents_RefundFees.sql)| A list of fees associated with the refunded item.	 |
+|Financials | [ListFinancialEvents_RefundPromotions](models/Margin/ListFinancialEvents_RefundPromotions.sql)|A list of promotions which gives the amount of promotional discount applied to the item at an refunded item level. |
+|Financials | [ListFinancialEvents_RefundRevenue](models/Margin/ListFinancialEvents_RefundRevenue.sql)| A list of refunded items which includes refund & product level revenue |
+|Financials | [ListFinancialEvents_RefundTaxes](models/Margin/ListFinancialEvents_RefundTaxes.sql)| A list of refund taxes |
 |Product | [CatalogItemsSummary](models/Product/CatalogItemsSummary.sql)| A list of product summary, manufacturer & dimensions |
 |Product | [AllListingsReport](models/Product/AllListingsReport.sql)|  listing report with details about all types of listings |
 |Returns | [FBAReturnsReport](models/Returns/FBAReturnsReport.sql)|Returns report of the orders fulfilled by Amazon |
