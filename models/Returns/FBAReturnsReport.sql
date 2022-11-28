@@ -104,3 +104,4 @@ where lower(table_name) like '%fbareturnsreport'
     {% if not loop.last %} union all {% endif %}
 {% endfor %}
 
+

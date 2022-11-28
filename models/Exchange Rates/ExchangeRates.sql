@@ -1,6 +1,4 @@
---To disable Exchange Rates model, set the currency_conversion_flag variable within your dbt_project.yml file to False.
-{{ config(enabled=var('currency_conversion_flag', True)) }}
-
+{% if var('currency_conversion_flag') %}
 {{config( 
     materialized='incremental', 
     incremental_strategy='merge', 
@@ -28,8 +26,6 @@ from {{ var('raw_projectid') }}.{{ var('raw_dataset') }}.INFORMATION_SCHEMA.TABL
 where lower(table_name) like '%exchangerates' 
 {% endset %}  
 
-
-
 {% set results = run_query(table_name_query) %}
 
 {% if execute %}
@@ -38,7 +34,6 @@ where lower(table_name) like '%exchangerates'
 {% else %}
 {% set results_list = [] %}
 {% endif %}
-
 
 {% for i in results_list %}
     {% set id =i.split('.')[2].split('_')[1] %}
@@ -58,8 +53,20 @@ where lower(table_name) like '%exchangerates'
             {# /* -- this filter will only be applied on an incremental run */ #}
             WHERE _daton_batch_runtime  >= {{max_loaded}}
             {% endif %}
-    
         )
     where row_num =1 
     {% if not loop.last %} union all {% endif %}
 {% endfor %}
+
+{% else %}
+{{config( 
+    materialized='table')}}
+select 
+        null from_currency_code, 
+        null to_currency_code, 
+        null value,
+        null _daton_user_id,
+        null _daton_batch_runtime,
+        null _daton_batch_id
+
+{% endif %}

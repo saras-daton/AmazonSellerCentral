@@ -1,3 +1,5 @@
+-- depends_on: {{ref('ExchangeRates')}}
+
 --To disable the model, set the model name variable as False within your dbt_project.yml file.
 {{ config(enabled=var('FBAAmazonFulfilledShipmentsReport', True)) }}
 
@@ -57,13 +59,11 @@ where lower(table_name) like '%fulfilledshipments%'
         {% set id = var('brand_name') %}
     {% endif %}
 
-    
-
     SELECT *, ROW_NUMBER() OVER (PARTITION BY purchase_date, sku, amazon_order_id order by _daton_batch_runtime, quantity_shipped) _seq_id
     From (
         SELECT * except(rank),
         From (
-            select
+            select '{{id}}' as brand,
             CAST(ReportstartDate as timestamp) ReportstartDate,
             CAST(ReportendDate as timestamp) ReportendDate,
             CAST(ReportRequestTime as timestamp) ReportRequestTime,
@@ -146,7 +146,7 @@ where lower(table_name) like '%fulfilledshipments%'
             DENSE_RANK() OVER (PARTITION BY purchase_date, sku, amazon_order_id order by a._daton_batch_runtime desc) rank
             from {{i}} a
                 {% if var('currency_conversion_flag') %}
-                     left join {{ref('ExchangeRates')}} c on date(a.purchase_date) = c.date and a.currency = c.to_currency_code
+                     left join {{ var('stg_projectid') }}.{{ var('stg_dataset_common') }}.ExchangeRates c on date(a.purchase_date) = c.date and a.currency = c.to_currency_code
                 {% endif %}
                 {% if is_incremental() %}
                 {# /* -- this filter will only be applied on an incremental run */ #}

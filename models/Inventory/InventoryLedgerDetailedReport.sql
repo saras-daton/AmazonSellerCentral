@@ -7,12 +7,12 @@
     incremental_strategy='merge', 
     partition_by = { 'field': 'date', 'data_type': 'date' },
     cluster_by = ['date','msku'], 
-    unique_key = ['date','fulfillment_center','msku', 'event_type', 'reference_id'])}}
+    unique_key = ['date','fulfillment_center','msku', 'event_type', 'reference_id','quantity','disposition','_daton_batch_id'])}}
 {% else %}
 {{config( 
     materialized='incremental', 
     incremental_strategy='merge', 
-    unique_key = ['date','fulfillment_center','msku', 'event_type', 'reference_id'])}}
+    unique_key = ['date','fulfillment_center','msku', 'event_type', 'reference_id','quantity','disposition','_daton_batch_id'])}}
 {% endif %}
 
 {% if is_incremental() %}

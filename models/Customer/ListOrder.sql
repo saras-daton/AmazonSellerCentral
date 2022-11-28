@@ -47,15 +47,19 @@ and lower(table_name) not like '%mws%'
 {% set results_list = [] %}
 {% endif %}
 
+{% if var('timezone_conversion_flag') %}
+    {% set hr = var('timezone_conversion_hours') %}
+{% endif %}
 
 {% for i in results_list %}
-
-    {% if var('timezone_conversion_flag') %}
-        {% set hr = var('timezone_conversion_hours') %}
+    {% if var('brand_consolidation_flag') %}
+        {% set id =i.split('.')[2].split('_')[var('brand_name_position')] %}
+    {% else %}
+        {% set id = var('brand_name') %}
     {% endif %}
     SELECT * except(row_num),
     From (
-        select
+        select '{{id}}' as brand,
         RequestStartDate,
         RequestEndDate,
         sellingPartnerId,
