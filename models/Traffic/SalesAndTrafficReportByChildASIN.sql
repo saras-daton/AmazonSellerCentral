@@ -1,3 +1,5 @@
+-- depends_on: {{ref('ExchangeRates')}}
+
 --To disable the model, set the model name variable as False within your dbt_project.yml file.
 {{ config(enabled=var('SalesAndTrafficReportByChildASIN', True)) }}
 
@@ -112,7 +114,7 @@ where lower(table_name) like '%salesandtrafficreportbychildasin%'
     DENSE_RANK() OVER (PARTITION BY '{{id}}', a.date, parentAsin, childASIN order by a._daton_batch_runtime desc) as row_num
     from {{i}} a 
                 {% if var('currency_conversion_flag') %}
-                    left join {{ref('ExchangeRates')}} c on date(a.date) = c.date and a.orderedProductSales_currencyCode = c.to_currency_code   
+                    left join {{ var('stg_projectid') }}.{{ var('stg_dataset_common') }}.ExchangeRates c on date(a.date) = c.date and a.orderedProductSales_currencyCode = c.to_currency_code   
                 {% endif %}
                 {% if is_incremental() %}
                 {# /* -- this filter will only be applied on an incremental run */ #}
@@ -122,3 +124,4 @@ where lower(table_name) like '%salesandtrafficreportbychildasin%'
             ) where row_num = 1
     {% if not loop.last %} union all {% endif %}
     {% endfor %}
+

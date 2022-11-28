@@ -1,3 +1,5 @@
+-- depends_on: {{ref('ExchangeRates')}}
+
 --To disable the model, set the model name variable as False within your dbt_project.yml file.
 {{ config(enabled=var('FlatFileAllOrdersReportByLastUpdate', True)) }}
 
@@ -137,7 +139,7 @@ where lower(table_name) like '%flatfileallordersreportbylastupdate'
                 unix_micros(current_timestamp()) as _edm_runtime,
                 DENSE_RANK() OVER (PARTITION BY last_updated_date, purchase_date, amazon_order_id, asin, sku order by a._daton_batch_runtime desc) rank1 from {{i}} a
                 {% if var('currency_conversion_flag') %}
-                    left join {{ref('ExchangeRates')}} c on date(a.purchase_date) = c.date and a.currency = c.to_currency_code                      
+                    left join {{ var('stg_projectid') }}.{{ var('stg_dataset_common') }}.ExchangeRates c on date(a.purchase_date) = c.date and a.currency = c.to_currency_code                      
                 {% endif %}
                 {% if is_incremental() %}
                     {# /* -- this filter will only be applied on an incremental run */ #}
@@ -148,4 +150,5 @@ where lower(table_name) like '%flatfileallordersreportbylastupdate'
         )
     {% if not loop.last %} union all {% endif %}
 {% endfor %}
+
 

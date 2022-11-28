@@ -43,10 +43,14 @@ where lower(table_name) like '%alllistingsreport'
 {% endif %}
 
 {% for i in results_list %}
-    {% set id =i.split('.')[2].split('_')[0] %}
+    {% if var('brand_consolidation_flag') %}
+        {% set id =i.split('.')[2].split('_')[var('brand_name_position')] %}
+    {% else %}
+        {% set id = var('brand_name') %}
+    {% endif %}
     SELECT * except(row_num)
     From (
-        select 
+        select '{{id}}' as brand,
         CAST(ReportstartDate as timestamp) ReportstartDate,
         CAST(ReportendDate as timestamp) ReportendDate,
         ReportRequestTime,
