@@ -1,7 +1,7 @@
 -- depends_on: {{ref('ExchangeRates')}}
 
 --To disable the model, set the model name variable as False within your dbt_project.yml file.
-{{ config(enabled=var('ListFinancialEvents_OrderRevenue', True)) }}
+{{ config(enabled=var('ListFinancialEvents_OrderTaxes', True)) }}
 
 {% if var('table_partition_flag') %}
 {{config( 
@@ -70,7 +70,7 @@ where lower(table_name) like '%listfinancialevents%'
     ShipmentEventlist.ShipmentItemList,
     _daton_user_id,
     _daton_batch_runtime,
-    _daton_batch_id,
+    _daton_batch_id, 
     FROM  {{i}} cross join unnest(ShipmentEventlist) ShipmentEventlist
             {% if is_incremental() %}
             {# /* -- this filter will only be applied on an incremental run */ #}
@@ -89,7 +89,7 @@ ShipmentItemList as (
         marketplacename,
         ShipmentItemList.sellerSKU as sellerSKU,
         ShipmentItemList.quantityshipped as quantityshipped,
-        ShipmentItemList.ItemChargeList,
+        ShipmentItemList.ItemTaxWithHeldList,
         _daton_user_id,
         _daton_batch_runtime,
         _daton_batch_id,
@@ -97,7 +97,7 @@ ShipmentItemList as (
         cross join unnest(ShipmentItemList) ShipmentItemList        
 ),
 
-ItemChargeList as (
+ItemTaxWithHeldList as (
         select 
         Brand,
         posteddate, 
@@ -105,20 +105,36 @@ ItemChargeList as (
         marketplacename,
         sellerSKU,
         quantityshipped,
-        ItemChargeList.ChargeType,
-        ItemChargeList.ChargeAmount,
+        ItemTaxWithHeldList.TaxesWithheld,
         _daton_user_id,
         _daton_batch_runtime,
         _daton_batch_id,
         from ShipmentItemList
-        cross join unnest(ItemChargeList) ItemChargeList
+        cross join unnest(ItemTaxWithHeldList) ItemTaxWithHeldList
+),
+
+TaxesWithheld as (
+        select 
+        Brand, 
+        posteddate,
+        amazonorderid,
+        marketplacename,
+        sellerSKU,
+        quantityshipped,
+        TaxesWithheld.ChargeType,
+        TaxesWithheld.ChargeAmount,
+        _daton_user_id,
+        _daton_batch_runtime,
+        _daton_batch_id,
+        from ItemTaxWithHeldList
+        cross join unnest(TaxesWithheld) TaxesWithheld
 ),
 
 ChargeAmount as (
         select 
         Brand,
         posteddate,
-        'Revenue' as AmountType,
+        'Taxes' as AmountType,
         'Order' as TransactionType,
         amazonorderid,
         marketplacename,
@@ -128,15 +144,15 @@ ChargeAmount as (
         ChargeAmount.CurrencyCode as CurrencyCode,
         ChargeAmount.CurrencyAmount as CurrencyAmount,
         {% if var('currency_conversion_flag') %}
-            c.value as conversion_rate,
-            c.from_currency_code as conversion_currency, 
+            case when c.value is null then 1 else c.value end as conversion_rate,
+            case when c.from_currency_code is null then currency else c.from_currency_code end as conversion_currency,
         {% else %}
             cast(1 as decimal) as conversion_rate,
             cast(null as string) as conversion_currency, 
         {% endif %}
-        ItemChargeList._daton_user_id,
-        ItemChargeList._daton_batch_runtime,
-        ItemChargeList._daton_batch_id,
+        TaxesWithheld._daton_user_id,
+        TaxesWithheld._daton_batch_runtime,
+        TaxesWithheld._daton_batch_id,
         {% if var('timezone_conversion_flag') %}
            DATETIME_ADD(cast(posteddate as timestamp), INTERVAL {{hr}} HOUR ) as _edm_eff_strt_ts,
         {% else %}
@@ -144,10 +160,10 @@ ChargeAmount as (
         {% endif %}
         null as _edm_eff_end_ts,
         unix_micros(current_timestamp()) as _edm_runtime,
-        from ItemChargeList
+        from TaxesWithheld
         cross join unnest(ChargeAmount) ChargeAmount
         {% if var('currency_conversion_flag') %}
-            left join {{ var('stg_projectid') }}.{{ var('stg_dataset_common') }}.ExchangeRates c on date(posteddate) = c.date and ChargeAmount.CurrencyCode = c.to_currency_code
+            left join {{ref('ExchangeRates')}} c on date(posteddate) = c.date and ChargeAmount.CurrencyCode = c.to_currency_code
         {% endif %}
 )
 
@@ -157,5 +173,5 @@ from (
         select *,
         DENSE_RANK() OVER (PARTITION BY posteddate, marketplacename, amazonorderid, ChargeType, TransactionType, AmountType order by _daton_batch_runtime desc) rank
         from ChargeAmount
-    ) where rank = 1
+    ) where rank=1
 )
