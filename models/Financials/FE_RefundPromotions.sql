@@ -132,7 +132,7 @@ PromotionAmount as (
         PromotionAmount.CurrencyAmount as CurrencyAmount,
         {% if var('currency_conversion_flag') %}
             case when c.value is null then 1 else c.value end as conversion_rate,
-            case when c.from_currency_code is null then currency else c.from_currency_code end as conversion_currency, 
+            case when c.from_currency_code is null then PromotionAmount.CurrencyCode else c.from_currency_code end as conversion_currency, 
         {% else %}
             cast(1 as decimal) as conversion_rate,
             cast(null as string) as conversion_currency,
