@@ -126,8 +126,8 @@ where lower(table_name) like '%fulfilledshipments%'
             fulfillment_channel,
             sales_channel,
             {% if var('currency_conversion_flag') %}
-                c.value as conversion_rate,
-                c.from_currency_code as conversion_currency, 
+                case when c.value is null then 1 else c.value end as conversion_rate,
+                case when c.from_currency_code is null then currency else c.from_currency_code end as conversion_currency,
             {% else %}
                 cast(1 as decimal) as conversion_rate,
                 cast(null as string) as conversion_currency, 
@@ -146,7 +146,7 @@ where lower(table_name) like '%fulfilledshipments%'
             DENSE_RANK() OVER (PARTITION BY purchase_date, sku, amazon_order_id order by a._daton_batch_runtime desc) rank
             from {{i}} a
                 {% if var('currency_conversion_flag') %}
-                     left join {{ var('stg_projectid') }}.{{ var('stg_dataset_common') }}.ExchangeRates c on date(a.purchase_date) = c.date and a.currency = c.to_currency_code
+                     left join {{ref('ExchangeRates')}} c on date(a.purchase_date) = c.date and a.currency = c.to_currency_code
                 {% endif %}
                 {% if is_incremental() %}
                 {# /* -- this filter will only be applied on an incremental run */ #}

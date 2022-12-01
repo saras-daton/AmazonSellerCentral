@@ -8,21 +8,21 @@ models:
     description: A list of ad groups associated with the accountA report which gives details about inventory movement - inbound, outbound, sellable
   - name: InventoryLedgerDetailedReport
     description: A report about available quantity at the warehouse level
-  - name: ListFinancialEvents_OrderFees
+  - name: FE_OrderFees
     description: A list of fees associated with the shipment item.
-  - name: ListFinancialEvents_OrderPromotions
+  - name: FE_OrderPromotions
     description: A list of promotions which gives the amount of promotional discount applied to the item at an item & order level.
-  - name: ListFinancialEvents_OrderRevenue
+  - name: FE_OrderRevenue
     description: A list of shipment items which includes order & product level revenue
-  - name: ListFinancialEvents_OrderTaxes
+  - name: FE_OrderTaxes
     description: A list of order taxes
-  - name: ListFinancialEvents_RefundFees
+  - name: FE_RefundFees
     description: A list of fees associated with the refunded item.	
-  - name: ListFinancialEvents_RefundPromotions
+  - name: FE_RefundPromotions
     description: A list of promotions which gives the amount of promotional discount applied to the item at an refunded item level.
-  - name: ListFinancialEvents_RefundRevenue
+  - name: FE_RefundRevenue
     description: A list of refunded items which includes refund & product level revenue
-  - name: ListFinancialEvents_RefundTaxes
+  - name: FE_RefundTaxes
     description: A list of refund taxes
   - name: CatalogItemsSummary
     description: A list of product summary, manufacturer & dimensions

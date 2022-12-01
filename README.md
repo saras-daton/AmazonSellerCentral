@@ -90,14 +90,14 @@ This package contains models from the Amazon Selling Partner API which includes 
 |Inventory | [FBAManageInventoryHealthReport](models/Inventory/FBAManageInventoryHealthReport.sql)  | A detailed report which gives details about inventory age , current inventory levels, recommended inventory levels |
 |Inventory | [FBAManageInventory](models/Inventory/FBAManageInventory.sql)  | A list of ad groups associated with the accountA report which gives details about inventory movement - inbound, outbound, sellable |
 |Inventory | [InventoryLedgerDetailedReport](models/Inventory/InventoryLedgerDetailedReport.sql)| A report about available quantity at the warehouse level |
-|Financials | [ListFinancialEvents_OrderFees](models/Margin/ListFinancialEvents_OrderFees.sql)| A list of fees associated with the shipment item. |
-|Financials | [ListFinancialEvents_OrderPromotions](models/Margin/ListFinancialEvents_OrderPromotions.sql)| A list of promotions which gives the amount of promotional discount applied to the item at an item & order level.|
-|Financials | [ListFinancialEvents_OrderRevenue](models/Margin/ListFinancialEvents_OrderRevenue.sql)| A list of shipment items which includes order & product level revenue |
-|Financials | [ListFinancialEvents_OrderTaxes](models/Margin/ListFinancialEvents_OrderTaxes.sql)| A list of order taxes |
-|Financials | [ListFinancialEvents_RefundFees](models/Margin/ListFinancialEvents_RefundFees.sql)| A list of fees associated with the refunded item.	 |
-|Financials | [ListFinancialEvents_RefundPromotions](models/Margin/ListFinancialEvents_RefundPromotions.sql)|A list of promotions which gives the amount of promotional discount applied to the item at an refunded item level. |
-|Financials | [ListFinancialEvents_RefundRevenue](models/Margin/ListFinancialEvents_RefundRevenue.sql)| A list of refunded items which includes refund & product level revenue |
-|Financials | [ListFinancialEvents_RefundTaxes](models/Margin/ListFinancialEvents_RefundTaxes.sql)| A list of refund taxes |
+|Financial Events | [FE_OrderFees](models/Margin/FE_OrderFees.sql)| A list of fees associated with the shipment item. |
+|Financial Events | [FE_OrderPromotions](models/Margin/FE_OrderPromotions.sql)| A list of promotions which gives the amount of promotional discount applied to the item at an item & order level.|
+|Financial Events | [FE_OrderRevenue](models/Margin/FE_OrderRevenue.sql)| A list of shipment items which includes order & product level revenue |
+|Financial Events | [FE_OrderTaxes](models/Margin/FE_OrderTaxes.sql)| A list of order taxes |
+|Financial Events | [FE_RefundFees](models/Margin/FE_RefundFees.sql)| A list of fees associated with the refunded item.	 |
+|Financial Events | [FE_RefundPromotions](models/Margin/FE_RefundPromotions.sql)|A list of promotions which gives the amount of promotional discount applied to the item at an refunded item level. |
+|Financial Events | [FE_RefundRevenue](models/Margin/FE_RefundRevenue.sql)| A list of refunded items which includes refund & product level revenue |
+|Financial Events | [FE_RefundTaxes](models/Margin/FE_RefundTaxes.sql)| A list of refund taxes |
 |Product | [CatalogItemsSummary](models/Product/CatalogItemsSummary.sql)| A list of product summary, manufacturer & dimensions |
 |Product | [AllListingsReport](models/Product/AllListingsReport.sql)|  listing report with details about all types of listings |
 |Returns | [FBAReturnsReport](models/Returns/FBAReturnsReport.sql)|Returns report of the orders fulfilled by Amazon |
