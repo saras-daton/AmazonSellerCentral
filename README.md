@@ -36,6 +36,16 @@ vars:
     raw_dataset: "your_amazon_sellerpartner_dataset"
 ```
 
+## Schema Change
+
+We will create the models under the schema (<target_schema>_stg_amazon). In case, you would like the models to be written to the target schema or a different custom schema, please add the following in the dbt_project.yml file.
+
+```yml
+models:
+  amazon_sellerpartner_bigquery:
+    +schema: custom_schema_name # leave blank for just the target_schema
+```
+
 ## Optional Variables
 
 Package offers different configurations which must be set in your `dbt_project.yml` file under the above variables. These variables can be marked as True/False based on your requirements. Details about the variables are given below.
@@ -43,13 +53,14 @@ Package offers different configurations which must be set in your `dbt_project.y
 ```yaml
 vars:
     currency_conversion_flag: False
-    timezone_conversion_flag: False
+    timezone_conversion_flag:
+        amazon_sellerpartner: False
     timezone_conversion_hours: 7
     table_partition_flag: False
     SponsoredBrands_Portfolio: True
     brand_consolidation_flag: False
     brand_name_position: 0
-    brand_name: "ABC"
+    brand_name: "Amazon Seller Name"
 ```
 
 ### Currency Conversion 
@@ -70,7 +81,7 @@ Setting these table exclusions will remove the modelling enabled for the below m
 
 ### Brand Consolidation
 
-Given, your amazon account has more than one brand, enabling the brand consolidation flag, adds the brand name to the tables while creating them. Brand name positions (Eg: 0/1/2) gets the brand name from the integration name based on the location you have given. In case there is only a single brand, adding the name in brand name variable adds the column to the tables. By default, brand consolidation flag is False and brand name variable needs to be set.
+The Amazon Seller Name would be called the Brand name in this case. If you sell more than one brand, then brand consolidation can be enabled. Brand name positions (Eg: 0/1/2) gets the brand name from the integration name based on the location you have given. In case there is only a single brand, adding the name in brand name variable adds the column to the tables. By default, brand consolidation flag is False and brand name variable needs to be set.
 
 ## Scheduling the Package for refresh
 

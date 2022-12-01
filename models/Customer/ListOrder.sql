@@ -47,7 +47,7 @@ and lower(table_name) not like '%mws%'
 {% set results_list = [] %}
 {% endif %}
 
-{% if var('timezone_conversion_flag') %}
+{% if var('timezone_conversion_flag')['amazon_sellerpartner'] %}
     {% set hr = var('timezone_conversion_hours') %}
 {% endif %}
 
@@ -66,7 +66,7 @@ and lower(table_name) not like '%mws%'
         marketplaceName,
         AmazonOrderId,
         SellerOrderId,
-        {% if var('timezone_conversion_flag') %}
+        {% if var('timezone_conversion_flag')['amazon_sellerpartner'] %}
             cast(DATETIME_ADD(PurchaseDate, INTERVAL {{hr}} HOUR ) as DATE) PurchaseDate,
             DATETIME_ADD(cast(LastUpdateDate as timestamp), INTERVAL {{hr}} HOUR ) LastUpdateDate,  
         {% else %}
@@ -119,7 +119,7 @@ and lower(table_name) not like '%mws%'
         _daton_user_id,
         _daton_batch_runtime,
         _daton_batch_id,
-        {% if var('timezone_conversion_flag') %}
+        {% if var('timezone_conversion_flag')['amazon_sellerpartner'] %}
             DATETIME_ADD(cast(LastUpdateDate as timestamp), INTERVAL {{hr}} HOUR ) as _edm_eff_strt_ts,
         {% else %}
             CAST(LastUpdateDate as timestamp) as _edm_eff_strt_ts,

@@ -47,7 +47,7 @@ where lower(table_name) like '%fbamanageinventoryhealthr%'
 {% set results_list = [] %}
 {% endif %}
 
-{% if var('timezone_conversion_flag') %}
+{% if var('timezone_conversion_flag')['amazon_sellerpartner'] %}
     {% set hr = var('timezone_conversion_hours') %}
 {% endif %}
 
@@ -138,7 +138,7 @@ where lower(table_name) like '%fbamanageinventoryhealthr%'
         a._daton_user_id,
         a._daton_batch_runtime,
         a._daton_batch_id,
-        {% if var('timezone_conversion_flag') %}
+        {% if var('timezone_conversion_flag')['amazon_sellerpartner'] %}
            DATETIME_ADD(cast(snapshot_date as timestamp), INTERVAL {{hr}} HOUR ) as _edm_eff_strt_ts,
         {% else %}
            CAST(snapshot_date as timestamp) as _edm_eff_strt_ts,

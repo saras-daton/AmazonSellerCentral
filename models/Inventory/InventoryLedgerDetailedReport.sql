@@ -44,7 +44,7 @@ where lower(table_name) like '%ledgerdetail%'
 {% set results_list = [] %}
 {% endif %}
 
-{% if var('timezone_conversion_flag') %}
+{% if var('timezone_conversion_flag')['amazon_sellerpartner'] %}
     {% set hr = var('timezone_conversion_hours') %}
 {% endif %}
 
@@ -65,7 +65,7 @@ where lower(table_name) like '%ledgerdetail%'
         sellingpartnerid,
         marketplacename,
         marketplaceid,
-        {% if var('timezone_conversion_flag') %}
+        {% if var('timezone_conversion_flag')['amazon_sellerpartner'] %}
             cast(DATETIME_ADD(cast(Date as timestamp), INTERVAL {{hr}} HOUR ) as DATE) Date,
         {% else %}
         Date,
@@ -84,7 +84,7 @@ where lower(table_name) like '%ledgerdetail%'
         _daton_user_id,
         _daton_batch_runtime,
         _daton_batch_id,
-        {% if var('timezone_conversion_flag') %}
+        {% if var('timezone_conversion_flag')['amazon_sellerpartner'] %}
            DATETIME_ADD(cast(Date as timestamp), INTERVAL {{hr}} HOUR ) as _edm_eff_strt_ts,
         {% else %}
            CAST(Date as timestamp) as _edm_eff_strt_ts,
