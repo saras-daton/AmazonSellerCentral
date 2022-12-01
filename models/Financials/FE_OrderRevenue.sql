@@ -46,7 +46,7 @@ where lower(table_name) like '%listfinancialevents%'
 {% set results_list = [] %}
 {% endif %}
 
-{% if var('timezone_conversion_flag') %}
+{% if var('timezone_conversion_flag')['amazon_sellerpartner'] %}
     {% set hr = var('timezone_conversion_hours') %}
 {% endif %}
 
@@ -60,7 +60,7 @@ where lower(table_name) like '%listfinancialevents%'
     SELECT * FROM (
     select 
     '{{id}}' as Brand,
-    {% if var('timezone_conversion_flag') %}
+    {% if var('timezone_conversion_flag')['amazon_sellerpartner'] %}
         cast(DATETIME_ADD(cast(ShipmentEventlist.posteddate as timestamp), INTERVAL {{hr}} HOUR ) as DATE) posteddate,
     {% else %}
         date(ShipmentEventlist.posteddate) as posteddate,
@@ -137,7 +137,7 @@ ChargeAmount as (
         ItemChargeList._daton_user_id,
         ItemChargeList._daton_batch_runtime,
         ItemChargeList._daton_batch_id,
-        {% if var('timezone_conversion_flag') %}
+        {% if var('timezone_conversion_flag')['amazon_sellerpartner'] %}
            DATETIME_ADD(cast(posteddate as timestamp), INTERVAL {{hr}} HOUR ) as _edm_eff_strt_ts,
         {% else %}
            CAST(posteddate as timestamp) as _edm_eff_strt_ts,

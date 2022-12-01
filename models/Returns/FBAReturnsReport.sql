@@ -47,7 +47,7 @@ where lower(table_name) like '%fbareturnsreport'
 {% endif %}
 
 
-{% if var('timezone_conversion_flag') %}
+{% if var('timezone_conversion_flag')['amazon_sellerpartner'] %}
     {% set hr = var('timezone_conversion_hours') %}
 {% endif %}
 
@@ -86,7 +86,7 @@ where lower(table_name) like '%fbareturnsreport'
             _daton_user_id,
             _daton_batch_runtime,
             _daton_batch_id,
-            {% if var('timezone_conversion_flag') %}
+            {% if var('timezone_conversion_flag')['amazon_sellerpartner'] %}
                 DATETIME_ADD(TIMESTAMP_MILLIS(cast(_daton_batch_runtime as int)), INTERVAL {{hr}} HOUR ) as _edm_eff_strt_ts,
             {% else %}
                 TIMESTAMP_MILLIS(cast(_daton_batch_runtime as int)) _edm_eff_strt_ts,

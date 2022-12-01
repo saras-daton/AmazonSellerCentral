@@ -48,7 +48,7 @@ where lower(table_name) like '%fulfilledshipments%'
 {% set results_list = [] %}
 {% endif %}
 
-{% if var('timezone_conversion_flag') %}
+{% if var('timezone_conversion_flag')['amazon_sellerpartner'] %}
     {% set hr = var('timezone_conversion_hours') %}
 {% endif %}
 
@@ -76,7 +76,7 @@ where lower(table_name) like '%fulfilledshipments%'
             shipment_item_id,
             amazon_order_item_id,
             merchant_order_item_id,
-            {% if var('timezone_conversion_flag') %}
+            {% if var('timezone_conversion_flag')['amazon_sellerpartner'] %}
                 cast(DATETIME_ADD(cast(purchase_date as timestamp), INTERVAL {{hr}} HOUR ) as DATE) purchase_date,
                 cast(DATETIME_ADD(cast(payments_date as timestamp), INTERVAL {{hr}} HOUR ) as DATE) payments_date,
                 cast(DATETIME_ADD(cast(shipment_date as timestamp), INTERVAL {{hr}} HOUR ) as DATE) shipment_date,
@@ -135,7 +135,7 @@ where lower(table_name) like '%fulfilledshipments%'
             a._daton_user_id,
             CAST(a._daton_batch_runtime as int64) _daton_batch_runtime,
             a._daton_batch_id,
-            {% if var('timezone_conversion_flag') %}
+            {% if var('timezone_conversion_flag')['amazon_sellerpartner'] %}
                 DATETIME_ADD(TIMESTAMP_MILLIS(cast(a._daton_batch_runtime as int)), INTERVAL {{hr}} HOUR ) as _edm_eff_strt_ts,
             {% else %}
                 TIMESTAMP_MILLIS(cast(a._daton_batch_runtime as int)) _edm_eff_strt_ts,
