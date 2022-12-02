@@ -19,7 +19,7 @@
 
 {% if is_incremental() %}
 {%- set max_loaded_query -%}
-SELECT MAX(_daton_batch_runtime) - 2592000000 FROM {{ this }}
+SELECT coalesce(MAX(_daton_batch_runtime) - 2592000000,0) FROM {{ this }}
 {% endset %}
 
 {%- set max_loaded_results = run_query(max_loaded_query) -%}
@@ -82,7 +82,7 @@ where lower(table_name) like '%fulfilledshipments%'
                 cast(DATETIME_ADD(cast(shipment_date as timestamp), INTERVAL {{hr}} HOUR ) as DATE) shipment_date,
                 cast(DATETIME_ADD(cast(reporting_date as timestamp), INTERVAL {{hr}} HOUR ) as DATE) reporting_date,
             {% else %}
-                cast(purchase_date as DATE) purchase_date,
+                CAST(timestamp(purchase_date) as DATE) purchase_date,
                 CAST(timestamp(payments_date) as DATE) payments_date,
                 CAST(timestamp(shipment_date) as DATE) shipment_date,
                 CAST(timestamp(reporting_date) as DATE) reporting_date,
@@ -126,11 +126,11 @@ where lower(table_name) like '%fulfilledshipments%'
             fulfillment_channel,
             sales_channel,
             {% if var('currency_conversion_flag') %}
-                case when c.value is null then 1 else c.value end as conversion_rate,
-                case when c.from_currency_code is null then currency else c.from_currency_code end as conversion_currency,
+                case when c.value is null then 1 else c.value end as exchange_currency_rate,
+                case when c.from_currency_code is null then currency else c.from_currency_code end as exchange_currency_code ,
             {% else %}
-                cast(1 as decimal) as conversion_rate,
-                cast(null as string) as conversion_currency, 
+                cast(1 as decimal) as exchange_currency_rate,
+                cast(null as string) as exchange_currency_code , 
             {% endif %}
             a._daton_user_id,
             CAST(a._daton_batch_runtime as int64) _daton_batch_runtime,

@@ -20,7 +20,7 @@ If you haven't already, you will need to create a packages.yml file in your proj
 
 ```yaml
 packages:
-  - package: daton/amazon_sellerpartner_bigquery
+  - package: saras-daton/amazon_sellerpartner_bigquery
     version: 0.1.0
 ```
 
@@ -65,11 +65,11 @@ vars:
 
 ### Currency Conversion 
 
-To enable currency conversion, which produces two columns - conversion_rate, conversion_currency based on the data from the Exchange Rates Connector from Daton.  please mark the currency conversion flag as True. By default, it is False.
+To enable currency conversion, which produces two columns - exchange_currency_rate, exchange_currency_code  based on the data from the Exchange Rates Connector from Daton.  please mark the currency conversion flag as True. By default, it is False.
 
 ### Timezone Conversion 
 
-To enable timezone conversion, which converts the major date columns according to given timezone, please mark the time zone conversion variable as True in the dbt_project.yml file. The data is available at UTC timezone and by setting the hr variable, it will be offset by the specified number of hours.(Eg: 7,8,-7,-11 etc) By default, it is False.
+To enable timezone conversion, which converts the major date columns according to given timezone, please mark the time zone conversion variable for this pakage as True in the dbt_project.yml file. The Ads data is available at local timezone and by setting the timezone_conversion_hours variable, it will be offset by the specified number of hours.(Eg: 7,8,-7,-11 etc) By default, it is False.
 
 ### Table Partitions
 
@@ -93,7 +93,7 @@ dbt run --select amazon_sellerpartner_bigquery
 
 ## Models
 
-This package contains models from the Amazon Selling Partner API which includes reports on sales, margin, inventory, product. The primary outputs of this package are described below.
+This package contains models from the Amazon Selling Partner API which includes reports on sales, margin, inventory, product. Please follow this to get more details about [models](https://docs.google.com/spreadsheets/d/1OaJnVpBrPZaBusJXBHrT8dhnD2zctWMmSRN__WLQsl0/edit?usp=sharing). The primary outputs of this package are described below.
 
 | **Category**                 | **Model**  | **Description** |
 | ------------------------- | ---------------| ----------------------- |
