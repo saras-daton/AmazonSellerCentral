@@ -19,7 +19,7 @@
 
 {% if is_incremental() %}
 {%- set max_loaded_query -%}
-SELECT MAX(_daton_batch_runtime) - 2592000000 FROM {{ this }}
+SELECT coalesce(MAX(_daton_batch_runtime) - 2592000000,0) FROM {{ this }}
 {% endset %}
 
 {%- set max_loaded_results = run_query(max_loaded_query) -%}
@@ -129,11 +129,11 @@ where lower(table_name) like '%fbamanageinventoryhealthr%'
         inbound_received,
         no_sale_last_6_months,
         {% if var('currency_conversion_flag') %}
-            case when c.value is null then 1 else c.value end as conversion_rate,
-            case when c.from_currency_code is null then currency else c.from_currency_code end as conversion_currency, 
+            case when c.value is null then 1 else c.value end as exchange_currency_rate,
+            case when c.from_currency_code is null then currency else c.from_currency_code end as exchange_currency_code , 
         {% else %}
-            cast(1 as decimal) as conversion_rate,
-            cast(null as string) as conversion_currency, 
+            cast(1 as decimal) as exchange_currency_rate,
+            cast(null as string) as exchange_currency_code , 
         {% endif %}
         a._daton_user_id,
         a._daton_batch_runtime,

@@ -1,5 +1,5 @@
 --To disable the model, set the model name variable as False within your dbt_project.yml file.
-{{ config(enabled=var('	ListOrder', True)) }}
+{{ config(enabled=var('ListOrder', True)) }}
 
 {% if var('table_partition_flag') %}
 {{config(
@@ -17,7 +17,7 @@
 
 {% if is_incremental() %}
 {%- set max_loaded_query -%}
-SELECT MAX(_daton_batch_runtime) - 2592000000 FROM {{ this }}
+SELECT coalesce(MAX(_daton_batch_runtime) - 2592000000,0) FROM {{ this }}
 {% endset %}
 
 {%- set max_loaded_results = run_query(max_loaded_query) -%}
@@ -126,7 +126,7 @@ and lower(table_name) not like '%mws%'
         {% endif %}
         null as _edm_eff_end_ts,
         unix_micros(current_timestamp()) as _edm_runtime,
-        Dense_Rank() OVER (PARTITION BY Date(PurchaseDate), amazonorderid order by _daton_batch_runtime desc) row_num
+        ROW_NUMBER() OVER (PARTITION BY Date(PurchaseDate), amazonorderid order by _daton_batch_runtime desc) row_num
 	    from {{i}} 
                 cross join unnest(BuyerInfo) BuyerInfo
                 {% if is_incremental() %}
