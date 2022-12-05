@@ -6,7 +6,7 @@ This package would be performing the following funtions:
 - Consolidation - Different marketplaces & different brands would have similar tables. Helps in consolidating all the tables into one final stage table 
 - Deduplication - Based on primary keys , the tables are deduplicated and the latest records are only loaded into the stage models
 - Incremental Load - Models are designed to include incremental load which when scheduled would update the tables regularly
-- (Optional) Currency Conversion - Based on the currency input, a couple of currency columns are generated to aid in the currency conversion - (Prerequisite - Exchange Rates connector in Daton needs to be present - Refer [this]())
+- (Optional) Currency Conversion - Based on the currency input, a couple of currency columns are generated to aid in the currency conversion - (Prerequisite - Exchange Rates connector in Daton needs to be present - Refer [this](https://github.com/saras-daton/currency_exchange_rates))
 - (Optional) Time Zone Conversion - Based on the time zone input, the relevant datetime columns are replaced with the converted values
 
 #### Prerequisite 
