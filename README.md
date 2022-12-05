@@ -57,7 +57,7 @@ vars:
         amazon_sellerpartner: False
     timezone_conversion_hours: 7
     table_partition_flag: False
-    SponsoredBrands_Portfolio: True
+    ListOrder: True
     brand_consolidation_flag: False
     brand_name_position: 0
     brand_name: "Amazon Seller Name"
@@ -85,11 +85,7 @@ The Amazon Seller Name would be called the Brand name in this case. If you sell 
 
 ## Scheduling the Package for refresh
 
-The ad tables that are being generated as part of this package are enabled for incremental refresh and can be scheduled by creating the job in Production Environment by giving the below command.
-
-```
-dbt run --select amazon_sellerpartner_bigquery
-```
+The seller partner tables that are being generated as part of this package are enabled for incremental refresh and can be scheduled by creating a job in Production Environment. During 'DBT Build', the models get refreshed.
 
 ## Models
 
