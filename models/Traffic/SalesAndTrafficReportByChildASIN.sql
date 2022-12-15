@@ -9,12 +9,12 @@
     incremental_strategy='merge',
     partition_by = { 'field': 'date', 'data_type': 'date' },
     cluster_by = ['parentAsin', 'childAsin'],
-    unique_key = ['date', 'parentAsin', 'childAsin'])}}
+    unique_key = ['date', 'parentAsin', 'childAsin','sku'])}}
 {% else %}
 {{config(
     materialized='incremental',
     incremental_strategy='merge',
-    unique_key = ['date', 'parentAsin', 'childAsin'])}}
+    unique_key = ['date', 'parentAsin', 'childAsin','sku'])}}
 {% endif %}
 
 {% if is_incremental() %}
@@ -69,8 +69,9 @@ where lower(table_name) like '%salesandtrafficreportbychildasin%'
     marketplaceName,
     marketplaceId,
     a.date,
-    parentAsin,
-    childAsin,
+    coalesce(parentAsin,'') as parentAsin,
+    coalesce(childAsin,'') as childAsin,
+    coalesce(sku,'') as sku,
     unitsOrdered,
     unitsOrderedB2B,
     orderedProductSales_amount,
@@ -111,7 +112,7 @@ where lower(table_name) like '%salesandtrafficreportbychildasin%'
     {% endif %}
     null as _edm_eff_end_ts,
     unix_micros(current_timestamp()) as _edm_runtime,
-    DENSE_RANK() OVER (PARTITION BY '{{id}}', a.date, parentAsin, childASIN order by a._daton_batch_runtime desc) as row_num
+    DENSE_RANK() OVER (PARTITION BY '{{id}}', a.date, parentAsin, childASIN, sku order by a._daton_batch_runtime desc) as row_num
     from {{i}} a 
                 {% if var('currency_conversion_flag') %}
                     left join {{ref('ExchangeRates')}} c on date(a.date) = c.date and a.orderedProductSales_currencyCode = c.to_currency_code   

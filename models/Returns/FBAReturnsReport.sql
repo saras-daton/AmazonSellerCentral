@@ -7,7 +7,7 @@
     incremental_strategy='merge',
     partition_by = { 'field': 'return_date', 'data_type': 'date' },
     cluster_by = ['asin','sku'],
-    unique_key = ['return_date','asin','sku','order_id','fnsku','license_plate_number'])}}
+    unique_key = ['return_date','asin','sku','order_id','fnsku','license_plate_number', '_seq_id'])}}
 {% else %}
 {{config(
     materialized='incremental',

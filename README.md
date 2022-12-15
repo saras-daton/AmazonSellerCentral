@@ -1,5 +1,5 @@
 # Amazon Seller Partner Data Modelling
-This DBT package models the Amazon Selling Partner data coming from [Daton](https://sarasanalytics.com/daton/). [Daton](https://sarasanalytics.com/daton/) is the Unified Data Platform for Global Commerce with 100+ pre-built connectors and data sets designed for accelerating the eCommerce data and analytics journey by [Saras Analytics](https://sarasanalytics.com).
+This dbt package models the Amazon Selling Partner data coming from [Daton](https://sarasanalytics.com/daton/). [Daton](https://sarasanalytics.com/daton/) is the Unified Data Platform for Global Commerce with 100+ pre-built connectors and data sets designed for accelerating the eCommerce data and analytics journey by [Saras Analytics](https://sarasanalytics.com).
 
 This package would be performing the following funtions:
 
@@ -28,7 +28,7 @@ packages:
 
 ## Required Variables
 
-This package assumes that you have an existing DBT project with a BigQuery profile connected & tested. Source data is located using the following variables which must be set in your `dbt_project.yml` file.
+This package assumes that you have an existing dbt project with a BigQuery profile connected & tested. Source data is located using the following variables which must be set in your `dbt_project.yml` file.
 
 ```yaml
 vars:
@@ -85,7 +85,7 @@ The Amazon Seller Name would be called the Brand name in this case. If you sell 
 
 ## Scheduling the Package for refresh
 
-The seller partner tables that are being generated as part of this package are enabled for incremental refresh and can be scheduled by creating a job in Production Environment. During 'DBT Build', the models get refreshed.
+The seller partner tables that are being generated as part of this package are enabled for incremental refresh and can be scheduled by creating a job in Production Environment. During 'dbt Build', the models get refreshed.
 
 ## Models
 
@@ -116,4 +116,4 @@ This package contains models from the Amazon Selling Partner API which includes 
 ## Resources:
 - Have questions, feedback, or need [help](https://calendly.com/priyanka-vankadaru/30min)? Schedule a call with our data experts or email us at info@sarasanalytics.com.
 - Learn more about Daton [here](https://sarasanalytics.com/daton/).
-- Refer [this](https://youtu.be/6zDTbM6OUcs) to know more about how to create a DBT account & connect to Bigquery
+- Refer [this](https://youtu.be/6zDTbM6OUcs) to know more about how to create a dbt account & connect to Bigquery
