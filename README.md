@@ -21,7 +21,7 @@ If you haven't already, you will need to create a packages.yml file in your proj
 ```yaml
 packages:
   - package: saras-daton/amazon_sellerpartner_bigquery
-    version: 0.1.0
+    version: 1.0.0
 ```
 
 # Configuration 
