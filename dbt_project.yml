@@ -2,11 +2,31 @@
 # Name your project! Project names should contain only lowercase characters
 # and underscores. A good package name should reflect your organization's
 # name or the intended use of these models
-name: 'amazon_sellerpartner_bigquery'
+name: 'amazon_sellerpartner'
 version: '1.0.0'
 config-version: 2
 require-dbt-version: [">=1.0.0", "<2.0.0"]
 
+vars:
+  raw_projectid: "edm-saras"
+  raw_dataset: "EDM_Daton"
+
+  currency_conversion_flag: True
+  table_partition_flag: False
+  brand_consolidation_flag: True
+  store_consolidation_flag: True # To get the geographical region of the table data
+  # if brand_consolidation_flag = True, position of brand name in the daton integration name
+
+  store_name_position: 2
+  # if store_consolidation_flag = False, provide the store name to be populated in the table
+  store: "US"
+
+  brand_name_position: 1
+  # if brand_consolidation_flag = False, provide the brand name to be populated in the table
+  brand_name: "Default"
+  timezone_conversion_flag: False
+  timezone_conversion_hours: "-7"
+  snowflake_database_flag: False
 
 # These configurations specify where dbt should look for different types of files.
 # The `model-paths` config, for example, states that models in this project can be
@@ -25,5 +45,5 @@ clean-targets:         # directories to be removed by `dbt clean`
 
 
 models:
-  amazon_sellerpartner_bigquery:
+  AmazonSellerCentral:
     +schema: stg_amazon
