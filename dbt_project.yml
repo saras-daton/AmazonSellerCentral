@@ -14,16 +14,21 @@ vars:
   currency_conversion_flag: True
   table_partition_flag: False
   brand_consolidation_flag: True
+  brandname_from_tablename_flag: True
   store_consolidation_flag: True # To get the geographical region of the table data
   # if brand_consolidation_flag = True, position of brand name in the daton integration name
-
+  storename_from_tablename_flag: True 
   store_name_position: 2
+  storename_from_tablename_position: 2
   # if store_consolidation_flag = False, provide the store name to be populated in the table
   store: "US"
 
   brand_name_position: 1
+  brandname_from_tablename_position: 1
   # if brand_consolidation_flag = False, provide the brand name to be populated in the table
   brand_name: "Default"
+  default_brand_name: "Default"
+
   timezone_conversion_flag: False
   timezone_conversion_hours: "-7"
   snowflake_database_flag: False
@@ -47,4 +52,4 @@ clean-targets:         # directories to be removed by `dbt clean`
 models:
   amazon_sellerpartner:
     AmazonSellerCentral:
-      +schema: stg_amazon
+      +schema: stg_amazon_dbthub
