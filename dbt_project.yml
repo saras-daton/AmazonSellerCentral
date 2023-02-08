@@ -45,5 +45,6 @@ clean-targets:         # directories to be removed by `dbt clean`
 
 
 models:
-  AmazonSellerCentral:
-    +schema: stg_amazon
+  amazon_sellerpartner:
+    AmazonSellerCentral:
+      +schema: stg_amazon
