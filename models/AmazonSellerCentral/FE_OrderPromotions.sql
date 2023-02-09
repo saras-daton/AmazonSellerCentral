@@ -1,17 +1,4 @@
  -- depends_on: {{ ref('ExchangeRates') }} 
-    {% if var('table_partition_flag') %}
-    {{config( 
-        materialized='incremental', 
-        incremental_strategy='merge', 
-        partition_by = { 'field': 'posteddate', 'data_type': 'date' },
-        cluster_by = ['marketplacename', 'amazonorderid'], 
-        unique_key = ['posteddate', 'marketplacename', 'amazonorderid', 'PromotionType', 'TransactionType', 'AmountType','_seq_id'])}}
-    {% else %}
-    {{config( 
-        materialized='incremental', 
-        incremental_strategy='merge', 
-        unique_key = ['posteddate', 'marketplacename', 'amazonorderid', 'PromotionType', 'TransactionType', 'AmountType','_seq_id'])}}
-    {% endif %}
 
     {% if is_incremental() %}
     {%- set max_loaded_query -%}
@@ -42,16 +29,16 @@
 
 
     {% for i in results_list %}
-        {% if var('brand_consolidation_flag') %}
-            {% set brand =i.split('.')[2].split('_')[var('brand_name_position')] %}
+        {% if var('get_brandname_from_tablename_flag') %}
+            {% set brand =i.split('.')[2].split('_')[var('brandname_position_in_tablename')] %}
         {% else %}
-            {% set brand = var('brand_name') %}
+            {% set brand = var('default_brandname') %}
         {% endif %}
 
-        {% if var('store_consolidation_flag') %}
-            {% set store =i.split('.')[2].split('_')[var('store_name_position')] %}
+        {% if var('get_storename_from_tablename_flag') %}
+            {% set store =i.split('.')[2].split('_')[var('storename_position_in_tablename')] %}
         {% else %}
-            {% set store = var('store') %}
+            {% set store = var('default_storename') %}
         {% endif %}
 
     SELECT * FROM (
@@ -69,7 +56,7 @@
             select 
             'Promotion' as AmountType,
             'Order' as TransactionType,
-            {% if var('snowflake_database_flag') %} 
+            {% if target.type=='snowflake' %} 
             ShipmentEventlist.VALUE:PostedDate :: DATE as posteddate,
             ShipmentEventlist.VALUE:AmazonOrderId :: varchar as Amazonorderid,
             ShipmentEventlist.VALUE:MarketplaceName :: varchar as marketplacename,

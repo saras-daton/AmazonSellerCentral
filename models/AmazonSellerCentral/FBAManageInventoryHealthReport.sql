@@ -1,17 +1,4 @@
 -- depends_on: {{ref('ExchangeRates')}}
-    {% if var('table_partition_flag') %}
-    {{config( 
-        materialized='incremental', 
-        incremental_strategy='merge', 
-        partition_by = { 'field': 'snapshot_date', 'data_type': 'date' },
-        cluster_by = ['asin','sku'], 
-        unique_key = ['snapshot_date','asin','sku'])}}
-    {% else %}
-    {{config( 
-        materialized='incremental', 
-        incremental_strategy='merge', 
-        unique_key = ['snapshot_date','asin','sku'])}}
-    {% endif %}
 
     {% if is_incremental() %}
     {%- set max_loaded_query -%}
@@ -46,16 +33,16 @@
     {% endif %}
 
     {% for i in results_list %}
-        {% if var('brand_consolidation_flag') %}
-            {% set brand =i.split('.')[2].split('_')[var('brand_name_position')] %}
+        {% if var('get_brandname_from_tablename_flag') %}
+            {% set brand =i.split('.')[2].split('_')[var('brandname_position_in_tablename')] %}
         {% else %}
-            {% set brand = var('brand_name') %}
+            {% set brand = var('default_brandname') %}
         {% endif %}
 
-        {% if var('store_consolidation_flag') %}
-            {% set store =i.split('.')[2].split('_')[var('store_name_position')] %}
+        {% if var('get_storename_from_tablename_flag') %}
+            {% set store =i.split('.')[2].split('_')[var('storename_position_in_tablename')] %}
         {% else %}
-            {% set store = var('store') %}
+            {% set store = var('default_storename') %}
         {% endif %}
 
         SELECT *  {{exclude()}} (row_num)

@@ -1,6 +1,6 @@
 {% macro exclude() %}
 
-    {% if var('snowflake_database_flag') %}
+    {% if target.type =='snowflake' %}
         exclude
     {% else %}
         except

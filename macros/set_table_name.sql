@@ -1,6 +1,6 @@
 {% macro set_table_name(variable) %}
 
-    {% if var('snowflake_database_flag') %}
+    {% if target.type =='snowflake' %}
     select concat(table_catalog,'.',table_schema, '.',table_name) as tables 
     from INFORMATION_SCHEMA.TABLES 
     where lower(table_name) like '{{variable}}'  and table_schema='EDM'

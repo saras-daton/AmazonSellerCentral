@@ -1,5 +1,6 @@
 {% macro unnesting(variable) %}
-    {% if var('snowflake_database_flag') %}
+
+    {% if target.type =='snowflake' %}
     , LATERAL FLATTEN( input => PARSE_JSON({{variable}})) {{variable}}
     {% else %}
     left join unnest({{variable}}) {{variable}}

@@ -1,18 +1,5 @@
  -- depends_on: {{ ref('ExchangeRates') }}
-    {% if var('table_partition_flag') %}
-    {{config( 
-        materialized='incremental', 
-        incremental_strategy='merge', 
-        partition_by = { 'field': 'posteddate', 'data_type': 'date' },
-        cluster_by = ['marketplacename', 'amazonorderid'], 
-        unique_key = ['posteddate', 'marketplacename', 'amazonorderid', 'ChargeType', '_seq_id'])}}
-    {% else %}
-    {{config( 
-        materialized='incremental', 
-        incremental_strategy='merge', 
-        unique_key = ['posteddate', 'marketplacename', 'amazonorderid', 'ChargeType', '_seq_id'])}}
 
-    {% endif %}
     {% if is_incremental() %}
     {%- set max_loaded_query -%}
     SELECT coalesce(MAX({{daton_batch_runtime()}}) - 2592000000,0) FROM {{ this }}
@@ -45,16 +32,16 @@
     {% endif %}
 
     {% for i in results_list %}
-         {% if var('brand_consolidation_flag') %}
-            {% set id =i.split('.')[2].split('_')[var('brand_name_position')] %}
+         {% if var('get_brandname_from_tablename_flag') %}
+            {% set id =i.split('.')[2].split('_')[var('brandname_position_in_tablename')] %}
         {% else %}
-            {% set id = var('brand_name') %}
+            {% set id = var('default_brandname') %}
         {% endif %}
 
-        {% if var('store_consolidation_flag') %}
-            {% set store =i.split('.')[2].split('_')[var('store_name_position')] %}
+        {% if var('get_storename_from_tablename_flag') %}
+            {% set store =i.split('.')[2].split('_')[var('storename_position_in_tablename')] %}
         {% else %}
-            {% set store = var('store') %}
+            {% set store = var('default_storename') %}
         {% endif %}
     
         SELECT * FROM (
@@ -71,7 +58,7 @@
         '{{store}}' as store,
         'Tax' as AmountType,
         'Refund' as TransactionType,
-        {% if var('snowflake_database_flag') %} 
+        {% if target.type=='snowflake' %} 
         REFUNDEVENTLIST.VALUE:PostedDate :: DATE as posteddate,
         REFUNDEVENTLIST.VALUE:AmazonOrderId :: varchar as AmazonOrderId,
         REFUNDEVENTLIST.VALUE:MarketplaceName :: varchar as marketplacename,

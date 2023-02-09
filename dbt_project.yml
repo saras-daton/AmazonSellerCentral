@@ -10,29 +10,18 @@ require-dbt-version: [">=1.0.0", "<2.0.0"]
 vars:
   raw_projectid: "edm-saras"
   raw_dataset: "EDM_Daton"
-
   currency_conversion_flag: True
-  table_partition_flag: False
-  brand_consolidation_flag: True
-  brandname_from_tablename_flag: True
-  store_consolidation_flag: True # To get the geographical region of the table data
-  # if brand_consolidation_flag = True, position of brand name in the daton integration name
-  storename_from_tablename_flag: True 
-  store_name_position: 2
-  storename_from_tablename_position: 2
-  # if store_consolidation_flag = False, provide the store name to be populated in the table
-  store: "US"
-
-  brand_name_position: 1
-  brandname_from_tablename_position: 1
-  # if brand_consolidation_flag = False, provide the brand name to be populated in the table
-  brand_name: "Default"
-  default_brand_name: "Default"
+  get_brandname_from_tablename_flag: True
+  brandname_position_in_tablename: 1
+  default_brandname: "" # Example- default_brandname: "Nike"
+  get_storename_from_tablename_flag: True 
+  storename_position_in_tablename: 2
+  default_storename: "" # Example- default_storename: "US"
 
   timezone_conversion_flag: False
   timezone_conversion_hours: "-7"
-  snowflake_database_flag: False
 
+  
 # These configurations specify where dbt should look for different types of files.
 # The `model-paths` config, for example, states that models in this project can be
 # found in the "models/" directory. You probably won't need to change these!
