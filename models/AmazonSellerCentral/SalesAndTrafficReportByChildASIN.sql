@@ -95,17 +95,8 @@
 	   	    a.{{daton_user_id()}},
        	    a.{{daton_batch_runtime()}},
             a.{{daton_batch_id()}},
-	        {% if var('timezone_conversion_flag') %}
-                DATETIME_ADD(cast(a.date as timestamp), INTERVAL {{hr}} HOUR ) as effective_start_date,
-                null as effective_end_date,
-                DATETIME_ADD(current_timestamp(), INTERVAL {{hr}} HOUR ) as last_updated,
-                null as run_id,
-            {% else %}
-                cast(a.date as timestamp) as effective_start_date,
-                null as effective_end_date,
-                current_timestamp() as last_updated,
-                null as run_id,
-            {% endif %}
+            current_timestamp() as last_updated,
+            null as run_id,
             ROW_NUMBER() OVER (PARTITION BY '{{id}}', a.date, parentAsin, childASIN  order by a.{{daton_batch_runtime()}} desc) as row_num
             from {{i}} a 
                         {% if var('currency_conversion_flag') %}

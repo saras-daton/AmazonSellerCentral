@@ -27,11 +27,6 @@
     {% set results_list = [] %}
     {% endif %}
 
-
-    {% if var('timezone_conversion_flag') %}
-        {% set hr = var('timezone_conversion_hours') %}
-    {% endif %}
-
     {% for i in results_list %}
         {% if var('get_brandname_from_tablename_flag') %}
             {% set brand =i.split('.')[2].split('_')[var('brandname_position_in_tablename')] %}
@@ -45,6 +40,10 @@
             {% set store = var('default_storename') %}
         {% endif %}
 
+        {% if var('timezone_conversion_flag') %}
+            {% set hr = var('timezone_offset_hours')[store] %}
+        {% endif %}
+
        SELECT *, ROW_NUMBER() OVER (PARTITION BY purchase_date, sku, amazon_order_id order by {{daton_batch_runtime()}}, quantity_shipped) _seq_id
         From (
             SELECT * {{exclude()}} (rank)
@@ -52,6 +51,7 @@
                 select 
                 '{{brand}}' as brand,
                 '{{store}}' as store,
+                '{{hr}}' as hr,
                 CAST(ReportstartDate as timestamp) ReportstartDate,
                 CAST(ReportendDate as timestamp) ReportendDate,
                 CAST(ReportRequestTime as timestamp) ReportRequestTime,
@@ -116,17 +116,8 @@
 	            a.{{daton_user_id()}},
                 a.{{daton_batch_runtime()}},
                 a.{{daton_batch_id()}},
-	            {% if var('timezone_conversion_flag') %}
-                    DATETIME_ADD(cast(a.purchase_date as timestamp), INTERVAL {{hr}} HOUR ) as effective_start_date,
-                    null as effective_end_date,
-                    DATETIME_ADD(current_timestamp(), INTERVAL {{hr}} HOUR ) as last_updated,
-                    null as run_id,
-                {% else %}
-                    cast(a.purchase_date as timestamp) as effective_start_date,
-                    null as effective_end_date,
-                    current_timestamp() as last_updated,
-                    null as run_id,
-                {% endif %}
+                current_timestamp() as last_updated,
+                '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as run_id,
                 ROW_NUMBER() OVER (PARTITION BY purchase_date, sku, amazon_order_id order by a.{{daton_batch_runtime()}} desc) rank
                 from {{i}} a
                     {% if var('currency_conversion_flag') %}

@@ -119,17 +119,8 @@
 	   	            a.{{daton_user_id()}},
        	            a.{{daton_batch_runtime()}},
                     a.{{daton_batch_id()}},
-	                {% if var('timezone_conversion_flag') %}
-                        DATETIME_ADD(cast(last_updated_date as timestamp), INTERVAL {{hr}} HOUR ) as effective_start_date,
-                        null as effective_end_date,
-                        DATETIME_ADD(current_timestamp(), INTERVAL {{hr}} HOUR ) as last_updated,
-                        null as run_id,
-                    {% else %}
-                        cast(last_updated_date as timestamp) as effective_start_date,
-                        null as effective_end_date,
-                        current_timestamp() as last_updated,
-                        null as run_id,
-                    {% endif %}
+                    current_timestamp() as last_updated,
+                    null as run_id,
                     ROW_NUMBER() OVER (PARTITION BY last_updated_date, purchase_date, amazon_order_id, asin, sku order by a.{{daton_batch_runtime()}} desc) as rank1
                     from {{i}}  a  
                     {% if var('currency_conversion_flag') %}

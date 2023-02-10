@@ -76,17 +76,8 @@
 	   	        {{daton_user_id()}},
        	        {{daton_batch_runtime()}},
                 {{daton_batch_id()}},
-	            {% if var('timezone_conversion_flag') %}
-                    DATETIME_ADD(cast(Date as timestamp), INTERVAL {{hr}} HOUR ) as effective_start_date,
-                    null as effective_end_date,
-                    DATETIME_ADD(current_timestamp(), INTERVAL {{hr}} HOUR ) as last_updated,
-                    null as run_id,
-                {% else %}
-                    cast(Date as timestamp) as effective_start_date,
-                    null as effective_end_date,
-                    current_timestamp() as last_updated,
-                    null as run_id,
-                {% endif %}
+                current_timestamp() as last_updated,
+                null as run_id,
                 ROW_NUMBER() OVER (PARTITION BY Date,asin, msku, fulfillment_center, event_type, reference_id, quantity, disposition order by {{daton_batch_runtime()}} desc) row_num
                 from {{i}} 
                     {% if is_incremental() %}

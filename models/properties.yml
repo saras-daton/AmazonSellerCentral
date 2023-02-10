@@ -159,6 +159,7 @@ models:
       unique_key: ['purchase_date', 'amazon_order_id', 'asin', 'sku', '_seq_id']
       partition_by: { 'field': 'purchase_date', 'data_type': 'date' }
       cluster_by: ['asin', 'sku', 'amazon_order_id']
+    timezone_offset_by: {'UK': 7}
       
   - name: SalesAndTrafficReportByChildASIN
     description: Provides sales & traffic at SKU level that we see in the Business Report in the UI

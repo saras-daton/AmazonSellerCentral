@@ -74,17 +74,8 @@
 	            {{daton_user_id()}},
                 {{daton_batch_runtime()}},
                 {{daton_batch_id()}},
-                {% if var('timezone_conversion_flag') %}
-                    DATETIME_ADD({{from_epoch_milliseconds()}}, INTERVAL {{hr}} HOUR ) as effective_start_date,
-                    null as effective_end_date,
-                    DATETIME_ADD(current_timestamp(), INTERVAL {{hr}} HOUR ) as last_updated,
-                    null as run_id,
-                {% else %}
-                    {{from_epoch_milliseconds()}} effective_start_date,
-                    null as effective_end_date,
-                    current_timestamp() as last_updated,
-                    null as run_id,
-                {% endif %}
+                current_timestamp() as last_updated,
+                null as run_id,
                 Dense_Rank() OVER (PARTITION BY date(return_date), asin, sku, order_id, fnsku, license_plate_number, fulfillment_center_id order by {{daton_batch_runtime()}} desc) row_num
                 from {{i}}    
                     {% if is_incremental() %}

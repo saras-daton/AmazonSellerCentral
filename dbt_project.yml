@@ -12,14 +12,19 @@ vars:
   raw_dataset: "EDM_Daton"
   currency_conversion_flag: True
   get_brandname_from_tablename_flag: True
-  brandname_position_in_tablename: 1
-  default_brandname: "" # Example- default_brandname: "Nike"
+  brandname_position_in_tablename: 0
+  # Example- default_brandname: "Nike"
+  default_brandname: "" 
   get_storename_from_tablename_flag: True 
-  storename_position_in_tablename: 2
-  default_storename: "" # Example- default_storename: "US"
+  storename_position_in_tablename: 1
+  # Example- default_storename: "US"
+  default_storename: "" 
 
-  timezone_conversion_flag: False
+  timezone_conversion_flag: True
   timezone_conversion_hours: "-7"
+  timezone_offset_hours: {"US":5,
+                          "UK":7,
+                          "MEX":2}
 
   
 # These configurations specify where dbt should look for different types of files.
