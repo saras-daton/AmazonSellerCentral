@@ -1,37 +1,34 @@
 -- depends_on: {{ref('ExchangeRates')}}
 
     {% if is_incremental() %}
-    {%- set max_loaded_query -%}
-    SELECT coalesce(MAX({{daton_batch_runtime()}}) - 2592000000,0) FROM {{ this }}
-    {% endset %}
+        {%- set max_loaded_query -%}
+            SELECT coalesce(MAX({{daton_batch_runtime()}}) - 2592000000,0) FROM {{ this }}
+        {% endset %}
 
-    {%- set max_loaded_results = run_query(max_loaded_query) -%}
+        {%- set max_loaded_results = run_query(max_loaded_query) -%}
 
-    {%- if execute -%}
-    {% set max_loaded = max_loaded_results.rows[0].values()[0] %}
-    {% else %}
-    {% set max_loaded = 0 %}
-    {%- endif -%}
+        {%- if execute -%}
+            {% set max_loaded = max_loaded_results.rows[0].values()[0] %}
+        {% else %}
+            {% set max_loaded = 0 %}
+        {%- endif -%}
     {% endif %}
 
     {% set table_name_query %}
-    {{set_table_name('%flatfileallordersreportbylastupdate')}}    
+        {{set_table_name('%flatfileallordersreportbylastupdate')}}    
     {% endset %}  
 
 
     {% set results = run_query(table_name_query) %}
     {% if execute %}
-    {# Return the first column #}
-    {% set results_list = results.columns[0].values() %}
+        {# Return the first column #}
+        {% set results_list = results.columns[0].values() %}
+        {% set tables_lowercase_list = results.columns[1].values() %}
     {% else %}
-    {% set results_list = [] %}
+        {% set results_list = [] %}
+        {% set tables_lowercase_list = [] %}
     {% endif %}
-
-
-
-    {% if var('timezone_conversion_flag') %}
-        {% set hr = var('timezone_conversion_hours') %}
-    {% endif %}
+    
 
     {% for i in results_list %}
         {% if var('get_brandname_from_tablename_flag') %}
@@ -44,6 +41,10 @@
             {% set store =i.split('.')[2].split('_')[var('storename_position_in_tablename')] %}
         {% else %}
             {% set store = var('default_storename') %}
+        {% endif %}
+
+        {% if var('timezone_conversion_flag') and i.lower() in tables_lowercase_list %}
+            {% set hr = var('raw_table_timezone_offset_hours')[i] %}
         {% endif %}
 
         SELECT * {{exclude()}} (rank1,rank2)
@@ -64,10 +65,10 @@
                     coalesce(amazon_order_id,'') as amazon_order_id,
                     merchant_order_id,
                     {% if var('timezone_conversion_flag') %}
-                        cast(DATETIME_ADD(purchase_date, INTERVAL {{hr}} HOUR ) as DATE) purchase_date,
+                        DATETIME_ADD(purchase_date, INTERVAL {{hr}} HOUR ) purchase_date,
                         DATETIME_ADD(cast(last_updated_date as timestamp), INTERVAL {{hr}} HOUR ) last_updated_date,
                     {% else %}
-                        cast(purchase_date as DATE) purchase_date,
+                        purchase_date,
                         CAST(last_updated_date as timestamp) last_updated_date,
                     {% endif %}
                     order_status, 

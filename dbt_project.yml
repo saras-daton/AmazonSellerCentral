@@ -22,9 +22,11 @@ vars:
 
   timezone_conversion_flag: True
   timezone_conversion_hours: "-7"
-  timezone_offset_hours: {"US":5,
-                          "UK":7,
-                          "MEX":2}
+  timezone_offset_hours: 5
+  raw_table_timezone_offset_hours: {
+    "edm-saras.EDM_Daton.Brand_US_AmazonSellerCentral_FlatFileAllOrdersReportbyLastUpdate1":6,
+    "edm-saras.EDM_Daton.Brand_US_AmazonSellerCentral_FlatFileAllOrdersReportbyLastUpdate":7
+    }
 
   
 # These configurations specify where dbt should look for different types of files.
