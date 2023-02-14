@@ -65,11 +65,11 @@
                     coalesce(amazon_order_id,'') as amazon_order_id,
                     merchant_order_id,
                     {% if var('timezone_conversion_flag') %}
-                        DATETIME_ADD(purchase_date, INTERVAL {{hr}} HOUR ) purchase_date,
-                        DATETIME_ADD(cast(last_updated_date as timestamp), INTERVAL {{hr}} HOUR ) last_updated_date,
+                        DATETIME_ADD(purchase_date, INTERVAL {{hr}} HOUR ) as purchase_date,
+                        DATETIME_ADD(cast(last_updated_date as {{ dbt.type_timestamp() }}), INTERVAL {{hr}} HOUR ) as last_updated_date,
                     {% else %}
                         purchase_date,
-                        CAST(last_updated_date as timestamp) last_updated_date,
+                        CAST(last_updated_date as {{ dbt.type_timestamp() }}) as last_updated_date,
                     {% endif %}
                     order_status, 
                     fulfillment_channel, 
@@ -121,7 +121,7 @@
        	            a.{{daton_batch_runtime()}},
                     a.{{daton_batch_id()}},
                     current_timestamp() as last_updated,
-                    null as run_id,
+                    '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as run_id,
                     ROW_NUMBER() OVER (PARTITION BY last_updated_date, purchase_date, amazon_order_id, asin, sku order by a.{{daton_batch_runtime()}} desc) as rank1
                     from {{i}}  a  
                     {% if var('currency_conversion_flag') %}

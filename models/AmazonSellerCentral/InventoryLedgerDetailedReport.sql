@@ -19,19 +19,16 @@
     {% endset %}  
 
 
-        {% set results = run_query(table_name_query) %}
-        {% if execute %}
+    {% set results = run_query(table_name_query) %}
+    {% if execute %}
         {# Return the first column #}
         {% set results_list = results.columns[0].values() %}
-        {% else %}
+        {% set tables_lowercase_list = results.columns[1].values() %}
+    {% else %}
         {% set results_list = [] %}
-        {% endif %}
+        {% set tables_lowercase_list = [] %}
+    {% endif %}
 
-
-
-        {% if var('timezone_conversion_flag') %}
-            {% set hr = var('timezone_conversion_hours') %}
-        {% endif %}
 
         {% for i in results_list %}
             {% if var('get_brandname_from_tablename_flag') %}
@@ -46,6 +43,10 @@
                 {% set store = var('default_storename') %}
             {% endif %}
 
+            {% if var('timezone_conversion_flag') and i.lower() in tables_lowercase_list %}
+                {% set hr = var('raw_table_timezone_offset_hours')[i] %}
+            {% endif %}
+
             SELECT *  {{exclude()}} (row_num)
                 From (
                 select 
@@ -58,9 +59,9 @@
                 marketplacename,
                 marketplaceid,
                 {% if var('timezone_conversion_flag') %}
-                    cast(DATETIME_ADD(cast(Date as timestamp), INTERVAL {{hr}} HOUR ) as DATE) Date,
+                    DATETIME_ADD(cast(Date as {{ dbt.type_timestamp() }}), INTERVAL {{hr}} HOUR ) as Date,
                 {% else %}
-                Date,
+                    cast(Date as {{ dbt.type_timestamp() }}) as Date,
                 {% endif %}
                 fnsku,
                 coalesce(asin,'') as asin,
@@ -77,7 +78,7 @@
        	        {{daton_batch_runtime()}},
                 {{daton_batch_id()}},
                 current_timestamp() as last_updated,
-                null as run_id,
+                '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as run_id,
                 ROW_NUMBER() OVER (PARTITION BY Date,asin, msku, fulfillment_center, event_type, reference_id, quantity, disposition order by {{daton_batch_runtime()}} desc) row_num
                 from {{i}} 
                     {% if is_incremental() %}

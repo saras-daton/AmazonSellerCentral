@@ -79,7 +79,7 @@
        		{{daton_batch_runtime()}},
         	{{daton_batch_id()}},
             current_timestamp() as last_updated,
-            null as run_id
+            '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as run_id
             FROM {{i}} 
                 {{unnesting("ShipmentEventlist")}}
                 {{multi_unnesting("ShipmentEventlist","ShipmentItemList")}}

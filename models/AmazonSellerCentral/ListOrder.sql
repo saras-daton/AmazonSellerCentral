@@ -19,10 +19,12 @@
 
     {% set results = run_query(table_name_query) %}
     {% if execute %}
-    {# Return the first column #}
-    {% set results_list = results.columns[0].values() %}
+        {# Return the first column #}
+        {% set results_list = results.columns[0].values() %}
+        {% set tables_lowercase_list = results.columns[1].values() %}
     {% else %}
-    {% set results_list = [] %}
+        {% set results_list = [] %}
+        {% set tables_lowercase_list = [] %}
     {% endif %}
 
 
@@ -38,6 +40,10 @@
     {% else %}
         {% set store = var('default_storename') %}
     {% endif %}
+
+    {% if var('timezone_conversion_flag') and i.lower() in tables_lowercase_list %}
+        {% set hr = var('raw_table_timezone_offset_hours')[i] %}
+    {% endif %}
     
      select * {{exclude()}} (row_num)from (
         SELECT *, ROW_NUMBER() OVER (PARTITION BY Date(PurchaseDate), amazonorderid order by {{daton_batch_runtime()}} desc) row_num
@@ -52,11 +58,11 @@
             coalesce(AmazonOrderId,'') as AmazonOrderId,
             SellerOrderId,
             {% if var('timezone_conversion_flag') %}
-                cast(DATETIME_ADD(PurchaseDate, INTERVAL {{hr}} HOUR ) as DATE) PurchaseDate,
-                DATETIME_ADD(cast(LastUpdateDate as timestamp), INTERVAL {{hr}} HOUR ) LastUpdateDate,  
+                DATETIME_ADD(PurchaseDate, INTERVAL {{hr}} HOUR ) as PurchaseDate,
+                DATETIME_ADD(cast(LastUpdateDate as {{ dbt.type_timestamp() }}), INTERVAL {{hr}} HOUR ) as LastUpdateDate,  
             {% else %}
-                cast(PurchaseDate as DATE) PurchaseDate,
-                CAST(LastUpdateDate as timestamp) LastUpdateDate,
+                PurchaseDate as PurchaseDate,
+                CAST(LastUpdateDate as {{ dbt.type_timestamp() }}) as LastUpdateDate,
             {% endif %}
             OrderStatus,
             FulfillmentChannel,
@@ -113,7 +119,7 @@
        	    {{daton_batch_runtime()}},
             {{daton_batch_id()}},
             current_timestamp() as last_updated,
-            null as run_id
+            '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as run_id
             FROM {{i}} 
             {{unnesting("BUYERINFO")}}
                {% if is_incremental() %}

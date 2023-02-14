@@ -24,8 +24,10 @@ vars:
   timezone_conversion_hours: "-7"
   timezone_offset_hours: 5
   raw_table_timezone_offset_hours: {
-    "edm-saras.EDM_Daton.Brand_US_AmazonSellerCentral_FlatFileAllOrdersReportbyLastUpdate1":6,
-    "edm-saras.EDM_Daton.Brand_US_AmazonSellerCentral_FlatFileAllOrdersReportbyLastUpdate":7
+    "edm-saras.EDM_Daton.Brand_US_AmazonSellerCentral_FlatFileAllOrdersReportbyLastUpdate":7,
+    "edm-saras.EDM_Daton.Brand_US_AmazonSellerCentral_ListOrder":5,
+    "edm-saras.EDM_Daton.Brand_US_AmazonSellerCentral_FBAAmazonFulfilledShipmentsReport":6,
+    "edm-saras.EDM_Daton.Brand_US_AmazonSellerCentral_InventoryLedgerDetailedReport":8
     }
 
   

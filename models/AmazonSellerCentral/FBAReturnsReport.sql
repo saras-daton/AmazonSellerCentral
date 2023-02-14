@@ -27,11 +27,6 @@
     {% endif %}
 
 
-
-    {% if var('timezone_conversion_flag') %}
-        {% set hr = var('timezone_conversion_hours') %}
-    {% endif %}
-
     {% for i in results_list %}
         {% if var('get_brandname_from_tablename_flag') %}
             {% set brand =i.split('.')[2].split('_')[var('brandname_position_in_tablename')] %}
@@ -75,7 +70,7 @@
                 {{daton_batch_runtime()}},
                 {{daton_batch_id()}},
                 current_timestamp() as last_updated,
-                null as run_id,
+                '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as run_id,
                 Dense_Rank() OVER (PARTITION BY date(return_date), asin, sku, order_id, fnsku, license_plate_number, fulfillment_center_id order by {{daton_batch_runtime()}} desc) row_num
                 from {{i}}    
                     {% if is_incremental() %}

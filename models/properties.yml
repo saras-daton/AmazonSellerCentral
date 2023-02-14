@@ -6,7 +6,8 @@ models:
       materialized: incremental
       incremental_strategy: merge
       unique_key: ['PurchaseDate','amazonorderid']
-      partition_by: { 'field': 'PurchaseDate', 'data_type': 'date' }
+      partition_by: { 'field': 'PurchaseDate', 'data_type': dbt.type_timestamp() }
+      granularity: 'day'
       cluster_by: ['amazonorderid']
 
   - name: FBAManageInventoryHealthReport	
@@ -33,7 +34,8 @@ models:
       materialized: incremental
       incremental_strategy: merge
       unique_key: ['date','asin','fulfillment_center','msku', 'event_type', 'reference_id','quantity','disposition']
-      partition_by: { 'field': 'date', 'data_type': 'date' }
+      partition_by: { 'field': 'date', 'data_type': dbt.type_timestamp() }
+      granularity: 'day'
       cluster_by: ['date','msku']
 
   - name: FE_OrderFees
@@ -148,7 +150,8 @@ models:
       materialized: incremental
       incremental_strategy: merge
       unique_key: ['purchase_date', 'sku', 'amazon_order_id', '_seq_id']
-      partition_by: { 'field': 'purchase_date', 'data_type': 'date' }
+      partition_by: { 'field': 'purchase_date', 'data_type': dbt.type_timestamp() }
+      granularity: 'day'
       cluster_by: ['sku','amazon_order_id']
 
   - name: FlatFileAllOrdersReportByLastUpdate
@@ -157,7 +160,7 @@ models:
       materialized: incremental
       incremental_strategy: merge
       unique_key: ['purchase_date', 'amazon_order_id', 'asin', 'sku', '_seq_id']
-      partition_by: { 'field': 'purchase_date', 'data_type': 'datetime' }
+      partition_by: { 'field': 'purchase_date', 'data_type': dbt.type_timestamp() }
       granularity: 'day'
       cluster_by: ['asin', 'sku', 'amazon_order_id']
 

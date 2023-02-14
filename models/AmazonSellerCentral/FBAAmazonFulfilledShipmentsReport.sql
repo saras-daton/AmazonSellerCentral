@@ -21,10 +21,12 @@
 
     {% set results = run_query(table_name_query) %}
     {% if execute %}
-    {# Return the first column #}
-    {% set results_list = results.columns[0].values() %}
+        {# Return the first column #}
+        {% set results_list = results.columns[0].values() %}
+        {% set tables_lowercase_list = results.columns[1].values() %}
     {% else %}
-    {% set results_list = [] %}
+        {% set results_list = [] %}
+        {% set tables_lowercase_list = [] %}
     {% endif %}
 
     {% for i in results_list %}
@@ -40,9 +42,10 @@
             {% set store = var('default_storename') %}
         {% endif %}
 
-        {% if var('timezone_conversion_flag') %}
-            {% set hr = var('timezone_offset_hours')[store] %}
+        {% if var('timezone_conversion_flag') and i.lower() in tables_lowercase_list %}
+            {% set hr = var('raw_table_timezone_offset_hours')[i] %}
         {% endif %}
+
 
        SELECT *, ROW_NUMBER() OVER (PARTITION BY purchase_date, sku, amazon_order_id order by {{daton_batch_runtime()}}, quantity_shipped) _seq_id
         From (
@@ -65,15 +68,15 @@
                 amazon_order_item_id,
                 merchant_order_item_id,
                 {% if var('timezone_conversion_flag') %}
-                    cast(DATETIME_ADD(cast(purchase_date as timestamp), INTERVAL {{hr}} HOUR ) as DATE) purchase_date,
-                    cast(DATETIME_ADD(cast(payments_date as timestamp), INTERVAL {{hr}} HOUR ) as DATE) payments_date,
-                    cast(DATETIME_ADD(cast(shipment_date as timestamp), INTERVAL {{hr}} HOUR ) as DATE) shipment_date,
-                    cast(DATETIME_ADD(cast(reporting_date as timestamp), INTERVAL {{hr}} HOUR ) as DATE) reporting_date,
+                    DATETIME_ADD(cast(purchase_date as {{ dbt.type_timestamp() }}), INTERVAL {{hr}} HOUR ) purchase_date,
+                    DATETIME_ADD(cast(payments_date as {{ dbt.type_timestamp() }}), INTERVAL {{hr}} HOUR ) payments_date,
+                    DATETIME_ADD(cast(shipment_date as {{ dbt.type_timestamp() }}), INTERVAL {{hr}} HOUR ) shipment_date,
+                    DATETIME_ADD(cast(reporting_date as {{ dbt.type_timestamp() }}), INTERVAL {{hr}} HOUR ) reporting_date,
                 {% else %}
-                    cast(cast(purchase_date as timestamp) as date) purchase_date,
-                    cast(cast(payments_date as timestamp) as date) payments_date,
-                    cast(cast(shipment_date as timestamp) as date) shipment_date,
-                    cast(cast(reporting_date as timestamp) as date) reporting_date,
+                    cast(purchase_date as {{ dbt.type_timestamp() }}) purchase_date,
+                    cast(payments_date as {{ dbt.type_timestamp() }}) payments_date,
+                    cast(shipment_date as {{ dbt.type_timestamp() }}) shipment_date,
+                    cast(reporting_date as {{ dbt.type_timestamp() }}) reporting_date,
                 {% endif %}
                 buyer_email,
                 buyer_name,
