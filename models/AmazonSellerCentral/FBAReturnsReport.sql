@@ -66,11 +66,11 @@
                 status,
                 coalesce(license_plate_number,'') as license_plate_number,
                 customer_comments,
-	            {{daton_user_id()}},
-                {{daton_batch_runtime()}},
-                {{daton_batch_id()}},
-                current_timestamp() as last_updated,
-                '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as run_id,
+	            {{daton_user_id()}} as _daton_user_id,
+                {{daton_batch_runtime()}} as _daton_batch_runtime,
+                {{daton_batch_id()}} as _daton_batch_id,
+                current_timestamp() as _last_updated,
+                '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as _run_id,
                 Dense_Rank() OVER (PARTITION BY date(return_date), asin, sku, order_id, fnsku, license_plate_number, fulfillment_center_id order by {{daton_batch_runtime()}} desc) row_num
                 from {{i}}    
                     {% if is_incremental() %}

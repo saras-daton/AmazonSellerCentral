@@ -47,14 +47,13 @@
         {% endif %}
 
 
-       SELECT *, ROW_NUMBER() OVER (PARTITION BY purchase_date, sku, amazon_order_id order by {{daton_batch_runtime()}}, quantity_shipped) _seq_id
+       SELECT *, ROW_NUMBER() OVER (PARTITION BY purchase_date, sku, amazon_order_id order by {{daton_batch_runtime()}}, quantity_shipped) as _seq_id
         From (
             SELECT * {{exclude()}} (rank)
             From (
                 select 
                 '{{brand}}' as brand,
                 '{{store}}' as store,
-                '{{hr}}' as hr,
                 CAST(ReportstartDate as timestamp) ReportstartDate,
                 CAST(ReportendDate as timestamp) ReportendDate,
                 CAST(ReportRequestTime as timestamp) ReportRequestTime,
@@ -116,11 +115,11 @@
                 fulfillment_center_id,
                 fulfillment_channel,
                 sales_channel,
-	            a.{{daton_user_id()}},
-                a.{{daton_batch_runtime()}},
-                a.{{daton_batch_id()}},
-                current_timestamp() as last_updated,
-                '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as run_id,
+	            a.{{daton_user_id()}} as _daton_user_id,
+                a.{{daton_batch_runtime()}} as _daton_batch_runtime,
+                a.{{daton_batch_id()}} as _daton_batch_id,
+                current_timestamp() as _last_updated,
+                '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as _run_id,
                 ROW_NUMBER() OVER (PARTITION BY purchase_date, sku, amazon_order_id order by a.{{daton_batch_runtime()}} desc) rank
                 from {{i}} a
                     {% if var('currency_conversion_flag') %}

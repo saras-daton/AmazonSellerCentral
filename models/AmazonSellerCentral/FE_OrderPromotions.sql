@@ -45,41 +45,45 @@
         select 
             '{{id}}' as brand,
             '{{store}}' as store,
+            a.* {{exclude()}} (_daton_user_id, _daton_batch_runtime, _daton_batch_id),
             {% if var('currency_conversion_flag') %}
                 case when c.value is null then 1 else c.value end as exchange_currency_rate,
-                case when c.from_currency_code is null then a.CurrencyCode  else c.from_currency_code end as exchange_currency_code,
+                case when c.from_currency_code is null then a.CurrencyCode else c.from_currency_code end as exchange_currency_code,
             {% else %}
                 cast(1 as decimal) as exchange_currency_rate,
-                cast(null as string) as exchange_currency_code, 
+                a.CurrencyCode as exchange_currency_code, 
             {% endif %}
-            a.* from (
+	   		a.{{daton_user_id()}} as _daton_user_id,
+            a.{{daton_batch_runtime()}} as _daton_batch_runtime,
+            a.{{daton_batch_id()}} as _daton_batch_id,
+            current_timestamp() as _last_updated,
+            '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as _run_id
+            from (
             select 
             'Promotion' as AmountType,
             'Order' as TransactionType,
             {% if target.type=='snowflake' %} 
-            ShipmentEventlist.VALUE:PostedDate :: DATE as posteddate,
-            ShipmentEventlist.VALUE:AmazonOrderId :: varchar as Amazonorderid,
-            ShipmentEventlist.VALUE:MarketplaceName :: varchar as marketplacename,
-            ShipmentItemList.VALUE:SellerSKU :: varchar as SellerSKU,
-            ShipmentItemList.VALUE:QuantityShipped :: FLOAT as QuantityShipped,
-            PromotionList.value:PromotionType :: varchar as PromotionType ,
-            PromotionAmount.value:CurrencyCode::varchar as CurrencyCode,
-            PromotionAmount.value:CurrencyAmount::FLOAT as CurrencyAmount,
+                ShipmentEventlist.VALUE:PostedDate :: DATE as posteddate,
+                ShipmentEventlist.VALUE:AmazonOrderId :: varchar as Amazonorderid,
+                ShipmentEventlist.VALUE:MarketplaceName :: varchar as marketplacename,
+                ShipmentItemList.VALUE:SellerSKU :: varchar as SellerSKU,
+                ShipmentItemList.VALUE:QuantityShipped :: FLOAT as QuantityShipped,
+                PromotionList.value:PromotionType :: varchar as PromotionType ,
+                PromotionAmount.value:CurrencyCode::varchar as CurrencyCode,
+                PromotionAmount.value:CurrencyAmount::FLOAT as CurrencyAmount,
             {% else %}
-            date(ShipmentEventlist.posteddate) as posteddate,
-            coalesce(ShipmentEventlist.amazonorderid,'') as amazonorderid,
-            coalesce(ShipmentEventlist.Marketplacename,'') as marketplacename,
-            ShipmentItemList.sellerSKU as sellerSKU,
-            ShipmentItemList.quantityshipped as quantityshipped,
-            coalesce(PromotionList.PromotionType,'') as PromotionType,
-            PromotionAmount.CurrencyCode as CurrencyCode,
-            PromotionAmount.CurrencyAmount as CurrencyAmount,
+                date(ShipmentEventlist.posteddate) as posteddate,
+                coalesce(ShipmentEventlist.amazonorderid,'') as amazonorderid,
+                coalesce(ShipmentEventlist.Marketplacename,'') as marketplacename,
+                ShipmentItemList.sellerSKU as sellerSKU,
+                ShipmentItemList.quantityshipped as quantityshipped,
+                coalesce(PromotionList.PromotionType,'') as PromotionType,
+                PromotionAmount.CurrencyCode as CurrencyCode,
+                PromotionAmount.CurrencyAmount as CurrencyAmount,
             {% endif %}
-	   		{{daton_user_id()}},
-       		{{daton_batch_runtime()}},
-        	{{daton_batch_id()}},
-            current_timestamp() as last_updated,
-            '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as run_id
+	   		{{daton_user_id()}} as _daton_user_id,
+            {{daton_batch_runtime()}} as _daton_batch_runtime,
+            {{daton_batch_id()}} as _daton_batch_id,
             FROM {{i}} 
             {{unnesting("ShipmentEventlist")}}
             {{multi_unnesting("ShipmentEventlist","ShipmentItemList")}}
@@ -98,7 +102,7 @@
     {% endfor %}
     )
 
-    select *, ROW_NUMBER() OVER (PARTITION BY posteddate, marketplacename, amazonorderid order by {{daton_batch_runtime()}}, PromotionType, quantityshipped) _seq_id
+    select *, ROW_NUMBER() OVER (PARTITION BY posteddate, marketplacename, amazonorderid order by {{daton_batch_runtime()}}, PromotionType, quantityshipped) as _seq_id
     from (
         select * {{exclude()}} (rank)from (
             select *,

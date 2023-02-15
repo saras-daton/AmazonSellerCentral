@@ -49,7 +49,7 @@
 
         SELECT * {{exclude()}} (rank1,rank2)
         FROM (
-            SELECT *, ROW_NUMBER() OVER (PARTITION BY purchase_date, amazon_order_id, asin, sku order by {{daton_batch_runtime()}} desc, quantity desc) _seq_id
+            SELECT *, ROW_NUMBER() OVER (PARTITION BY purchase_date, amazon_order_id, asin, sku order by {{daton_batch_runtime()}} desc, quantity desc) as _seq_id
             From (
                 select *, ROW_NUMBER() OVER (PARTITION BY purchase_date, amazon_order_id, asin, sku order by last_updated_date desc, {{daton_batch_runtime()}} desc) rank2
                 From (
@@ -117,11 +117,11 @@
                         cast(1 as decimal) as exchange_currency_rate,
                         cast(null as string) as exchange_currency_code, 
                     {% endif %} 
-	   	            a.{{daton_user_id()}},
-       	            a.{{daton_batch_runtime()}},
-                    a.{{daton_batch_id()}},
-                    current_timestamp() as last_updated,
-                    '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as run_id,
+	   	            a.{{daton_user_id()}} as _daton_user_id,
+                    a.{{daton_batch_runtime()}} as _daton_batch_runtime,
+                    a.{{daton_batch_id()}} as _daton_batch_id,
+                    current_timestamp() as _last_updated,
+                    '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as _run_id,
                     ROW_NUMBER() OVER (PARTITION BY last_updated_date, purchase_date, amazon_order_id, asin, sku order by a.{{daton_batch_runtime()}} desc) as rank1
                     from {{i}}  a  
                     {% if var('currency_conversion_flag') %}

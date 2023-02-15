@@ -74,11 +74,11 @@
                 coalesce(disposition,'') as disposition,
                 reason,
                 country,
-	   	        {{daton_user_id()}},
-       	        {{daton_batch_runtime()}},
-                {{daton_batch_id()}},
-                current_timestamp() as last_updated,
-                '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as run_id,
+	   	        {{daton_user_id()}} as _daton_user_id,
+                {{daton_batch_runtime()}} as _daton_batch_runtime,
+                {{daton_batch_id()}} as _daton_batch_id,
+                current_timestamp() as _last_updated,
+                '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as _run_id,
                 ROW_NUMBER() OVER (PARTITION BY Date,asin, msku, fulfillment_center, event_type, reference_id, quantity, disposition order by {{daton_batch_runtime()}} desc) row_num
                 from {{i}} 
                     {% if is_incremental() %}

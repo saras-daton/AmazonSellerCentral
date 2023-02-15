@@ -43,43 +43,47 @@
     
         SELECT * FROM (
         select 
+        a.* {{exclude()}} (_daton_user_id, _daton_batch_runtime, _daton_batch_id),
         {% if var('currency_conversion_flag') %}
             case when c.value is null then 1 else c.value end as exchange_currency_rate,
-            case when c.from_currency_code is null then a.CurrencyCode  else c.from_currency_code end as exchange_currency_code,
+            case when c.from_currency_code is null then a.CurrencyCode else c.from_currency_code end as exchange_currency_code,
         {% else %}
             cast(1 as decimal) as exchange_currency_rate,
-            cast(null as string) as exchange_currency_code,
-        {% endif %}       
-        a.* from (select
-        '{{id}}' as Brand,
+            a.CurrencyCode as exchange_currency_code, 
+        {% endif %}
+        a.{{daton_user_id()}} as _daton_user_id,
+        a.{{daton_batch_runtime()}} as _daton_batch_runtime,
+        a.{{daton_batch_id()}} as _daton_batch_id,
+        current_timestamp() as _last_updated,
+        '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as _run_id,
+        from (select
+        '{{id}}' as brand,
         '{{store}}' as store,
         'Tax' as AmountType,
         'Refund' as TransactionType,
         {% if target.type=='snowflake' %} 
-        REFUNDEVENTLIST.VALUE:PostedDate :: DATE as posteddate,
-        REFUNDEVENTLIST.VALUE:AmazonOrderId :: varchar as AmazonOrderId,
-        REFUNDEVENTLIST.VALUE:MarketplaceName :: varchar as marketplacename,
-        ShipmentItemAdjustmentList.VALUE:SellerSKU :: varchar as SellerSKU,
-        ShipmentItemAdjustmentList.VALUE:QuantityShipped :: FLOAT as QuantityShipped,
-        ItemTaxWithHeldList.VALUE:TaxCollectionModel :: VARCHAR as taxCollectionModel,
-        TaxesWithheld.value:ChargeType :: varchar as ChargeType ,
-        ChargeAmount.value:CurrencyCode::varchar as CurrencyCode,
-        ChargeAmount.value:CurrencyAmount::FLOAT as CurrencyAmount,
+            REFUNDEVENTLIST.VALUE:PostedDate :: DATE as posteddate,
+            REFUNDEVENTLIST.VALUE:AmazonOrderId :: varchar as AmazonOrderId,
+            REFUNDEVENTLIST.VALUE:MarketplaceName :: varchar as marketplacename,
+            ShipmentItemAdjustmentList.VALUE:SellerSKU :: varchar as SellerSKU,
+            ShipmentItemAdjustmentList.VALUE:QuantityShipped :: FLOAT as QuantityShipped,
+            ItemTaxWithHeldList.VALUE:TaxCollectionModel :: VARCHAR as taxCollectionModel,
+            TaxesWithheld.value:ChargeType :: varchar as ChargeType ,
+            ChargeAmount.value:CurrencyCode::varchar as CurrencyCode,
+            ChargeAmount.value:CurrencyAmount::FLOAT as CurrencyAmount,
         {% else %}
-        date(RefundEventlist.posteddate) as posteddate,
-        coalesce(RefundEventlist.amazonorderid,'') as amazonorderid,
-        coalesce(RefundEventlist.marketplacename,'') as marketplacename,
-        ShipmentItemAdjustmentList.sellerSKU as sellerSKU,
-        ShipmentItemAdjustmentList.quantityshipped as quantityshipped,
-        coalesce(TaxesWithheld.ChargeType,'') as ChargeType,
-        ChargeAmount.CurrencyCode as CurrencyCode,
-        ChargeAmount.CurrencyAmount as CurrencyAmount,
+            date(RefundEventlist.posteddate) as posteddate,
+            coalesce(RefundEventlist.amazonorderid,'') as amazonorderid,
+            coalesce(RefundEventlist.marketplacename,'') as marketplacename,
+            ShipmentItemAdjustmentList.sellerSKU as sellerSKU,
+            ShipmentItemAdjustmentList.quantityshipped as quantityshipped,
+            coalesce(TaxesWithheld.ChargeType,'') as ChargeType,
+            ChargeAmount.CurrencyCode as CurrencyCode,
+            ChargeAmount.CurrencyAmount as CurrencyAmount,
         {% endif %}
 	   	{{daton_user_id()}},
        	{{daton_batch_runtime()}},
-        {{daton_batch_id()}},
-        current_timestamp() as last_updated,
-        '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as run_id
+        {{daton_batch_id()}}
         FROM  {{i}} 
         {{unnesting("RefundEventlist")}}
         {{multi_unnesting("RefundEventlist","ShipmentItemAdjustmentList")}}
@@ -99,7 +103,7 @@
     {% endfor %}
     )
 
-    select *, ROW_NUMBER() OVER (PARTITION BY posteddate, marketplacename, amazonorderid order by {{daton_batch_runtime()}}, ChargeType, quantityshipped) _seq_id
+    select *, ROW_NUMBER() OVER (PARTITION BY posteddate, marketplacename, amazonorderid order by {{daton_batch_runtime()}}, ChargeType, quantityshipped) as _seq_id
     from (
         select * {{exclude()}} (rank) from (
             select *,

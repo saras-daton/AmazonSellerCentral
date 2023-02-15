@@ -1,7 +1,7 @@
 {% macro daton_user_id() %}
 
     {% if target.type =='snowflake' %}
-        daton_user_id as _daton_user_id
+        daton_user_id
     {% else %}
         _daton_user_id
     {% endif %}
