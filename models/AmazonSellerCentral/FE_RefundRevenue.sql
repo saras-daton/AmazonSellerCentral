@@ -2,7 +2,7 @@
     
     {% if is_incremental() %}
     {%- set max_loaded_query -%}
-    SELECT coalesce(MAX({{daton_batch_runtime()}}) - 2592000000,0) FROM {{ this }}
+    SELECT coalesce(MAX(_daton_batch_runtime) - 2592000000,0) FROM {{ this }}
     {% endset %}
     
     {%- set max_loaded_results = run_query(max_loaded_query) -%}
@@ -51,9 +51,9 @@
             cast(1 as decimal) as exchange_currency_rate,
             a.CurrencyCode as exchange_currency_code, 
         {% endif %}
-        a.{{daton_user_id()}} as _daton_user_id,
-        a.{{daton_batch_runtime()}} as _daton_batch_runtime,
-        a.{{daton_batch_id()}} as _daton_batch_id,
+        a._daton_user_id,
+        a._daton_batch_runtime,
+        a._daton_batch_id,
         current_timestamp() as _last_updated,
         '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as _run_id
         from (select
@@ -82,30 +82,30 @@
         {% endif %}
 	   	{{daton_user_id()}} as _daton_user_id,
         {{daton_batch_runtime()}} as _daton_batch_runtime,
-        {{daton_batch_id()}} as _daton_batch_id,
+        {{daton_batch_id()}} as _daton_batch_id
         FROM  {{i}} 
         {{unnesting("RefundEventlist")}}
         {{multi_unnesting("RefundEventlist","ShipmentItemAdjustmentList")}}
         {{multi_unnesting("ShipmentItemAdjustmentList","ItemChargeAdjustmentList")}}
         {{multi_unnesting("ItemChargeAdjustmentList","ChargeAmount")}}
+        {% if is_incremental() %}
+            {# /* -- this filter will only be applied on an incremental run */ #}
+            WHERE {{daton_batch_runtime()}}  >= {{max_loaded}}
+        {% endif %}
         ) a
             {% if var('currency_conversion_flag') %}
                 left join {{ref('ExchangeRates')}} c on date(posteddate) = c.date and a.CurrencyCode = c.to_currency_code
-            {% endif %}
-            {% if is_incremental() %}
-            {# /* -- this filter will only be applied on an incremental run */ #}
-            WHERE a.{{daton_batch_runtime()}}  >= {{max_loaded}}
             {% endif %}
         )
         {% if not loop.last %} union all {% endif %}
     {% endfor %}
     )
     
-    select *, ROW_NUMBER() OVER (PARTITION BY posteddate, marketplacename, amazonorderid order by {{daton_batch_runtime()}}, ChargeType, quantityshipped) as _seq_id
+    select *, ROW_NUMBER() OVER (PARTITION BY posteddate, marketplacename, amazonorderid order by _daton_batch_runtime, ChargeType, quantityshipped) as _seq_id
     from (
         select * {{exclude()}} (rank) from (
             select *,
-            DENSE_RANK() OVER (PARTITION BY posteddate, marketplacename, amazonorderid, ChargeType order by {{daton_batch_runtime()}} desc) rank
+            DENSE_RANK() OVER (PARTITION BY posteddate, marketplacename, amazonorderid, ChargeType order by _daton_batch_runtime desc) rank
             from unnested_refundeventlist
             ) where rank=1
     )

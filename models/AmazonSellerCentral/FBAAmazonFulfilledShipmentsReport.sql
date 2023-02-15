@@ -2,7 +2,7 @@
 
     {% if is_incremental() %}
     {%- set max_loaded_query -%}
-    SELECT coalesce(MAX({{daton_batch_runtime()}} ) - 2592000000,0) FROM {{ this }}
+    SELECT coalesce(MAX(_daton_batch_runtime) - 2592000000,0) FROM {{ this }}
     {% endset %}
 
     {%- set max_loaded_results = run_query(max_loaded_query) -%}
@@ -47,7 +47,7 @@
         {% endif %}
 
 
-       SELECT *, ROW_NUMBER() OVER (PARTITION BY purchase_date, sku, amazon_order_id order by {{daton_batch_runtime()}}, quantity_shipped) as _seq_id
+       SELECT *, ROW_NUMBER() OVER (PARTITION BY purchase_date, sku, amazon_order_id order by _daton_batch_runtime, quantity_shipped) as _seq_id
         From (
             SELECT * {{exclude()}} (rank)
             From (
@@ -67,10 +67,10 @@
                 amazon_order_item_id,
                 merchant_order_item_id,
                 {% if var('timezone_conversion_flag') %}
-                    DATETIME_ADD(cast(purchase_date as {{ dbt.type_timestamp() }}), INTERVAL {{hr}} HOUR ) purchase_date,
-                    DATETIME_ADD(cast(payments_date as {{ dbt.type_timestamp() }}), INTERVAL {{hr}} HOUR ) payments_date,
-                    DATETIME_ADD(cast(shipment_date as {{ dbt.type_timestamp() }}), INTERVAL {{hr}} HOUR ) shipment_date,
-                    DATETIME_ADD(cast(reporting_date as {{ dbt.type_timestamp() }}), INTERVAL {{hr}} HOUR ) reporting_date,
+                    {{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="purchase_date") }} as purchase_date,
+                    {{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="payments_date") }} as payments_date,
+                    {{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="shipment_date") }} as shipment_date,
+                    {{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="reporting_date") }} as reporting_date,
                 {% else %}
                     cast(purchase_date as {{ dbt.type_timestamp() }}) purchase_date,
                     cast(payments_date as {{ dbt.type_timestamp() }}) payments_date,

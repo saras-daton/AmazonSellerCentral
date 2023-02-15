@@ -2,7 +2,7 @@
 
     {% if is_incremental() %}
     {%- set max_loaded_query -%}
-    SELECT coalesce(MAX({{daton_batch_runtime()}}) - 2592000000,0) FROM {{ this }}
+    SELECT coalesce(MAX(_daton_batch_runtime) - 2592000000,0) FROM {{ this }}
     {% endset %}
 
     {%- set max_loaded_results = run_query(max_loaded_query) -%}
@@ -42,7 +42,7 @@
         {% endif %}
 
        select * {{exclude()}} (rank,row_num) from (
-        Select *, ROW_NUMBER() OVER(PARTITION BY Return_request_date, Order_ID, ASIN order by {{daton_batch_runtime()}} desc, Amazon_RMA_ID desc) as rank 
+        Select *, ROW_NUMBER() OVER(PARTITION BY Return_request_date, Order_ID, ASIN order by _daton_batch_runtime desc, Amazon_RMA_ID desc) as rank 
         From (
             select 
             '{{brand}}' as brand,

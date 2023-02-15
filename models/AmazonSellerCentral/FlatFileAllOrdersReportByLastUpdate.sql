@@ -2,7 +2,7 @@
 
     {% if is_incremental() %}
         {%- set max_loaded_query -%}
-            SELECT coalesce(MAX({{daton_batch_runtime()}}) - 2592000000,0) FROM {{ this }}
+            SELECT coalesce(MAX(_daton_batch_runtime) - 2592000000,0) FROM {{ this }}
         {% endset %}
 
         {%- set max_loaded_results = run_query(max_loaded_query) -%}
@@ -49,9 +49,9 @@
 
         SELECT * {{exclude()}} (rank1,rank2)
         FROM (
-            SELECT *, ROW_NUMBER() OVER (PARTITION BY purchase_date, amazon_order_id, asin, sku order by {{daton_batch_runtime()}} desc, quantity desc) as _seq_id
+            SELECT *, ROW_NUMBER() OVER (PARTITION BY purchase_date, amazon_order_id, asin, sku order by _daton_batch_runtime desc, quantity desc) as _seq_id
             From (
-                select *, ROW_NUMBER() OVER (PARTITION BY purchase_date, amazon_order_id, asin, sku order by last_updated_date desc, {{daton_batch_runtime()}} desc) rank2
+                select *, ROW_NUMBER() OVER (PARTITION BY purchase_date, amazon_order_id, asin, sku order by last_updated_date desc, _daton_batch_runtime desc) rank2
                 From (
                     select
                     '{{brand}}' as brand,
@@ -65,8 +65,8 @@
                     coalesce(amazon_order_id,'') as amazon_order_id,
                     merchant_order_id,
                     {% if var('timezone_conversion_flag') %}
-                        DATETIME_ADD(purchase_date, INTERVAL {{hr}} HOUR ) as purchase_date,
-                        DATETIME_ADD(cast(last_updated_date as {{ dbt.type_timestamp() }}), INTERVAL {{hr}} HOUR ) as last_updated_date,
+                        {{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="purchase_date") }} as purchase_date,
+                        {{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="last_updated_date") }} as last_updated_date,
                     {% else %}
                         purchase_date,
                         CAST(last_updated_date as {{ dbt.type_timestamp() }}) as last_updated_date,

@@ -1,7 +1,7 @@
 
     {% if is_incremental() %}
     {%- set max_loaded_query -%}
-    SELECT coalesce(MAX({{daton_batch_runtime()}}) - 2592000000,0) FROM {{ this }}
+    SELECT coalesce(MAX(_daton_batch_runtime) - 2592000000,0) FROM {{ this }}
     {% endset %}
 
     {%- set max_loaded_results = run_query(max_loaded_query) -%}
@@ -40,7 +40,7 @@
             {% set store = var('default_storename') %}
         {% endif %}
 
-        SELECT *, ROW_NUMBER() OVER (PARTITION BY date(return_date), asin, sku, order_id, fnsku, license_plate_number, fulfillment_center_id order by {{daton_batch_runtime()}} desc) as _seq_id 
+        SELECT *, ROW_NUMBER() OVER (PARTITION BY date(return_date), asin, sku, order_id, fnsku, license_plate_number, fulfillment_center_id order by _daton_batch_runtime desc) as _seq_id 
         from (
             select * {{exclude()}} (row_num)
             from (

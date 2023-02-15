@@ -1,7 +1,7 @@
 
     {% if is_incremental() %}
     {%- set max_loaded_query -%}
-    SELECT coalesce(MAX({{daton_batch_runtime()}}) - 2592000000,0) FROM {{ this }}
+    SELECT coalesce(MAX(_daton_batch_runtime) - 2592000000,0) FROM {{ this }}
     {% endset %}
 
     {%- set max_loaded_results = run_query(max_loaded_query) -%}
@@ -46,7 +46,7 @@
     {% endif %}
     
      select * {{exclude()}} (row_num)from (
-        SELECT *, ROW_NUMBER() OVER (PARTITION BY Date(PurchaseDate), amazonorderid order by {{daton_batch_runtime()}} desc) as row_num
+        SELECT *, ROW_NUMBER() OVER (PARTITION BY Date(PurchaseDate), amazonorderid order by _daton_batch_runtime desc) as row_num
             From (
             select 
             '{{brand}}' as brand,
@@ -58,8 +58,8 @@
             coalesce(AmazonOrderId,'') as AmazonOrderId,
             SellerOrderId,
             {% if var('timezone_conversion_flag') %}
-                DATETIME_ADD(PurchaseDate, INTERVAL {{hr}} HOUR ) as PurchaseDate,
-                DATETIME_ADD(cast(LastUpdateDate as {{ dbt.type_timestamp() }}), INTERVAL {{hr}} HOUR ) as LastUpdateDate,  
+                {{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="PurchaseDate") }} as PurchaseDate,
+                {{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="LastUpdateDate") }} as LastUpdateDate,
             {% else %}
                 PurchaseDate as PurchaseDate,
                 CAST(LastUpdateDate as {{ dbt.type_timestamp() }}) as LastUpdateDate,

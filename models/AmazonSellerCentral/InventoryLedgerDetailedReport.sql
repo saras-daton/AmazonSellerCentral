@@ -2,7 +2,7 @@
 
     {% if is_incremental() %}
     {%- set max_loaded_query -%}
-    SELECT coalesce(MAX({{daton_batch_runtime()}}) - 2592000000,0) FROM {{ this }}
+    SELECT coalesce(MAX(_daton_batch_runtime) - 2592000000,0) FROM {{ this }}
     {% endset %}
 
     {%- set max_loaded_results = run_query(max_loaded_query) -%}
@@ -59,7 +59,7 @@
                 marketplacename,
                 marketplaceid,
                 {% if var('timezone_conversion_flag') %}
-                    DATETIME_ADD(cast(Date as {{ dbt.type_timestamp() }}), INTERVAL {{hr}} HOUR ) as Date,
+                    {{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="Date") }} as Date,
                 {% else %}
                     cast(Date as {{ dbt.type_timestamp() }}) as Date,
                 {% endif %}
