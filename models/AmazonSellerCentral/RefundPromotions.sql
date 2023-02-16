@@ -1,3 +1,4 @@
+{% if var('RefundPromotions') %}
  -- depends_on: {{ ref('ExchangeRates') }}  
     
     {% if is_incremental() %}
@@ -110,4 +111,4 @@
             from unnested_refundeventlist
             ) where rank=1
         )
-
+{% endif %}

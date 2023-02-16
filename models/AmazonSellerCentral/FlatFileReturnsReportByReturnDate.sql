@@ -1,3 +1,4 @@
+{% if var('FlatFileReturnsReportByReturnDate') %}
 -- depends_on: {{ref('ExchangeRates')}}
 
     {% if is_incremental() %}
@@ -112,3 +113,4 @@
         )  where rank=1
         {% if not loop.last %} union all {% endif %}
     {% endfor %}
+{% endif %}

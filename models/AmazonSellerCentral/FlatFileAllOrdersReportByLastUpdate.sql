@@ -1,3 +1,4 @@
+{% if var('FlatFileAllOrdersReportByLastUpdate') %}
 -- depends_on: {{ref('ExchangeRates')}}
 
     {% if is_incremental() %}
@@ -135,3 +136,4 @@
             )
         {% if not loop.last %} union all {% endif %}
     {% endfor %}
+{% endif %}

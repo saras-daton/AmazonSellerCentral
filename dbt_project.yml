@@ -20,6 +20,27 @@ vars:
   # Example- default_storename: "US"
   default_storename: "" 
 
+  AllListingsreport: True
+  CatalogItemsSummary: True
+  FBAAmazonFulfilledShipmentsReport: True
+  FBAManageInventory: True
+  FBAManageInventoryHealthReport: True
+  FBAReturnsReport: True
+  FlatFileAllOrdersReportByLastUpdate: True
+  FlatFileReturnsReportByReturnDate: True
+  InventoryLedgerDetailedReport: True
+  ListOrder: True
+  OrderFees: True
+  OrderFees: True
+  OrderPromotions: True
+  OrderRevenue: True
+  OrderTaxes: True
+  RefundFees: True
+  RefundPromotions: True
+  RefundRevenue: True
+  RefundTaxes: True
+  SalesAndTrafficReportByChildASIN: True
+
   timezone_conversion_flag: False
   raw_table_timezone_offset_hours: {
     "edm-saras.EDM_Daton.Brand_US_AmazonSellerCentral_FlatFileAllOrdersReportbyLastUpdate":7,

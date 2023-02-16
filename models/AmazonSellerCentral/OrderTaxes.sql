@@ -1,3 +1,4 @@
+{% if var('OrderTaxes') %}
  -- depends_on: {{ ref('ExchangeRates') }}   
 
     {% if is_incremental() %}
@@ -112,3 +113,4 @@
             from unnested_shipmenteventlist
         ) where rank=1
     )
+{% endif %}
