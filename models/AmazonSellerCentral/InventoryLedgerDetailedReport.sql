@@ -45,6 +45,8 @@
 
             {% if var('timezone_conversion_flag') and i.lower() in tables_lowercase_list %}
                 {% set hr = var('raw_table_timezone_offset_hours')[i] %}
+            {% else %}
+                {% set hr = 0 %}
             {% endif %}
 
             SELECT *  {{exclude()}} (row_num)
@@ -58,11 +60,7 @@
                 sellingpartnerid,
                 marketplacename,
                 marketplaceid,
-                {% if var('timezone_conversion_flag') %}
-                    {{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="Date") }} as Date,
-                {% else %}
-                    cast(Date as {{ dbt.type_timestamp() }}) as Date,
-                {% endif %}
+                CAST({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="Date") }} as {{ dbt.type_timestamp() }}) as Date,
                 fnsku,
                 coalesce(asin,'') as asin,
                 coalesce(msku,'') as msku,

@@ -45,6 +45,8 @@
 
         {% if var('timezone_conversion_flag') and i.lower() in tables_lowercase_list %}
             {% set hr = var('raw_table_timezone_offset_hours')[i] %}
+        {% else %}
+            {% set hr = 0 %}
         {% endif %}
 
         SELECT * {{exclude()}} (rank1,rank2)
@@ -64,13 +66,8 @@
                     marketplaceId,
                     coalesce(amazon_order_id,'') as amazon_order_id,
                     merchant_order_id,
-                    {% if var('timezone_conversion_flag') %}
-                        {{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="purchase_date") }} as purchase_date,
-                        {{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="last_updated_date") }} as last_updated_date,
-                    {% else %}
-                        purchase_date,
-                        CAST(last_updated_date as {{ dbt.type_timestamp() }}) as last_updated_date,
-                    {% endif %}
+                    {{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="purchase_date") }} as purchase_date,
+                    CAST({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="cast(last_updated_date as timestamp)") }} as {{ dbt.type_timestamp() }}) as last_updated_date,
                     order_status, 
                     fulfillment_channel, 
                     sales_channel,

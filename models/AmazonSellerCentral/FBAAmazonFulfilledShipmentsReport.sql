@@ -44,6 +44,8 @@
 
         {% if var('timezone_conversion_flag') and i.lower() in tables_lowercase_list %}
             {% set hr = var('raw_table_timezone_offset_hours')[i] %}
+        {% else %}
+            {% set hr = 0 %}
         {% endif %}
 
 
@@ -66,17 +68,10 @@
                 shipment_item_id,
                 amazon_order_item_id,
                 merchant_order_item_id,
-                {% if var('timezone_conversion_flag') %}
-                    {{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="purchase_date") }} as purchase_date,
-                    {{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="payments_date") }} as payments_date,
-                    {{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="shipment_date") }} as shipment_date,
-                    {{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="reporting_date") }} as reporting_date,
-                {% else %}
-                    cast(purchase_date as {{ dbt.type_timestamp() }}) purchase_date,
-                    cast(payments_date as {{ dbt.type_timestamp() }}) payments_date,
-                    cast(shipment_date as {{ dbt.type_timestamp() }}) shipment_date,
-                    cast(reporting_date as {{ dbt.type_timestamp() }}) reporting_date,
-                {% endif %}
+                CAST({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="cast(purchase_date as timestamp)") }} as {{ dbt.type_timestamp() }}) as purchase_date,
+                CAST({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="cast(payments_date as timestamp)") }} as {{ dbt.type_timestamp() }}) as payments_date,
+                CAST({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="cast(shipment_date as timestamp)") }} as {{ dbt.type_timestamp() }}) as shipment_date,
+                CAST({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="cast(reporting_date as timestamp)") }} as {{ dbt.type_timestamp() }}) as reporting_date,
                 buyer_email,
                 buyer_name,
                 buyer_phone_number,
