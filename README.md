@@ -22,7 +22,8 @@ As part of Data Unification, the following funtions are performed:
 	- Time Zone Conversion (Optional) - Raw Tables data created at Marketplace/Store/Account level may have data in local timezone of the corresponding marketplace/store/account. DateTime values that are in local timezone are standardized by converting to specified timezone using input offset hours.
 
 #### Prerequisite 
-Daton Integrations for  - {{Amazon Seller Partner}}, Exchange Rates(Optional, if currency conversion is not required)
+Daton Integrations for  - Amazon Seller Partner 
+						- Exchange Rates(Optional, if currency conversion is not required)
 
 # Installation & Configuration
 
