@@ -2,12 +2,37 @@
 # Name your project! Project names should contain only lowercase characters
 # and underscores. A good package name should reflect your organization's
 # name or the intended use of these models
-name: 'amazon_sellerpartner_bigquery'
+name: 'amazon_sellerpartner'
 version: '1.0.0'
 config-version: 2
 require-dbt-version: [">=1.0.0", "<2.0.0"]
 
+vars:
+  raw_database: "edm-saras" #equivalent to project_id in BigQuery
+  raw_schema: "EDM_Daton" #equivalent to dataset in BigQuery
+  currency_conversion_flag: False
+  get_brandname_from_tablename_flag: True
+  brandname_position_in_tablename: 0
+  # Example- default_brandname: "Nike"
+  default_brandname: "" 
+  get_storename_from_tablename_flag: True 
+  storename_position_in_tablename: 1
+  # Example- default_storename: "US"
+  default_storename: "" 
 
+  timezone_conversion_flag: False
+  raw_table_timezone_offset_hours: {
+    "edm-saras.EDM_Daton.Brand_US_AmazonSellerCentral_FlatFileAllOrdersReportbyLastUpdate":7,
+    "edm-saras.EDM_Daton.Brand_US_AmazonSellerCentral_ListOrder":5,
+    "edm-saras.EDM_Daton.Brand_US_AmazonSellerCentral_FBAAmazonFulfilledShipmentsReport":6,
+    "edm-saras.EDM_Daton.Brand_US_AmazonSellerCentral_InventoryLedgerDetailedReport":8,
+    "EDM.EDM.BRAND_US_AMAZONSELLERCENTRAL_SF_FBAAMAZONFULFILLEDSHIPMENTSREPORT":8,
+    "EDM.EDM.BRAND_US_AMAZONSELLERCENTRAL_SF_LISTORDER":8,
+    "EDM.EDM.BRAND_US_AMAZONSELLERCENTRAL_SF_FLATFILEALLORDERSREPORTBYLASTUPDATE":8,
+    "EDM.EDM.BRAND_US_AMAZONSELLERCENTRAL_SF_INVENTORYLEDGERDETAILEDREPORT":8
+    }
+
+  
 # These configurations specify where dbt should look for different types of files.
 # The `model-paths` config, for example, states that models in this project can be
 # found in the "models/" directory. You probably won't need to change these!
@@ -25,5 +50,6 @@ clean-targets:         # directories to be removed by `dbt clean`
 
 
 models:
-  amazon_sellerpartner_bigquery:
-    +schema: stg_amazon
+  amazon_sellerpartner:
+    AmazonSellerCentral:
+      +schema: stg_amazon_dbthub
