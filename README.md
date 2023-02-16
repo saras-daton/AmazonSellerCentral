@@ -64,6 +64,7 @@ Package offers different configurations which must be set in your `dbt_project.y
 
 To enable currency conversion, which produces two columns - exchange_currency_rate & exchange_currency_code, please mark the currency_conversion_flag as True. By default, it is False.
 Prerequisite - Daton Exchange Rates Integration
+
 Example:
 ```yaml
 vars:
@@ -74,6 +75,7 @@ vars:
 
 To enable timezone conversion, which converts the datetime columns from local timezone to given timezone, please mark the timezone_conversion_flag f as True in the dbt_project.yml file, by default, it is False
 Additionally, you need to provide offset hours for each raw table
+
 Example:
 ```yaml
 vars:
@@ -89,6 +91,7 @@ raw_table_timezone_offset_hours: {
 ### Table Exclusions
 
 If you need to exclude any of the models, declare the model names as variables and mark them as False. Refer the table below for model details. By default, all tables are created.
+
 Example:
 ```yaml
 vars:
@@ -97,7 +100,7 @@ ListOrder: False
 
 ## Models
 
-This package contains models from the Amazon Selling Partner API which includes reports on {{sales, margin, inventory, product}}. Please follow this to get more details about [models]{{(https://docs.google.com/spreadsheets/d/1OaJnVpBrPZaBusJXBHrT8dhnD2zctWMmSRN__WLQsl0/edit?usp=sharing)}}. The primary outputs of this package are described below.
+This package contains models from the Amazon Selling Partner API which includes reports on {{sales, margin, inventory, product}}. The primary outputs of this package are described below.
 
 | **Category**                 | **Model**  | **Description** |
 | ------------------------- | ---------------| ----------------------- |
