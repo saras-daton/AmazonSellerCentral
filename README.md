@@ -6,7 +6,7 @@ This dbt package is for the Amazon Selling Partner data unification Ingested by 
 - BigQuery
 - Snowflake
 
-Typical challanges with raw data are:
+#### Typical challanges with raw data are:
 - Array/Nested Array columns which makes queries for Data Analytics complex
 - Data duplication due to look back period while fetching report data from Amazon Seller Partner
 - Seperate tables at marketplaces/Store, brand, account level for same kind of report/data feeds
