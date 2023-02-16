@@ -23,8 +23,8 @@ As part of Data Unification, the following funtions are performed:
 
 #### Prerequisite 
 Daton Integrations for  
-	- Amazon Seller Partner 
-	- Exchange Rates(Optional, if currency conversion is not required)
+- Amazon Seller Partner 
+- Exchange Rates(Optional, if currency conversion is not required)
 
 # Installation & Configuration
 
