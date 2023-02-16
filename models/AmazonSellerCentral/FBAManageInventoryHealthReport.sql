@@ -1,3 +1,4 @@
+{% if var('FBAManageInventoryHealthReport') %}
 -- depends_on: {{ref('ExchangeRates')}}
 
     {% if is_incremental() %}
@@ -138,3 +139,4 @@
         where row_num =1 
         {% if not loop.last %} union all {% endif %}
     {% endfor %}
+{% endif %}

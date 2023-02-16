@@ -1,4 +1,5 @@
--- depends_on: {{ref('ExchangeRates')}}
+{% if var('OrderRevenue') %}
+ -- depends_on: {{ ref('ExchangeRates') }}  
 
     {% if is_incremental() %}
     {%- set max_loaded_query -%}
@@ -43,7 +44,7 @@
 
     SELECT * FROM (
         select 
-            '{{brand}}' as brand,
+            '{{id}}' as brand,
             '{{store}}' as store,
             a.* {{exclude()}} (_daton_user_id, _daton_batch_runtime, _daton_batch_id),
             {% if var('currency_conversion_flag') %}
@@ -59,54 +60,55 @@
             current_timestamp() as _last_updated,
             '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as _run_id
             from (
-            select
-            'Fees' as AmountType,
+            select 
+            'Revenue' as AmountType,
             'Order' as TransactionType,
-            {% if target.type=='snowflake' %}
+            {% if target.type=='snowflake' %} 
                 ShipmentEventlist.VALUE:PostedDate :: DATE as posteddate,
                 ShipmentEventlist.VALUE:AmazonOrderId :: varchar as AmazonOrderId,
-                ShipmentEventlist.VALUE:MarketplaceName :: varchar as MarketplaceName,
+                ShipmentEventlist.VALUE:MarketplaceName :: varchar as marketplacename,
                 ShipmentItemList.VALUE:SellerSKU :: varchar as SellerSKU,
                 ShipmentItemList.VALUE:QuantityShipped :: FLOAT as QuantityShipped,
-                ItemFeeList.value:FeeType :: varchar as FeeType ,
-                FeeAmount.value:CurrencyCode::varchar as CurrencyCode,
-                FeeAmount.value:CurrencyAmount::FLOAT as CurrencyAmount,
+                ItemChargeList.value:ChargeType :: varchar as ChargeType ,
+                ChargeAmount.value:CurrencyCode::varchar as CurrencyCode,
+                ChargeAmount.value:CurrencyAmount::FLOAT as CurrencyAmount,
             {% else %}
                 date(ShipmentEventlist.posteddate) as posteddate,
                 coalesce(ShipmentEventlist.amazonorderid,'') as amazonorderid,
                 coalesce(ShipmentEventlist.marketplacename,'') as marketplacename,
                 ShipmentItemList.sellerSKU as sellerSKU,
                 ShipmentItemList.quantityshipped as quantityshipped,
-                coalesce(ItemFeeList.FeeType,'') as FeeType,
-                FeeAmount.CurrencyCode as CurrencyCode,
-                FeeAmount.CurrencyAmount as CurrencyAmount,
+                coalesce(ItemChargeList.ChargeType,'') as ChargeType,
+                ChargeAmount.CurrencyCode as CurrencyCode,
+                ChargeAmount.CurrencyAmount as CurrencyAmount,
             {% endif %}
-            {{daton_user_id()}} as _daton_user_id,
-       		{{daton_batch_runtime()}} as _daton_batch_runtime,
-        	{{daton_batch_id()}} as _daton_batch_id
+	   		{{daton_user_id()}} as _daton_user_id,
+            {{daton_batch_runtime()}} as _daton_batch_runtime,
+            {{daton_batch_id()}} as _daton_batch_id
             FROM {{i}} 
-                {{unnesting("ShipmentEventlist")}}
-                {{multi_unnesting("ShipmentEventlist","ShipmentItemList")}}
-                {{multi_unnesting("ShipmentItemList","ItemFeeList")}}
-                {{multi_unnesting("ItemFeeList","FeeAmount")}}
+            {{unnesting("SHIPMENTEVENTLIST")}}
+            {{multi_unnesting("SHIPMENTEVENTLIST","ShipmentItemList")}}
+            {{multi_unnesting("ShipmentItemList","ItemChargeList")}}
+            {{multi_unnesting("ItemChargeList","ChargeAmount")}}
             {% if is_incremental() %}
             {# /* -- this filter will only be applied on an incremental run */ #}
             WHERE {{daton_batch_runtime()}}  >= {{max_loaded}}
             {% endif %}
             ) a
             {% if var('currency_conversion_flag') %}
-                left join {{ref('ExchangeRates')}} c on date(a.posteddate) = c.date and a.CurrencyCode = c.to_currency_code
+            left join {{ref('ExchangeRates')}} c on date(posteddate) = c.date and a.CurrencyCode = c.to_currency_code
             {% endif %}
         )
     {% if not loop.last %} union all {% endif %}
     {% endfor %}
     )
 
-    select *, ROW_NUMBER() OVER (PARTITION BY posteddate, marketplacename, amazonorderid order by _daton_batch_runtime, FeeType, quantityshipped) as _seq_id
+    select *, ROW_NUMBER() OVER (PARTITION BY posteddate, marketplacename, amazonorderid order by _daton_batch_runtime, ChargeType, quantityshipped) as _seq_id
     from (
         select * {{exclude()}} (rank)from (
             select *,
-            DENSE_RANK() OVER (PARTITION BY posteddate, marketplacename, amazonorderid, FeeType order by _daton_batch_runtime desc) rank
+            DENSE_RANK() OVER (PARTITION BY posteddate, marketplacename, amazonorderid, ChargeType order by _daton_batch_runtime desc) rank
             from unnested_shipmenteventlist
         ) where rank = 1
     )
+{% endif %}

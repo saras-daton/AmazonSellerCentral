@@ -1,4 +1,5 @@
- -- depends_on: {{ ref('ExchangeRates') }}  
+{% if var('RefundRevenue') %}
+ -- depends_on: {{ ref('ExchangeRates') }} 
     
     {% if is_incremental() %}
     {%- set max_loaded_query -%}
@@ -19,7 +20,6 @@
     {{set_table_name('%listfinancialevents')}}    
     {% endset %}  
     
-    
     {% set results = run_query(table_name_query) %}
     {% if execute %}
     {# Return the first column #}
@@ -35,12 +35,13 @@
         {% else %}
             {% set id = var('default_brandname') %}
         {% endif %}
+
         {% if var('get_storename_from_tablename_flag') %}
             {% set store =i.split('.')[2].split('_')[var('storename_position_in_tablename')] %}
         {% else %}
             {% set store = var('default_storename') %}
         {% endif %}
-
+    
         SELECT * FROM (
         select 
         a.* {{exclude()}} (_daton_user_id, _daton_batch_runtime, _daton_batch_id),
@@ -56,43 +57,42 @@
         a._daton_batch_id,
         current_timestamp() as _last_updated,
         '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as _run_id
-        from (
-        select
+        from (select
         '{{id}}' as Brand,
         '{{store}}' as store,
-        'Promotion' as AmountType,
+        'Revenue' as AmountType,
         'Refund' as TransactionType,
         {% if target.type=='snowflake' %} 
             REFUNDEVENTLIST.VALUE:PostedDate :: DATE as posteddate,
             REFUNDEVENTLIST.VALUE:AmazonOrderId :: varchar as AmazonOrderId,
-            REFUNDEVENTLIST.VALUE:MarketplaceName :: varchar as MarketplaceName,
+            REFUNDEVENTLIST.VALUE:MarketplaceName :: varchar as marketplacename,
             ShipmentItemAdjustmentList.VALUE:SellerSKU :: varchar as SellerSKU,
             ShipmentItemAdjustmentList.VALUE:QuantityShipped :: FLOAT as QuantityShipped,
-            PromotionList.value:PromotionType :: varchar as PromotionType ,
-            PromotionAmount.value:CurrencyCode::varchar as CurrencyCode,
-            PromotionAmount.value:CurrencyAmount::FLOAT as CurrencyAmount,
+            ItemChargeAdjustmentList.value:ChargeType :: varchar as ChargeType ,
+            ChargeAmount.value:CurrencyCode::varchar as CurrencyCode,
+            ChargeAmount.value:CurrencyAmount::FLOAT as CurrencyAmount,
         {% else %}
             date(RefundEventlist.posteddate) as posteddate,
             coalesce(RefundEventlist.amazonorderid,'') as amazonorderid,
             coalesce(RefundEventlist.marketplacename,'') as marketplacename,
             ShipmentItemAdjustmentList.sellerSKU as sellerSKU,
             ShipmentItemAdjustmentList.quantityshipped as quantityshipped,
-            coalesce(PromotionList.PromotionType,'') as PromotionType,
-            PromotionAmount.CurrencyCode as CurrencyCode,
-            PromotionAmount.CurrencyAmount as CurrencyAmount,
+            coalesce(ItemChargeAdjustmentList.ChargeType,'') as ChargeType,
+            ChargeAmount.CurrencyCode as CurrencyCode,
+            ChargeAmount.CurrencyAmount as CurrencyAmount,
         {% endif %}
 	   	{{daton_user_id()}} as _daton_user_id,
         {{daton_batch_runtime()}} as _daton_batch_runtime,
         {{daton_batch_id()}} as _daton_batch_id
         FROM  {{i}} 
-            {{unnesting("RefundEventlist")}}
-            {{multi_unnesting("RefundEventlist","ShipmentItemAdjustmentList")}}
-            {{multi_unnesting("ShipmentItemAdjustmentList","PromotionList")}}
-            {{multi_unnesting("PromotionList","PromotionAmount")}}
-            {% if is_incremental() %}
+        {{unnesting("RefundEventlist")}}
+        {{multi_unnesting("RefundEventlist","ShipmentItemAdjustmentList")}}
+        {{multi_unnesting("ShipmentItemAdjustmentList","ItemChargeAdjustmentList")}}
+        {{multi_unnesting("ItemChargeAdjustmentList","ChargeAmount")}}
+        {% if is_incremental() %}
             {# /* -- this filter will only be applied on an incremental run */ #}
             WHERE {{daton_batch_runtime()}}  >= {{max_loaded}}
-            {% endif %}
+        {% endif %}
         ) a
             {% if var('currency_conversion_flag') %}
                 left join {{ref('ExchangeRates')}} c on date(posteddate) = c.date and a.CurrencyCode = c.to_currency_code
@@ -102,12 +102,12 @@
     {% endfor %}
     )
     
-    select *, ROW_NUMBER() OVER (PARTITION BY posteddate, marketplacename, amazonorderid order by _daton_batch_runtime, PromotionType, quantityshipped) as _seq_id
+    select *, ROW_NUMBER() OVER (PARTITION BY posteddate, marketplacename, amazonorderid order by _daton_batch_runtime, ChargeType, quantityshipped) as _seq_id
     from (
         select * {{exclude()}} (rank) from (
             select *,
-            DENSE_RANK() OVER (PARTITION BY posteddate, marketplacename, amazonorderid, PromotionType order by _daton_batch_runtime desc) rank
+            DENSE_RANK() OVER (PARTITION BY posteddate, marketplacename, amazonorderid, ChargeType order by _daton_batch_runtime desc) rank
             from unnested_refundeventlist
             ) where rank=1
-        )
-
+    )
+{% endif %}

@@ -8,8 +8,8 @@ config-version: 2
 require-dbt-version: [">=1.0.0", "<2.0.0"]
 
 vars:
-  raw_database: "edm-saras" #equivalent to project_id in BigQuery
-  raw_schema: "EDM_Daton" #equivalent to dataset in BigQuery
+  raw_database: "EDM" #equivalent to project_id in BigQuery
+  raw_schema: "EDM" #equivalent to dataset in BigQuery
   currency_conversion_flag: False
   get_brandname_from_tablename_flag: True
   brandname_position_in_tablename: 0
@@ -19,6 +19,27 @@ vars:
   storename_position_in_tablename: 1
   # Example- default_storename: "US"
   default_storename: "" 
+
+  AllListingsreport: True
+  CatalogItemsSummary: True
+  FBAAmazonFulfilledShipmentsReport: True
+  FBAManageInventory: True
+  FBAManageInventoryHealthReport: True
+  FBAReturnsReport: True
+  FlatFileAllOrdersReportByLastUpdate: True
+  FlatFileReturnsReportByReturnDate: True
+  InventoryLedgerDetailedReport: True
+  ListOrder: True
+  OrderFees: True
+  OrderFees: True
+  OrderPromotions: True
+  OrderRevenue: True
+  OrderTaxes: True
+  RefundFees: True
+  RefundPromotions: True
+  RefundRevenue: True
+  RefundTaxes: True
+  SalesAndTrafficReportByChildASIN: True
 
   timezone_conversion_flag: False
   raw_table_timezone_offset_hours: {

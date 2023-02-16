@@ -1,119 +1,317 @@
-# Amazon Seller Partner Data Modelling
-This dbt package models the Amazon Selling Partner data coming from [Daton](https://sarasanalytics.com/daton/). [Daton](https://sarasanalytics.com/daton/) is the Unified Data Platform for Global Commerce with 100+ pre-built connectors and data sets designed for accelerating the eCommerce data and analytics journey by [Saras Analytics](https://sarasanalytics.com).
+# Amazon Seller Partner Data Unification
 
-This package would be performing the following funtions:
+This dbt package is for the Amazon Selling Partner data unification Ingested by [Daton](https://sarasanalytics.com/daton/). [Daton](https://sarasanalytics.com/daton/) is the Unified Data Platform for Global Commerce with 100+ pre-built connectors and data sets designed for accelerating the eCommerce data and analytics journey by [Saras Analytics](https://sarasanalytics.com).
 
-- Consolidation - Different marketplaces & different brands would have similar tables. Helps in consolidating all the tables into one final stage table 
-- Deduplication - Based on primary keys , the tables are deduplicated and the latest records are only loaded into the stage models
+### Supported Datawarehouses:
+- BigQuery
+- Snowflake
+
+#### Typical challanges with raw data are:
+- Array/Nested Array columns which makes queries for Data Analytics complex
+- Data duplication due to look back period while fetching report data from Amazon Seller Partner
+- Seperate tables at marketplaces/Store, brand, account level for same kind of report/data feeds
+
+By doing Data Unification the above challenges can be overcomed and simplifies Data Analytics. 
+As part of Data Unification, the following funtions are performed:
+- Consolidation - Different marketplaces/Store/account & different brands would have similar raw Daton Ingested tables, which are consolidated into one table with column distinguishers brand & store
+- Deduplication - Based on primary keys, the data is De-duplicated and the latest records are only loaded into the consolidated stage tables
 - Incremental Load - Models are designed to include incremental load which when scheduled would update the tables regularly
-- (Optional) Currency Conversion - Based on the currency input, a couple of currency columns are generated to aid in the currency conversion - (Prerequisite - Exchange Rates connector in Daton needs to be present - Refer [this](https://github.com/saras-daton/currency_exchange_rates))
-- (Optional) Time Zone Conversion - Based on the time zone input, the relevant datetime columns are replaced with the converted values
+- Standardization -
+	- Currency Conversion (Optional) - Raw Tables data created at Marketplace/Store/Account level may have data in local currency of the corresponding marketplace/store/account. Values that are in local currency are standardized by converting to desired currency using Daton Exchange Rates data.
+	  Prerequisite - Exchange Rates connector in Daton needs to be present - Refer [this](https://github.com/saras-daton/currency_exchange_rates)
+	- Time Zone Conversion (Optional) - Raw Tables data created at Marketplace/Store/Account level may have data in local timezone of the corresponding marketplace/store/account. DateTime values that are in local timezone are standardized by converting to specified timezone using input offset hours.
 
 #### Prerequisite 
-Daton Connectors for Amazon Seller Partner Data - Amazon Seller Partner, Exchange Rates(Optional)
+Daton Integrations for  
+- Amazon Seller Partner 
+- Exchange Rates(Optional, if currency conversion is not required)
 
 # Installation & Configuration
 
 ## Installation Instructions
 
-If you haven't already, you will need to create a packages.yml file in your project. Include this in your `packages.yml` file
+If you haven't already, you will need to create a packages.yml file in your DBT project. Include this in your `packages.yml` file
 
 ```yaml
 packages:
-  - package: saras-daton/amazon_sellerpartner_bigquery
-    version: 1.0.0
+  - package: saras-daton/amazon_sellerpartner
+    version: {{1.0.0}}
 ```
 
 # Configuration 
 
 ## Required Variables
 
-This package assumes that you have an existing dbt project with a BigQuery profile connected & tested. Source data is located using the following variables which must be set in your `dbt_project.yml` file.
-
+This package assumes that you have an existing dbt project with a BigQuery/Snowflake profile connected & tested. Source data is located using the following variables which must be set in your `dbt_project.yml` file.
 ```yaml
 vars:
-    raw_projectid: "your_gcp_project"
-    raw_dataset: "your_amazon_sellerpartner_dataset"
+    raw_database: "your_database"
+    raw_schema: "your_schema"
 ```
 
-## Schema Change
+## Setting Target Schema
 
-We will create the models under the schema (<target_schema>_stg_amazon). In case, you would like the models to be written to the target schema or a different custom schema, please add the following in the dbt_project.yml file.
+Models will be create unified tables under the schema (<target_schema>_stg_amazon). In case, you would like the models to be written to the target schema or a different custom schema, please add the following in the dbt_project.yml file.
 
-```yml
+```yaml
 models:
-  amazon_sellerpartner_bigquery:
-    +schema: custom_schema_name # leave blank for just the target_schema
+  amazon_sellerpartner:
+    +schema: custom_schema_name
 ```
 
 ## Optional Variables
 
-Package offers different configurations which must be set in your `dbt_project.yml` file under the above variables. These variables can be marked as True/False based on your requirements. Details about the variables are given below.
-
-```yaml
-vars:
-    currency_conversion_flag: False
-    timezone_conversion_flag:
-        amazon_sellerpartner: False
-    timezone_conversion_hours: 7
-    table_partition_flag: False
-    ListOrder: True
-    brand_consolidation_flag: False
-    brand_name_position: 0
-    brand_name: "Amazon Seller Name"
-```
+Package offers different configurations which must be set in your `dbt_project.yml` file. These variables can be marked as True/False based on your requirements. Details about the variables are given below.
 
 ### Currency Conversion 
 
-To enable currency conversion, which produces two columns - exchange_currency_rate, exchange_currency_code  based on the data from the Exchange Rates Connector from Daton.  please mark the currency conversion flag as True. By default, it is False.
+To enable currency conversion, which produces two columns - exchange_currency_rate & exchange_currency_code, please mark the currency_conversion_flag as True. By default, it is False.
+Prerequisite - Daton Exchange Rates Integration
+
+Example:
+```yaml
+vars:
+    currency_conversion_flag: True
+```
 
 ### Timezone Conversion 
 
-To enable timezone conversion, which converts the major date columns according to given timezone, please mark the time zone conversion variable for this pakage as True in the dbt_project.yml file. The Ads data is available at local timezone and by setting the timezone_conversion_hours variable, it will be offset by the specified number of hours.(Eg: 7,8,-7,-11 etc) By default, it is False.
+To enable timezone conversion, which converts the datetime columns from local timezone to given timezone, please mark the timezone_conversion_flag f as True in the dbt_project.yml file, by default, it is False
+Additionally, you need to provide offset hours for each raw table
 
-### Table Partitions
-
-To enable partitioning for the tables, please mark table_partition_flag variable as True. By default, it is False.
+Example:
+```yaml
+vars:
+timezone_conversion_flag: False
+raw_table_timezone_offset_hours: {
+    "saras_db.staging.Brand_US_AmazonSellerCentral_FlatFileAllOrdersReportbyLastUpdate":7,
+    "saras_db.staging.Brand_US_AmazonSellerCentral_ListOrder":5,
+    "saras_db.staging.Brand_US_AmazonSellerCentral_FBAAmazonFulfilledShipmentsReport":6,
+    "saras_db.staging.Brand_US_AmazonSellerCentral_InventoryLedgerDetailedReport":8
+    }
+```
 
 ### Table Exclusions
 
-Setting these table exclusions will remove the modelling enabled for the below models. By declaring the model names as variables as above and marking them as False, they get disabled. Refer the table below for model details. By default, all tables are created. 
+If you need to exclude any of the models, declare the model names as variables and mark them as False. Refer the table below for model details. By default, all tables are created.
 
-### Brand Consolidation
-
-The Amazon Seller Name would be called the Brand name in this case. If you sell more than one brand, then brand consolidation can be enabled. Brand name positions (Eg: 0/1/2) gets the brand name from the integration name based on the location you have given. In case there is only a single brand, adding the name in brand name variable adds the column to the tables. By default, brand consolidation flag is False and brand name variable needs to be set.
-
-## Scheduling the Package for refresh
-
-The seller partner tables that are being generated as part of this package are enabled for incremental refresh and can be scheduled by creating a job in Production Environment. During 'dbt Build', the models get refreshed.
+Example:
+```yaml
+vars:
+ListOrder: False
+```
 
 ## Models
 
-This package contains models from the Amazon Selling Partner API which includes reports on sales, margin, inventory, product. Please follow this to get more details about [models](https://docs.google.com/spreadsheets/d/1OaJnVpBrPZaBusJXBHrT8dhnD2zctWMmSRN__WLQsl0/edit?usp=sharing). The primary outputs of this package are described below.
+This package contains models from the Amazon Selling Partner API which includes reports on {{sales, margin, inventory, product}}. The primary outputs of this package are described below.
 
 | **Category**                 | **Model**  | **Description** |
 | ------------------------- | ---------------| ----------------------- |
 |Customer | [ListOrder](models/Customer/ListOrder.sql)  | A list orders along with the customer details |
-|Inventory | [FBAManageInventoryHealthReport](models/Inventory/FBAManageInventoryHealthReport.sql)  | A detailed report which gives details about inventory age , current inventory levels, recommended inventory levels |
-|Inventory | [FBAManageInventory](models/Inventory/FBAManageInventory.sql)  | A list of ad groups associated with the accountA report which gives details about inventory movement - inbound, outbound, sellable |
-|Inventory | [InventoryLedgerDetailedReport](models/Inventory/InventoryLedgerDetailedReport.sql)| A report about available quantity at the warehouse level |
-|Financial Events | [FE_OrderFees](models/Margin/FE_OrderFees.sql)| A list of fees associated with the shipment item. |
-|Financial Events | [FE_OrderPromotions](models/Margin/FE_OrderPromotions.sql)| A list of promotions which gives the amount of promotional discount applied to the item at an item & order level.|
-|Financial Events | [FE_OrderRevenue](models/Margin/FE_OrderRevenue.sql)| A list of shipment items which includes order & product level revenue |
-|Financial Events | [FE_OrderTaxes](models/Margin/FE_OrderTaxes.sql)| A list of order taxes |
-|Financial Events | [FE_RefundFees](models/Margin/FE_RefundFees.sql)| A list of fees associated with the refunded item.	 |
-|Financial Events | [FE_RefundPromotions](models/Margin/FE_RefundPromotions.sql)|A list of promotions which gives the amount of promotional discount applied to the item at an refunded item level. |
-|Financial Events | [FE_RefundRevenue](models/Margin/FE_RefundRevenue.sql)| A list of refunded items which includes refund & product level revenue |
-|Financial Events | [FE_RefundTaxes](models/Margin/FE_RefundTaxes.sql)| A list of refund taxes |
-|Product | [CatalogItemsSummary](models/Product/CatalogItemsSummary.sql)| A list of product summary, manufacturer & dimensions |
-|Product | [AllListingsReport](models/Product/AllListingsReport.sql)|  listing report with details about all types of listings |
-|Returns | [FBAReturnsReport](models/Returns/FBAReturnsReport.sql)|Returns report of the orders fulfilled by Amazon |
-|Returns | [FlatFileReturnsReportByReturnDate](models/Returns/FlatFileReturnsReportByReturnDate.sql)|Returns report of the orders fulfilled by Merchant |
-|Sales | [FBAAmazonFulfilledShipmentsReport](models/Sales/FBAAmazonFulfilledShipmentsReport.sql)|Orders report with shipment details included |
-|Sales | [FlatFileAllOrdersReportByLastUpdate](models/Sales/FlatFileAllOrdersReportByLastUpdate.sql)|Order & Item Level report |
-|Sales | [SalesAndTrafficReportByChildASIN](models/Traffic/SalesAndTrafficReportByChildASIN.sql)|Provides sales & traffic at SKU level that we see in the Business Report in the UI |
+|Inventory | [FBAManageInventoryHealthReport](models/AmazonSellerCentral/FBAManageInventoryHealthReport.sql)  | A detailed report which gives details about inventory age , current inventory levels, recommended inventory levels |
+|Inventory | [FBAManageInventory](models/AmazonSellerCentral/FBAManageInventory.sql)  | A list of ad groups associated with the accountA report which gives details about inventory movement - inbound, outbound, sellable |
+|Inventory | [InventoryLedgerDetailedReport](models/AmazonSellerCentral/InventoryLedgerDetailedReport.sql)| A report about available quantity at the warehouse level |
+|Financial Events | [OrderFees](models/AmazonSellerCentral/OrderFees.sql)| A list of fees associated with the shipment item. |
+|Financial Events | [OrderPromotions](models/AmazonSellerCentral/OrderPromotions.sql)| A list of promotions which gives the amount of promotional discount applied to the item at an item & order level.|
+|Financial Events | [OrderRevenue](models/AmazonSellerCentral/OrderRevenue.sql)| A list of shipment items which includes order & product level revenue |
+|Financial Events | [OrderTaxes](models/AmazonSellerCentral/OrderTaxes.sql)| A list of order taxes |
+|Financial Events | [RefundFees](models/AmazonSellerCentral/RefundFees.sql)| A list of fees associated with the refunded item.	 |
+|Financial Events | [RefundPromotions](models/AmazonSellerCentral/RefundPromotions.sql)|A list of promotions which gives the amount of promotional discount applied to the item at an refunded item level. |
+|Financial Events | [RefundRevenue](models/AmazonSellerCentral/RefundRevenue.sql)| A list of refunded items which includes refund & product level revenue |
+|Financial Events | [RefundTaxes](models/AmazonSellerCentral/RefundTaxes.sql)| A list of refund taxes |
+|Product | [CatalogItemsSummary](models/AmazonSellerCentral/CatalogItemsSummary.sql)| A list of product summary, manufacturer & dimensions |
+|Product | [AllListingsReport](models/AmazonSellerCentral/AllListingsReport.sql)|  listing report with details about all types of listings |
+|Returns | [FBAReturnsReport](models/AmazonSellerCentral/FBAReturnsReport.sql)|Returns report of the orders fulfilled by Amazon |
+|Returns | [FlatFileReturnsReportByReturnDate](models/AmazonSellerCentral/FlatFileReturnsReportByReturnDate.sql)|Returns report of the orders fulfilled by Merchant |
+|Sales | [FBAAmazonFulfilledShipmentsReport](models/AmazonSellerCentral/FBAAmazonFulfilledShipmentsReport.sql)|Orders report with shipment details included |
+|Sales | [FlatFileAllOrdersReportByLastUpdate](models/AmazonSellerCentral/FlatFileAllOrdersReportByLastUpdate.sql)|Order & Item Level report |
+|Sales | [SalesAndTrafficReportByChildASIN](models/AmazonSellerCentral/SalesAndTrafficReportByChildASIN.sql)|Provides sales & traffic at SKU level that we see in the Business Report in the UI |
+
+
+
+
+### For details about default configurations for Table Primary Key columns, Partition columns, Clustering columns, please refer the properties.yaml used for this package as below. 
+	You can overwrite these default configurations by using your project specific properties yaml.
+```yaml
+version: 2
+models:
+  - name: ListOrder
+    description: A list orders along with the customer details
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      unique_key: ['PurchaseDate','amazonorderid']
+      partition_by: { 'field': 'PurchaseDate', 'data_type': dbt.type_timestamp() }
+      granularity: 'day'
+      cluster_by: ['amazonorderid']
+
+  - name: FBAManageInventoryHealthReport	
+    description: A detailed report which gives details about inventory age , current inventory levels, recommended inventory levels
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      unique_key: ['snapshot_date','asin','sku']
+      partition_by: { 'field': 'snapshot_date', 'data_type': 'date' }
+      cluster_by: ['asin','sku']
+
+  - name: FBAManageInventory
+    description: A list of ad groups associated with the accountA report which gives details about inventory movement - inbound, outbound, sellable
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      unique_key: ['ReportstartDate','sku']
+      partition_by: { 'field': 'ReportstartDate', 'data_type': 'date' }
+      cluster_by: ['sku']
+
+  - name: InventoryLedgerDetailedReport
+    description: A report about available quantity at the warehouse level
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      unique_key: ['date','asin','fulfillment_center','msku', 'event_type', 'reference_id','quantity','disposition']
+      partition_by: { 'field': 'date', 'data_type': dbt.type_timestamp() }
+      granularity: 'day'
+      cluster_by: ['date','msku']
+
+  - name: OrderFees
+    description: A list of fees associated with the shipment item.
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'FeeType', 'TransactionType', 'AmountType','_seq_id']
+      partition_by: { 'field': 'posteddate', 'data_type': 'date' }
+      cluster_by: ['marketplacename', 'amazonorderid']
+
+  - name: OrderPromotions
+    description: A list of promotions which gives the amount of promotional discount applied to the item at an item & order level.
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'PromotionType', 'TransactionType', 'AmountType','_seq_id']
+      partition_by: { 'field': 'posteddate', 'data_type': 'date' }
+      cluster_by: ['marketplacename', 'amazonorderid']
+
+  - name: OrderRevenue
+    description: A list of shipment items which includes order & product level revenue
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'ChargeType', 'TransactionType', 'AmountType', '_seq_id']
+      partition_by: { 'field': 'posteddate', 'data_type': 'date' }
+      cluster_by: ['marketplacename', 'amazonorderid']
+
+  - name: OrderTaxes
+    description: A list of order taxes
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'ChargeType', 'TransactionType', 'AmountType', '_seq_id']
+      partition_by: { 'field': 'posteddate', 'data_type': 'date' }
+      cluster_by: ['marketplacename', 'amazonorderid']
+
+  - name: RefundFees
+    description: A list of fees associated with the refunded item.
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'FeeType', '_seq_id']
+      partition_by: { 'field': 'posteddate', 'data_type': 'date' }
+      cluster_by: ['marketplacename', 'amazonorderid']
+
+  - name: RefundPromotions
+    description: A list of promotions which gives the amount of promotional discount applied to the item at an refunded item level.
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'PromotionType', '_seq_id']
+      partition_by: { 'field': 'posteddate', 'data_type': 'date' }
+      cluster_by: ['marketplacename', 'amazonorderid']
+
+  - name: RefundRevenue
+    description: A list of refunded items which includes refund & product level revenue
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'ChargeType', '_seq_id']
+      partition_by: { 'field': 'posteddate', 'data_type': 'date' }
+      cluster_by: ['marketplacename', 'amazonorderid']
+
+  - name: RefundTaxes
+    description: A list of refund taxes
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'ChargeType', '_seq_id']
+      partition_by: { 'field': 'posteddate', 'data_type': 'date' }
+      cluster_by: ['marketplacename', 'amazonorderid']
+
+  - name: CatalogItemsSummary
+    description: A list of product summary, manufacturer & dimensions
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      cluster_by: ['ReferenceASIN']
+      unique_key: ['brandName','ReferenceASIN','modelNumber']
+
+  - name: AllListingsReport
+    description: A listing report with details about all types of listings
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      cluster_by: ['seller_sku']
+      unique_key: ['seller_sku']
+
+  - name: FBAReturnsReport
+    description: Returns report of the orders fulfilled by Amazon
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      unique_key: ['return_date','asin','sku','order_id','fnsku','license_plate_number','fulfillment_center_id','_seq_id']
+      partition_by: { 'field': 'return_date', 'data_type': 'date' }
+      cluster_by: ['asin','sku']
+
+  - name: FlatFileReturnsReportByReturnDate
+    description: Returns report of the orders fulfilled by Merchant
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      unique_key: ['Return_request_date', 'Order_ID', 'ASIN']
+      partition_by: { 'field': 'Return_request_date', 'data_type': 'date' }
+      cluster_by: ['ASIN','Merchant_SKU', 'Order_ID']
+
+  - name: FBAAmazonFulfilledShipmentsReport
+    description: Orders report with shipment details included
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      unique_key: ['purchase_date', 'sku', 'amazon_order_id', '_seq_id']
+      partition_by: { 'field': 'purchase_date', 'data_type': dbt.type_timestamp() }
+      granularity: 'day'
+      cluster_by: ['sku','amazon_order_id']
+
+  - name: FlatFileAllOrdersReportByLastUpdate
+    description: Order & Item Level report
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      unique_key: ['purchase_date', 'amazon_order_id', 'asin', 'sku', '_seq_id']
+      partition_by: { 'field': 'purchase_date', 'data_type': dbt.type_timestamp() }
+      granularity: 'day'
+      cluster_by: ['asin', 'sku', 'amazon_order_id']
+
+  - name: SalesAndTrafficReportByChildASIN
+    description: Provides sales & traffic at SKU level that we see in the Business Report in the UI
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      partition_by: { 'field': 'date', 'data_type': 'date' }
+      cluster_by: ['parentAsin', 'childAsin']
+      unique_key: ['date', 'parentAsin', 'childAsin']
+```
+
+
 
 ## Resources:
 - Have questions, feedback, or need [help](https://calendly.com/priyanka-vankadaru/30min)? Schedule a call with our data experts or email us at info@sarasanalytics.com.
 - Learn more about Daton [here](https://sarasanalytics.com/daton/).
-- Refer [this](https://youtu.be/6zDTbM6OUcs) to know more about how to create a dbt account & connect to Bigquery
+- Refer [this](https://youtu.be/6zDTbM6OUcs) to know more about how to create a dbt account & connect to {{Bigquery/Snowflake}}
