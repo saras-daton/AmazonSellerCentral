@@ -6,13 +6,13 @@ This dbt package is for the Amazon Selling Partner data unification Ingested by 
 - BigQuery
 - Snowflake
 
-#### Typical challanges with raw data are:
+#### Typical challenges with raw data are:
 - Array/Nested Array columns which makes queries for Data Analytics complex
 - Data duplication due to look back period while fetching report data from Amazon Seller Partner
-- Seperate tables at marketplaces/Store, brand, account level for same kind of report/data feeds
+- Separate tables at marketplaces/Store, brand, account level for same kind of report/data feeds
 
 By doing Data Unification the above challenges can be overcomed and simplifies Data Analytics. 
-As part of Data Unification, the following funtions are performed:
+As part of Data Unification, the following functions are performed:
 - Consolidation - Different marketplaces/Store/account & different brands would have similar raw Daton Ingested tables, which are consolidated into one table with column distinguishers brand & store
 - Deduplication - Based on primary keys, the data is De-duplicated and the latest records are only loaded into the consolidated stage tables
 - Incremental Load - Models are designed to include incremental load which when scheduled would update the tables regularly
@@ -76,7 +76,7 @@ vars:
 
 ### Timezone Conversion 
 
-To enable timezone conversion, which converts the datetime columns from local timezone to given timezone, please mark the timezone_conversion_flag f as True in the dbt_project.yml file, by default, it is False
+To enable timezone conversion, which converts the timezone columns from local timezone to given timezone, please mark the timezone_conversion_flag f as True in the dbt_project.yml file, by default, it is False
 Additionally, you need to provide offset hours for each raw table
 
 Example:
@@ -141,11 +141,10 @@ models:
       materialized: incremental
       incremental_strategy: merge
       unique_key: ['PurchaseDate','amazonorderid']
-      partition_by: { 'field': 'PurchaseDate', 'data_type': dbt.type_timestamp() }
-      granularity: 'day'
+      partition_by: { 'field': 'PurchaseDate', 'data_type': 'timestamp', 'granularity': 'day' }
       cluster_by: ['amazonorderid']
 
-  - name: FBAManageInventoryHealthReport	
+  - name: FBAManageInventoryHealthReport  
     description: A detailed report which gives details about inventory age , current inventory levels, recommended inventory levels
     config:
       materialized: incremental
@@ -169,8 +168,7 @@ models:
       materialized: incremental
       incremental_strategy: merge
       unique_key: ['date','asin','fulfillment_center','msku', 'event_type', 'reference_id','quantity','disposition']
-      partition_by: { 'field': 'date', 'data_type': dbt.type_timestamp() }
-      granularity: 'day'
+      partition_by: { 'field': 'date', 'data_type': 'timestamp', 'granularity': 'day' }
       cluster_by: ['date','msku']
 
   - name: OrderFees
@@ -285,8 +283,7 @@ models:
       materialized: incremental
       incremental_strategy: merge
       unique_key: ['purchase_date', 'sku', 'amazon_order_id', '_seq_id']
-      partition_by: { 'field': 'purchase_date', 'data_type': dbt.type_timestamp() }
-      granularity: 'day'
+      partition_by: { 'field': 'purchase_date', 'data_type': 'timestamp', 'granularity': 'day' }
       cluster_by: ['sku','amazon_order_id']
 
   - name: FlatFileAllOrdersReportByLastUpdate
@@ -295,8 +292,7 @@ models:
       materialized: incremental
       incremental_strategy: merge
       unique_key: ['purchase_date', 'amazon_order_id', 'asin', 'sku', '_seq_id']
-      partition_by: { 'field': 'purchase_date', 'data_type': dbt.type_timestamp() }
-      granularity: 'day'
+      partition_by: { 'field': 'purchase_date', 'data_type': 'timestamp', 'granularity': 'day' }
       cluster_by: ['asin', 'sku', 'amazon_order_id']
 
   - name: SalesAndTrafficReportByChildASIN

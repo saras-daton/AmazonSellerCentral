@@ -1,5 +1,12 @@
 {% if var('FlatFileAllOrdersReportByLastUpdate') %}
+    {{ config( enabled = True ) }}
+{% else %}
+    {{ config( enabled = False ) }}
+{% endif %}
+
+{% if var('currency_conversion_flag') %}
 -- depends_on: {{ref('ExchangeRates')}}
+{% endif %}
 
     {% if is_incremental() %}
         {%- set max_loaded_query -%}
@@ -67,7 +74,7 @@
                     marketplaceId,
                     coalesce(amazon_order_id,'') as amazon_order_id,
                     merchant_order_id,
-                    {{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="purchase_date") }} as purchase_date,
+                    CAST({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="purchase_date") }} as {{ dbt.type_timestamp() }}) as purchase_date,
                     CAST({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="cast(last_updated_date as timestamp)") }} as {{ dbt.type_timestamp() }}) as last_updated_date,
                     order_status, 
                     fulfillment_channel, 
@@ -136,4 +143,3 @@
             )
         {% if not loop.last %} union all {% endif %}
     {% endfor %}
-{% endif %}

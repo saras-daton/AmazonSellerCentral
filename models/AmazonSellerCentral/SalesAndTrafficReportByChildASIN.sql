@@ -1,5 +1,12 @@
 {% if var('SalesAndTrafficReportByChildASIN') %}
+    {{ config( enabled = True ) }}
+{% else %}
+    {{ config( enabled = False ) }}
+{% endif %}
+
+{% if var('currency_conversion_flag') %}
 -- depends_on: {{ref('ExchangeRates')}}
+{% endif %}
 
     {% if is_incremental() %}
     {%- set max_loaded_query -%}
@@ -107,4 +114,3 @@
              where row_num = 1
     {% if not loop.last %} union all {% endif %}
     {% endfor %}
-{% endif %}

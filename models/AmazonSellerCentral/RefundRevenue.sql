@@ -1,5 +1,12 @@
 {% if var('RefundRevenue') %}
+    {{ config( enabled = True ) }}
+{% else %}
+    {{ config( enabled = False ) }}
+{% endif %}
+
+{% if var('currency_conversion_flag') %}
  -- depends_on: {{ ref('ExchangeRates') }} 
+{% endif %}
     
     {% if is_incremental() %}
     {%- set max_loaded_query -%}
@@ -110,4 +117,3 @@
             from unnested_refundeventlist
             ) where rank=1
     )
-{% endif %}
