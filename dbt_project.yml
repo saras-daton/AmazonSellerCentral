@@ -8,9 +8,9 @@ config-version: 2
 require-dbt-version: [">=1.0.0", "<2.0.0"]
 
 vars:
-  raw_database: "EDM" #equivalent to project_id in BigQuery
+  raw_database: "Amazon" #equivalent to project_id in BigQuery
     # Example Database name
-  raw_schema: "EDM" #equivalent to dataset in BigQuery
+  raw_schema: "SellerCentral" #equivalent to dataset in BigQuery
     # Example Schema name
 
   get_brandname_from_tablename_flag: True
@@ -29,14 +29,10 @@ vars:
   currency_conversion_flag: False
   timezone_conversion_flag: False
   raw_table_timezone_offset_hours: {
-    "edm-saras.EDM_Daton.Brand_US_AmazonSellerCentral_FlatFileAllOrdersReportbyLastUpdate":7,
-    "edm-saras.EDM_Daton.Brand_US_AmazonSellerCentral_ListOrder":5,
-    "edm-saras.EDM_Daton.Brand_US_AmazonSellerCentral_FBAAmazonFulfilledShipmentsReport":6,
-    "edm-saras.EDM_Daton.Brand_US_AmazonSellerCentral_InventoryLedgerDetailedReport":8,
-    "EDM.EDM.BRAND_US_AMAZONSELLERCENTRAL_SF_FBAAMAZONFULFILLEDSHIPMENTSREPORT":8,
-    "EDM.EDM.BRAND_US_AMAZONSELLERCENTRAL_SF_LISTORDER":8,
-    "EDM.EDM.BRAND_US_AMAZONSELLERCENTRAL_SF_FLATFILEALLORDERSREPORTBYLASTUPDATE":8,
-    "EDM.EDM.BRAND_US_AMAZONSELLERCENTRAL_SF_INVENTORYLEDGERDETAILEDREPORT":8
+    "Amazon.SellerCentral.Brand_UK_AmazonSellerCentral_FlatFileAllOrdersReportbyLastUpdate":-7,
+    "Amazon.SellerCentral.Brand_UK_AmazonSellerCentral_ListOrder":-7,
+    "Amazon.SellerCentral.Brand_UK_AmazonSellerCentral_FBAAmazonFulfilledShipmentsReport":-7,
+    "Amazon.SellerCentral.Brand_UK_AmazonSellerCentral_InventoryLedgerDetailedReport":-7
     }
       # Above are Example entries for raw table level input offset hours
 
@@ -81,4 +77,4 @@ clean-targets:         # directories to be removed by `dbt clean`
 models:
   amazon_sellerpartner:
     AmazonSellerCentral:
-      +schema: stg_amazon_dbthub
+      +schema: stg_amazon
