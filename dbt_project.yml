@@ -9,16 +9,36 @@ require-dbt-version: [">=1.0.0", "<2.0.0"]
 
 vars:
   raw_database: "EDM" #equivalent to project_id in BigQuery
+    # Example Database name
   raw_schema: "EDM" #equivalent to dataset in BigQuery
-  currency_conversion_flag: False
+    # Example Schema name
+
   get_brandname_from_tablename_flag: True
   brandname_position_in_tablename: 0
-  # Example- default_brandname: "Nike"
+    # Example- Daton Integration Name: Nike_US_SponsoredBrands --> Position 0, separated by '_'
   default_brandname: "" 
+    # Example- default_brandname: "Nike" --> for Single Brand users, with no Brandname in Daton Integration Name
+
   get_storename_from_tablename_flag: True 
   storename_position_in_tablename: 1
-  # Example- default_storename: "US"
+    # Example- Daton Integration Name: Nike_US_SponsoredBrands --> Position 1, separated by '_'
   default_storename: "" 
+    # Example- default_storename: "US" --> for Single Store users, with no Storename in Daton Integration Name
+
+
+  currency_conversion_flag: False
+  timezone_conversion_flag: False
+  raw_table_timezone_offset_hours: {
+    "edm-saras.EDM_Daton.Brand_US_AmazonSellerCentral_FlatFileAllOrdersReportbyLastUpdate":7,
+    "edm-saras.EDM_Daton.Brand_US_AmazonSellerCentral_ListOrder":5,
+    "edm-saras.EDM_Daton.Brand_US_AmazonSellerCentral_FBAAmazonFulfilledShipmentsReport":6,
+    "edm-saras.EDM_Daton.Brand_US_AmazonSellerCentral_InventoryLedgerDetailedReport":8,
+    "EDM.EDM.BRAND_US_AMAZONSELLERCENTRAL_SF_FBAAMAZONFULFILLEDSHIPMENTSREPORT":8,
+    "EDM.EDM.BRAND_US_AMAZONSELLERCENTRAL_SF_LISTORDER":8,
+    "EDM.EDM.BRAND_US_AMAZONSELLERCENTRAL_SF_FLATFILEALLORDERSREPORTBYLASTUPDATE":8,
+    "EDM.EDM.BRAND_US_AMAZONSELLERCENTRAL_SF_INVENTORYLEDGERDETAILEDREPORT":8
+    }
+      # Above are Example entries for raw table level input offset hours
 
   AllListingsreport: True
   CatalogItemsSummary: True
@@ -40,18 +60,6 @@ vars:
   RefundRevenue: True
   RefundTaxes: True
   SalesAndTrafficReportByChildASIN: True
-
-  timezone_conversion_flag: False
-  raw_table_timezone_offset_hours: {
-    "edm-saras.EDM_Daton.Brand_US_AmazonSellerCentral_FlatFileAllOrdersReportbyLastUpdate":7,
-    "edm-saras.EDM_Daton.Brand_US_AmazonSellerCentral_ListOrder":5,
-    "edm-saras.EDM_Daton.Brand_US_AmazonSellerCentral_FBAAmazonFulfilledShipmentsReport":6,
-    "edm-saras.EDM_Daton.Brand_US_AmazonSellerCentral_InventoryLedgerDetailedReport":8,
-    "EDM.EDM.BRAND_US_AMAZONSELLERCENTRAL_SF_FBAAMAZONFULFILLEDSHIPMENTSREPORT":8,
-    "EDM.EDM.BRAND_US_AMAZONSELLERCENTRAL_SF_LISTORDER":8,
-    "EDM.EDM.BRAND_US_AMAZONSELLERCENTRAL_SF_FLATFILEALLORDERSREPORTBYLASTUPDATE":8,
-    "EDM.EDM.BRAND_US_AMAZONSELLERCENTRAL_SF_INVENTORYLEDGERDETAILEDREPORT":8
-    }
 
   
 # These configurations specify where dbt should look for different types of files.
