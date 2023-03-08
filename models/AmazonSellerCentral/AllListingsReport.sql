@@ -1,4 +1,9 @@
 {% if var('AllListingsreport') %}
+    {{ config( enabled = True ) }}
+{% else %}
+    {{ config( enabled = False ) }}
+{% endif %}
+
     {% if is_incremental() %}
     {%- set max_loaded_query -%}
     SELECT coalesce(MAX(_daton_batch_runtime) - 2592000000,0) FROM {{ this }}
@@ -102,4 +107,3 @@
         where row_num = 1 
         {% if not loop.last %} union all {% endif %}
     {% endfor %}
-{% endif %}

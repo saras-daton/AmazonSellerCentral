@@ -1,5 +1,12 @@
 {% if var('OrderFees') %}
+    {{ config( enabled = True ) }}
+{% else %}
+    {{ config( enabled = False ) }}
+{% endif %}
+
+{% if var('currency_conversion_flag') %}
 -- depends_on: {{ref('ExchangeRates')}}
+{% endif %}
 
     {% if is_incremental() %}
     {%- set max_loaded_query -%}
@@ -111,4 +118,3 @@
             from unnested_shipmenteventlist
         ) where rank = 1
     )
-{% endif %}

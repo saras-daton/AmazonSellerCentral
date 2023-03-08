@@ -1,4 +1,9 @@
 {% if var('ListOrder') %}
+    {{ config( enabled = True ) }}
+{% else %}
+    {{ config( enabled = False ) }}
+{% endif %}
+
     {% if is_incremental() %}
     {%- set max_loaded_query -%}
     SELECT coalesce(MAX(_daton_batch_runtime) - 2592000000,0) FROM {{ this }}
@@ -59,7 +64,7 @@
             marketplaceName,
             coalesce(AmazonOrderId,'') as AmazonOrderId,
             SellerOrderId,
-            {{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="PurchaseDate") }} as PurchaseDate,
+            CAST({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="PurchaseDate") }} as {{ dbt.type_timestamp() }}) as PurchaseDate,
             CAST({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="LastUpdateDate") }} as {{ dbt.type_timestamp() }}) as LastUpdateDate,
             OrderStatus,
             FulfillmentChannel,
@@ -132,4 +137,3 @@
 
     {% if not loop.last %} union all {% endif %}
     {% endfor %}
-{% endif %}
