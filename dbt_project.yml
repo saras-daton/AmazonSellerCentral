@@ -8,9 +8,9 @@ config-version: 2
 require-dbt-version: [">=1.0.0", "<2.0.0"]
 
 vars:
-  raw_database: "edm-saras" #equivalent to project_id in BigQuery
-  raw_schema: "EDM_Daton" #equivalent to dataset in BigQuery
-  currency_conversion_flag: True
+  raw_database: "EDM" #equivalent to project_id in BigQuery
+  raw_schema: "EDM" #equivalent to dataset in BigQuery
+  currency_conversion_flag: False
   get_brandname_from_tablename_flag: True
   brandname_position_in_tablename: 0
   # Example- default_brandname: "Nike"
