@@ -1,4 +1,4 @@
-{% if var('OrderFees') %}
+{% if var('ListFinancialEventsOrderFees') %}
     {{ config( enabled = True ) }}
 {% else %}
     {{ config( enabled = False ) }}

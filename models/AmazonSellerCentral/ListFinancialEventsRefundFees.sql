@@ -1,4 +1,4 @@
-{% if var('RefundFees') %}
+{% if var('ListFinancialEventsRefundFees') %}
     {{ config( enabled = True ) }}
 {% else %}
     {{ config( enabled = False ) }}

@@ -1,4 +1,4 @@
-{% if var('OrderPromotions') %}
+{% if var('ListFinancialEventsOrderPromotions') %}
     {{ config( enabled = True ) }}
 {% else %}
     {{ config( enabled = False ) }}

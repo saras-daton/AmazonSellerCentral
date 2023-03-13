@@ -7,13 +7,10 @@ version: '1.0.0'
 config-version: 2
 require-dbt-version: [">=1.0.0", "<2.0.0"]
 
-# This setting configures which "profile" dbt uses for this project.
-profile: "edm_data_transformation"
-
 vars:
   raw_database: "Amazon" #equivalent to project_id in BigQuery
     # Example Database name
-  raw_schema: "SellerCentral" #equivalent to dataset in BigQuery
+  raw_schema: "Daton" #equivalent to dataset in BigQuery
     # Example Schema name
 
   get_brandname_from_tablename_flag: True
@@ -49,15 +46,15 @@ vars:
   FlatFileReturnsReportByReturnDate: True
   InventoryLedgerDetailedReport: True
   ListOrder: True
-  OrderFees: True
-  OrderFees: True
-  OrderPromotions: True
-  OrderRevenue: True
-  OrderTaxes: True
-  RefundFees: True
-  RefundPromotions: True
-  RefundRevenue: True
-  RefundTaxes: True
+  ListFinancialEventsOrderFees: True
+  ListFinancialEventsOrderFees: True
+  ListFinancialEventsOrderPromotions: True
+  ListFinancialEventsOrderRevenue: True
+  ListFinancialEventsOrderTaxes: True
+  ListFinancialEventsRefundFees: True
+  ListFinancialEventsRefundPromotions: True
+  ListFinancialEventsRefundRevenue: True
+  ListFinancialEventsRefundTaxes: True
   SalesAndTrafficReportByChildASIN: True
 
   
