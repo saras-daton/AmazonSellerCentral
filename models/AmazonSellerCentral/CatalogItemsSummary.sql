@@ -59,7 +59,7 @@
             colorName,
             itemName,
             manufacturer,
-            modelNumber,
+            coalesce(modelNumber,'') as modelNumber,
             sizeName,
             styleName,
 	        {{daton_user_id()}} as _daton_user_id,

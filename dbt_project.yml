@@ -7,6 +7,9 @@ version: '1.0.0'
 config-version: 2
 require-dbt-version: [">=1.0.0", "<2.0.0"]
 
+# This setting configures which "profile" dbt uses for this project.
+profile: "edm_data_transformation"
+
 vars:
   raw_database: "Amazon" #equivalent to project_id in BigQuery
     # Example Database name
@@ -77,4 +80,4 @@ clean-targets:         # directories to be removed by `dbt clean`
 models:
   amazon_sellerpartner:
     AmazonSellerCentral:
-      +schema: stg_amazon
+      +schema: stg_amazon_sellercentral

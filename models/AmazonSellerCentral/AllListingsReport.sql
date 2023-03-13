@@ -50,8 +50,8 @@
             select 
             '{{brand}}' as brand,
             '{{store}}' as store,
-            CAST(ReportstartDate as timestamp) ReportstartDate,
-            CAST(ReportendDate as timestamp) ReportendDate,
+            ReportstartDate,
+            ReportendDate,
             ReportRequestTime,
             sellingPartnerId,
             marketplaceName,

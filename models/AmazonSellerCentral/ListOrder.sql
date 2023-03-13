@@ -46,7 +46,7 @@
         {% set store = var('default_storename') %}
     {% endif %}
 
-    {% if var('timezone_conversion_flag') and i.lower() in tables_lowercase_list %}
+    {% if var('timezone_conversion_flag') and i.lower() in tables_lowercase_list and i in var('raw_table_timezone_offset_hours') %}
         {% set hr = var('raw_table_timezone_offset_hours')[i] %}
     {% else %}
         {% set hr = 0 %}

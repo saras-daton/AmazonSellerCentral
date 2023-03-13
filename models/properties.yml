@@ -24,7 +24,7 @@ models:
       materialized: incremental
       incremental_strategy: merge
       unique_key: ['ReportstartDate','sku']
-      partition_by: { 'field': 'ReportstartDate', 'data_type': 'date' }
+      partition_by: { 'field': 'ReportstartDate','data_type':'timestamp','granularity': 'day' }
       cluster_by: ['sku']
 
   - name: InventoryLedgerDetailedReport
@@ -36,7 +36,7 @@ models:
       partition_by: { 'field': 'date', 'data_type': 'timestamp', 'granularity': 'day' }
       cluster_by: ['date','msku']
 
-  - name: OrderFees
+  - name: ListFinancialEventsOrderFees
     description: A list of fees associated with the shipment item.
     config:
       materialized: incremental
@@ -45,7 +45,7 @@ models:
       partition_by: { 'field': 'posteddate', 'data_type': 'date' }
       cluster_by: ['marketplacename', 'amazonorderid']
 
-  - name: OrderPromotions
+  - name: ListFinancialEventsOrderPromotions
     description: A list of promotions which gives the amount of promotional discount applied to the item at an item & order level.
     config:
       materialized: incremental
@@ -54,7 +54,7 @@ models:
       partition_by: { 'field': 'posteddate', 'data_type': 'date' }
       cluster_by: ['marketplacename', 'amazonorderid']
 
-  - name: OrderRevenue
+  - name: ListFinancialEventsOrderRevenue
     description: A list of shipment items which includes order & product level revenue
     config:
       materialized: incremental
@@ -63,7 +63,7 @@ models:
       partition_by: { 'field': 'posteddate', 'data_type': 'date' }
       cluster_by: ['marketplacename', 'amazonorderid']
 
-  - name: OrderTaxes
+  - name: ListFinancialEventsOrderTaxes
     description: A list of order taxes
     config:
       materialized: incremental
@@ -72,7 +72,7 @@ models:
       partition_by: { 'field': 'posteddate', 'data_type': 'date' }
       cluster_by: ['marketplacename', 'amazonorderid']
 
-  - name: RefundFees
+  - name: ListFinancialEventsRefundFees
     description: A list of fees associated with the refunded item.
     config:
       materialized: incremental
@@ -81,7 +81,7 @@ models:
       partition_by: { 'field': 'posteddate', 'data_type': 'date' }
       cluster_by: ['marketplacename', 'amazonorderid']
 
-  - name: RefundPromotions
+  - name: ListFinancialEventsRefundPromotions
     description: A list of promotions which gives the amount of promotional discount applied to the item at an refunded item level.
     config:
       materialized: incremental
@@ -90,7 +90,7 @@ models:
       partition_by: { 'field': 'posteddate', 'data_type': 'date' }
       cluster_by: ['marketplacename', 'amazonorderid']
 
-  - name: RefundRevenue
+  - name: ListFinancialEventsRefundRevenue
     description: A list of refunded items which includes refund & product level revenue
     config:
       materialized: incremental
@@ -99,7 +99,7 @@ models:
       partition_by: { 'field': 'posteddate', 'data_type': 'date' }
       cluster_by: ['marketplacename', 'amazonorderid']
 
-  - name: RefundTaxes
+  - name: ListFinancialEventsRefundTaxes
     description: A list of refund taxes
     config:
       materialized: incremental

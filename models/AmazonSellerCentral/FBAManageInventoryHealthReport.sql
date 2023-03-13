@@ -55,7 +55,7 @@
             '{{store}}' as store,
             CAST(ReportstartDate as timestamp) ReportstartDate,
             CAST(ReportendDate as timestamp) ReportendDate,
-            cast(ReportRequestTime as Date)ReportRequestTime,
+            cast(ReportRequestTime as timestamp)ReportRequestTime,
             sellingPartnerId,
             marketplaceName,
             marketplaceId,
