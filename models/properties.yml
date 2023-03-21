@@ -5,7 +5,7 @@ models:
     config:
       materialized: incremental
       incremental_strategy: merge
-      unique_key: ['PurchaseDate','amazonorderid']
+      unique_key: ['PurchaseDate','amazonorderid','marketplaceName']
       partition_by: { 'field': 'PurchaseDate', 'data_type': 'timestamp', 'granularity': 'day' }
       cluster_by: ['amazonorderid']
 
@@ -14,7 +14,7 @@ models:
     config:
       materialized: incremental
       incremental_strategy: merge
-      unique_key: ['snapshot_date','asin','sku']
+      unique_key: ['snapshot_date','asin','sku','marketplaceId']
       partition_by: { 'field': 'snapshot_date', 'data_type': 'date' }
       cluster_by: ['asin','sku']
 
@@ -23,7 +23,7 @@ models:
     config:
       materialized: incremental
       incremental_strategy: merge
-      unique_key: ['ReportstartDate','sku']
+      unique_key: ['ReportstartDate','sku','marketplaceId']
       partition_by: { 'field': 'ReportstartDate','data_type':'timestamp','granularity': 'day' }
       cluster_by: ['sku']
 
@@ -32,7 +32,7 @@ models:
     config:
       materialized: incremental
       incremental_strategy: merge
-      unique_key: ['date','asin','fulfillment_center','msku', 'event_type', 'reference_id','quantity','disposition']
+      unique_key: ['date','asin','fulfillment_center','msku', 'event_type', 'reference_id','quantity','disposition','marketplaceid']
       partition_by: { 'field': 'date', 'data_type': 'timestamp', 'granularity': 'day' }
       cluster_by: ['date','msku']
 
@@ -41,7 +41,7 @@ models:
     config:
       materialized: incremental
       incremental_strategy: merge
-      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'FeeType', 'TransactionType', 'AmountType','_seq_id']
+      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'FeeType','_seq_id']
       partition_by: { 'field': 'posteddate', 'data_type': 'date' }
       cluster_by: ['marketplacename', 'amazonorderid']
 
@@ -50,7 +50,7 @@ models:
     config:
       materialized: incremental
       incremental_strategy: merge
-      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'PromotionType', 'TransactionType', 'AmountType','_seq_id']
+      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'PromotionType','_seq_id']
       partition_by: { 'field': 'posteddate', 'data_type': 'date' }
       cluster_by: ['marketplacename', 'amazonorderid']
 
@@ -59,7 +59,7 @@ models:
     config:
       materialized: incremental
       incremental_strategy: merge
-      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'ChargeType', 'TransactionType', 'AmountType', '_seq_id']
+      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'ChargeType','_seq_id']
       partition_by: { 'field': 'posteddate', 'data_type': 'date' }
       cluster_by: ['marketplacename', 'amazonorderid']
 
@@ -68,7 +68,7 @@ models:
     config:
       materialized: incremental
       incremental_strategy: merge
-      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'ChargeType', 'TransactionType', 'AmountType', '_seq_id']
+      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'ChargeType','_seq_id']
       partition_by: { 'field': 'posteddate', 'data_type': 'date' }
       cluster_by: ['marketplacename', 'amazonorderid']
 
@@ -114,7 +114,7 @@ models:
       materialized: incremental
       incremental_strategy: merge
       cluster_by: ['ReferenceASIN']
-      unique_key: ['brandName','ReferenceASIN','modelNumber']
+      unique_key: ['brandName','ReferenceASIN','modelNumber','marketplaceId']
 
   - name: AllListingsReport
     description: A listing report with details about all types of listings
@@ -122,14 +122,14 @@ models:
       materialized: incremental
       incremental_strategy: merge
       cluster_by: ['seller_sku']
-      unique_key: ['seller_sku']
+      unique_key: ['seller_sku','listing_id']
 
   - name: FBAReturnsReport
     description: Returns report of the orders fulfilled by Amazon
     config:
       materialized: incremental
       incremental_strategy: merge
-      unique_key: ['return_date','asin','sku','order_id','fnsku','license_plate_number','fulfillment_center_id','_seq_id']
+      unique_key: ['return_date','asin','sku','order_id','fnsku','license_plate_number','fulfillment_center_id','_seq_id','marketplaceId']
       partition_by: { 'field': 'return_date', 'data_type': 'date' }
       cluster_by: ['asin','sku']
 
@@ -138,7 +138,7 @@ models:
     config:
       materialized: incremental
       incremental_strategy: merge
-      unique_key: ['Return_request_date', 'Order_ID', 'ASIN']
+      unique_key: ['Return_request_date', 'Order_ID', 'ASIN','marketplaceId']
       partition_by: { 'field': 'Return_request_date', 'data_type': 'date' }
       cluster_by: ['ASIN','Merchant_SKU', 'Order_ID']
 
@@ -147,7 +147,7 @@ models:
     config:
       materialized: incremental
       incremental_strategy: merge
-      unique_key: ['purchase_date', 'sku', 'amazon_order_id', '_seq_id']
+      unique_key: ['purchase_date', 'sku', 'amazon_order_id','marketplaceName','_seq_id']
       partition_by: { 'field': 'purchase_date', 'data_type': 'timestamp', 'granularity': 'day' }
       cluster_by: ['sku','amazon_order_id']
 
@@ -167,4 +167,4 @@ models:
       incremental_strategy: merge
       partition_by: { 'field': 'date', 'data_type': 'date' }
       cluster_by: ['parentAsin', 'childAsin']
-      unique_key: ['date', 'parentAsin', 'childAsin']
+      unique_key: ['date', 'parentAsin', 'childAsin','marketplaceId']

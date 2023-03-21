@@ -133,7 +133,7 @@
             current_timestamp() as _last_updated,
             '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as _run_id,
             DENSE_RANK() OVER (PARTITION BY snapshot_date, asin,
-            sku order by a.{{daton_batch_runtime()}} desc) row_num
+            sku, marketplaceId order by a.{{daton_batch_runtime()}} desc) row_num
             from {{i}} a
                 {% if var('currency_conversion_flag') %}
                     left join {{ref('ExchangeRates')}} c on date(a.ReportRequestTime) = c.date and a.currency = c.to_currency_code

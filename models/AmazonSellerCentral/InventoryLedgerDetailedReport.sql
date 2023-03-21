@@ -85,7 +85,7 @@
                 {{daton_batch_id()}} as _daton_batch_id,
                 current_timestamp() as _last_updated,
                 '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as _run_id,
-                ROW_NUMBER() OVER (PARTITION BY Date,asin, msku, fulfillment_center, event_type, reference_id, quantity, disposition order by {{daton_batch_runtime()}} desc) row_num
+                ROW_NUMBER() OVER (PARTITION BY Date,asin, msku, fulfillment_center, event_type, reference_id, quantity, disposition, marketplaceid order by {{daton_batch_runtime()}} desc) row_num
                 from {{i}} 
                     {% if is_incremental() %}
                     {# /* -- this filter will only be applied on an incremental run */ #}

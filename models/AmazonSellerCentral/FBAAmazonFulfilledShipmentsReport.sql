@@ -123,7 +123,7 @@
                 a.{{daton_batch_id()}} as _daton_batch_id,
                 current_timestamp() as _last_updated,
                 '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as _run_id,
-                ROW_NUMBER() OVER (PARTITION BY purchase_date, sku, amazon_order_id order by a.{{daton_batch_runtime()}} desc) rank
+                ROW_NUMBER() OVER (PARTITION BY purchase_date, sku, amazon_order_id,marketplaceName order by a.{{daton_batch_runtime()}} desc) rank
                 from {{i}} a
                     {% if var('currency_conversion_flag') %}
                          left join {{ref('ExchangeRates')}} c on date(a.purchase_date) = c.date and a.currency = c.to_currency_code

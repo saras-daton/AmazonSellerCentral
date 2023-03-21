@@ -53,7 +53,7 @@
     {% endif %}
     
      select * {{exclude()}} (row_num)from (
-        SELECT *, ROW_NUMBER() OVER (PARTITION BY Date(PurchaseDate), amazonorderid order by _daton_batch_runtime desc) as row_num
+        SELECT *, ROW_NUMBER() OVER (PARTITION BY Date(PurchaseDate), amazonorderid, marketplaceName order by _daton_batch_runtime desc) as row_num
             From (
             select 
             '{{brand}}' as brand,

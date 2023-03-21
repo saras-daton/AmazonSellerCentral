@@ -68,8 +68,6 @@
         select
         '{{id}}' as Brand,
         '{{store}}' as store,
-        'Promotion' as AmountType,
-        'Refund' as TransactionType,
         {% if target.type=='snowflake' %} 
             REFUNDEVENTLIST.VALUE:PostedDate :: DATE as posteddate,
             REFUNDEVENTLIST.VALUE:AmazonOrderId :: varchar as AmazonOrderId,

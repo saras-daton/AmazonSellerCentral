@@ -68,8 +68,6 @@
             '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as _run_id
             from (
             select 
-            'Revenue' as AmountType,
-            'Order' as TransactionType,
             {% if target.type=='snowflake' %} 
                 ShipmentEventlist.VALUE:PostedDate :: DATE as posteddate,
                 ShipmentEventlist.VALUE:AmazonOrderId :: varchar as AmazonOrderId,

@@ -35,7 +35,7 @@ If you haven't already, you will need to create a packages.yml file in your DBT 
 ```yaml
 packages:
   - package: saras-daton/amazon_sellerpartner
-    version: v1.0.2
+    version: v1.1.0
 ```
 
 # Configuration 
@@ -76,20 +76,21 @@ vars:
 
 ### Timezone Conversion 
 
-To enable timezone conversion, which converts the timezone columns from local timezone to given timezone, please mark the timezone_conversion_flag f as True in the dbt_project.yml file, by default, it is False
-Additionally, you need to provide offset hours for each raw table
+To enable timezone conversion, which converts the timezone columns from UTC timezone to local timezone, please mark the timezone_conversion_flag as True in the dbt_project.yml file, by default, it is False
+Additionally, you need to provide offset hours between UTC and the timezone you want the data to convert into for each raw table
 
 Example:
 ```yaml
 vars:
 timezone_conversion_flag: False
 raw_table_timezone_offset_hours: {
-    "Amazon.SellerCentral.Brand_UK_AmazonSellerCentral_FlatFileAllOrdersReportbyLastUpdate":-7,
-    "Amazon.SellerCentral.Brand_UK_AmazonSellerCentral_ListOrder":-7,
-    "Amazon.SellerCentral.Brand_UK_AmazonSellerCentral_FBAAmazonFulfilledShipmentsReport":-7,
-    "Amazon.SellerCentral.Brand_UK_AmazonSellerCentral_InventoryLedgerDetailedReport":-7
+    "Amazon.SellerCentral.Brand_US_AmazonSellerCentral_FlatFileAllOrdersReportbyLastUpdate":-7,
+    "Amazon.SellerCentral.Brand_US_AmazonSellerCentral_ListOrder":-7,
+    "Amazon.SellerCentral.Brand_US_AmazonSellerCentral_FBAAmazonFulfilledShipmentsReport":-7,
+    "Amazon.SellerCentral.Brand_US_AmazonSellerCentral_InventoryLedgerDetailedReport":-7
     }
 ```
+Here, -7 represents the offset hours between UTC and PDT considering we are sitting in PDT timezone and want the data in this timezone
 
 ### Table Exclusions
 
@@ -111,14 +112,15 @@ This package contains models from the Amazon Selling Partner API which includes 
 |Inventory | [FBAManageInventoryHealthReport](models/AmazonSellerCentral/FBAManageInventoryHealthReport.sql)  | A detailed report which gives details about inventory age , current inventory levels, recommended inventory levels |
 |Inventory | [FBAManageInventory](models/AmazonSellerCentral/FBAManageInventory.sql)  | A list of ad groups associated with the accountA report which gives details about inventory movement - inbound, outbound, sellable |
 |Inventory | [InventoryLedgerDetailedReport](models/AmazonSellerCentral/InventoryLedgerDetailedReport.sql)| A report about available quantity at the warehouse level |
-|Financial Events | [OrderFees](models/AmazonSellerCentral/OrderFees.sql)| A list of fees associated with the shipment item. |
-|Financial Events | [OrderPromotions](models/AmazonSellerCentral/OrderPromotions.sql)| A list of promotions which gives the amount of promotional discount applied to the item at an item & order level.|
-|Financial Events | [OrderRevenue](models/AmazonSellerCentral/OrderRevenue.sql)| A list of shipment items which includes order & product level revenue |
-|Financial Events | [OrderTaxes](models/AmazonSellerCentral/OrderTaxes.sql)| A list of order taxes |
-|Financial Events | [RefundFees](models/AmazonSellerCentral/RefundFees.sql)| A list of fees associated with the refunded item.	 |
-|Financial Events | [RefundPromotions](models/AmazonSellerCentral/RefundPromotions.sql)|A list of promotions which gives the amount of promotional discount applied to the item at an refunded item level. |
-|Financial Events | [RefundRevenue](models/AmazonSellerCentral/RefundRevenue.sql)| A list of refunded items which includes refund & product level revenue |
-|Financial Events | [RefundTaxes](models/AmazonSellerCentral/RefundTaxes.sql)| A list of refund taxes |
+|Financial Events | [ListFinancialEventsOrderFees](models/AmazonSellerCentral/ListFinancialEventsOrderFees.sql)| A list of fees associated with the shipment item. |
+|Financial Events | [ListFinancialEventsOrderPromotions](models/AmazonSellerCentral/ListFinancialEventsOrderPromotions.sql)| A list of promotions which gives the amount of promotional discount applied to the item at an item & order level.|
+|Financial Events | [ListFinancialEventsOrderRevenue](models/AmazonSellerCentral/ListFinancialEventsOrderRevenue.sql)| A list of shipment items which includes order & product level revenue |
+|Financial Events | [ListFinancialEventsOrderTaxes](models/AmazonSellerCentral/ListFinancialEventsOrderTaxes.sql)| A list of order taxes |
+|Financial Events | [ListFinancialEventsRefundFees](models/AmazonSellerCentral/ListFinancialEventsRefundFees.sql)| A list of fees associated with the refunded item.	 |
+|Financial Events | [ListFinancialEventsRefundPromotions](models/AmazonSellerCentral/ListFinancialEventsRefundPromotions.sql)|A list of promotions which gives the amount of promotional discount applied to the item at an refunded item level. |
+|Financial Events | [ListFinancialEventsRefundRevenue](models/AmazonSellerCentral/ListFinancialEventsRefundRevenue.sql)| A list of refunded items which includes refund & product level revenue |
+|Financial Events | [ListFinancialEventsRefundTaxes](models/AmazonSellerCentral/ListFinancialEventsRefundTaxes.sql)| A list of refund taxes |
+|Financial Events | [ListFinancialEventsServicefees](models/AmazonSellerCentral/ListFinancialEventsServicefees.sql)| A list of service level fees |
 |Product | [CatalogItemsSummary](models/AmazonSellerCentral/CatalogItemsSummary.sql)| A list of product summary, manufacturer & dimensions |
 |Product | [AllListingsReport](models/AmazonSellerCentral/AllListingsReport.sql)|  listing report with details about all types of listings |
 |Returns | [FBAReturnsReport](models/AmazonSellerCentral/FBAReturnsReport.sql)|Returns report of the orders fulfilled by Amazon |
@@ -171,7 +173,7 @@ models:
       partition_by: { 'field': 'date', 'data_type': 'timestamp', 'granularity': 'day' }
       cluster_by: ['date','msku']
 
-  - name: OrderFees
+  - name: ListFinancialEventsOrderFees
     description: A list of fees associated with the shipment item.
     config:
       materialized: incremental
@@ -180,7 +182,7 @@ models:
       partition_by: { 'field': 'posteddate', 'data_type': 'date' }
       cluster_by: ['marketplacename', 'amazonorderid']
 
-  - name: OrderPromotions
+  - name: ListFinancialEventsOrderPromotions
     description: A list of promotions which gives the amount of promotional discount applied to the item at an item & order level.
     config:
       materialized: incremental
@@ -189,7 +191,7 @@ models:
       partition_by: { 'field': 'posteddate', 'data_type': 'date' }
       cluster_by: ['marketplacename', 'amazonorderid']
 
-  - name: OrderRevenue
+  - name: ListFinancialEventsOrderRevenue
     description: A list of shipment items which includes order & product level revenue
     config:
       materialized: incremental
@@ -198,7 +200,7 @@ models:
       partition_by: { 'field': 'posteddate', 'data_type': 'date' }
       cluster_by: ['marketplacename', 'amazonorderid']
 
-  - name: OrderTaxes
+  - name: ListFinancialEventsOrderTaxes
     description: A list of order taxes
     config:
       materialized: incremental
@@ -207,7 +209,7 @@ models:
       partition_by: { 'field': 'posteddate', 'data_type': 'date' }
       cluster_by: ['marketplacename', 'amazonorderid']
 
-  - name: RefundFees
+  - name: ListFinancialEventsRefundFees
     description: A list of fees associated with the refunded item.
     config:
       materialized: incremental
@@ -216,7 +218,7 @@ models:
       partition_by: { 'field': 'posteddate', 'data_type': 'date' }
       cluster_by: ['marketplacename', 'amazonorderid']
 
-  - name: RefundPromotions
+  - name: ListFinancialEventsRefundPromotions
     description: A list of promotions which gives the amount of promotional discount applied to the item at an refunded item level.
     config:
       materialized: incremental
@@ -225,7 +227,7 @@ models:
       partition_by: { 'field': 'posteddate', 'data_type': 'date' }
       cluster_by: ['marketplacename', 'amazonorderid']
 
-  - name: RefundRevenue
+  - name: ListFinancialEventsRefundRevenue
     description: A list of refunded items which includes refund & product level revenue
     config:
       materialized: incremental
@@ -234,7 +236,7 @@ models:
       partition_by: { 'field': 'posteddate', 'data_type': 'date' }
       cluster_by: ['marketplacename', 'amazonorderid']
 
-  - name: RefundTaxes
+  - name: ListFinancialEventsRefundTaxes
     description: A list of refund taxes
     config:
       materialized: incremental
