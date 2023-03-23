@@ -34,8 +34,8 @@ If you haven't already, you will need to create a packages.yml file in your DBT 
 
 ```yaml
 packages:
-  - package: saras-daton/amazon_sellerpartner
-    version: v1.1.0
+  - package: saras-daton/AmazonSellerCentral
+    version: v1.1.1
 ```
 
 # Configuration 
