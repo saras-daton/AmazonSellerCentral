@@ -107,7 +107,7 @@
             {% endif %}
             ) a
             {% if var('currency_conversion_flag') %}
-                left join {{ref('ExchangeRates')}} c on date(a.posteddate) = c.date and a.CurrencyCode = c.to_currency_code
+                left join {{ref('ExchangeRates')}} c on date(a.RequestStartDate) = c.date and a.CurrencyCode = c.to_currency_code
             {% endif %}
         )
     {% if not loop.last %} union all {% endif %}
