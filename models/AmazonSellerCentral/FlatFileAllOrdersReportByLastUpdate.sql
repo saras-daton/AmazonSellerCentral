@@ -120,7 +120,7 @@
                         case when c.from_currency_code is null then a.currency else c.from_currency_code end as exchange_currency_code,
                     {% else %}
                         cast(1 as decimal) as exchange_currency_rate,
-                        cast(null as string) as exchange_currency_code, 
+                        a.currency as exchange_currency_code, 
                     {% endif %} 
 	   	            a.{{daton_user_id()}} as _daton_user_id,
                     a.{{daton_batch_runtime()}} as _daton_batch_runtime,
