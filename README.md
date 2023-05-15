@@ -26,18 +26,6 @@ Daton Integrations for
 - Amazon Seller Partner 
 - Exchange Rates(Optional, if currency conversion is not required)
 
-# Installation & Configuration
-
-## Installation Instructions
-
-If you haven't already, you will need to create a packages.yml file in your DBT project. Include this in your `packages.yml` file
-
-```yaml
-packages:
-  - package: saras-daton/AmazonSellerCentral
-    version: v1.1.2
-```
-
 # Configuration 
 
 ## Required Variables
