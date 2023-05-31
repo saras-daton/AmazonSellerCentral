@@ -38,9 +38,9 @@
 
     {% for i in results_list %}
          {% if var('get_brandname_from_tablename_flag') %}
-            {% set id =i.split('.')[2].split('_')[var('brandname_position_in_tablename')] %}
+            {% set brand =i.split('.')[2].split('_')[var('brandname_position_in_tablename')] %}
         {% else %}
-            {% set id = var('default_brandname') %}
+            {% set brand = var('default_brandname') %}
         {% endif %}
 
         {% if var('get_storename_from_tablename_flag') %}
@@ -65,7 +65,7 @@
         current_timestamp() as _last_updated,
         '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as _run_id
         from (select
-        '{{id}}' as brand,
+        '{{brand}}' as brand,
         '{{store}}' as store,
         {% if target.type=='snowflake' %} 
             REFUNDEVENTLIST.VALUE:PostedDate :: DATE as posteddate,
