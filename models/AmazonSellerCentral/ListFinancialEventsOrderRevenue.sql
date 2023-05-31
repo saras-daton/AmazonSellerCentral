@@ -51,7 +51,7 @@
 
     SELECT * FROM (
         select 
-            '{{id}}' as brand,
+            '{{brand}}' as brand,
             '{{store}}' as store,
             a.* {{exclude()}} (_daton_user_id, _daton_batch_runtime, _daton_batch_id),
             {% if var('currency_conversion_flag') %}
