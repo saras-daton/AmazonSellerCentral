@@ -14,6 +14,12 @@ models:
             - PurchaseDate
             - amazonorderid
             - marketplaceName
+    columns:
+      - name: PurchaseDate
+        tests:
+          - dbt_expectations.expect_row_values_to_have_recent_data:
+              datepart: day
+              interval: 1
 
   - name: FBAManageInventoryHealthReport
     description: A detailed report which gives details about inventory age , current inventory levels, recommended inventory levels
@@ -30,6 +36,12 @@ models:
             - asin
             - sku
             - marketplaceId
+    columns:
+      - name: snapshot_date
+        tests:
+          - dbt_expectations.expect_row_values_to_have_recent_data:
+              datepart: day
+              interval: 1
 
   - name: FBAManageInventory
     description: A list of ad groups associated with the accountA report which gives details about inventory movement - inbound, outbound, sellable
@@ -45,6 +57,12 @@ models:
             - ReportstartDate
             - sku
             - marketplaceId
+    columns:
+      - name: ReportstartDate
+        tests:
+          - dbt_expectations.expect_row_values_to_have_recent_data:
+              datepart: day
+              interval: 1
 
   - name: InventoryLedgerDetailedReport
     description: A report about available quantity at the warehouse level
@@ -66,6 +84,12 @@ models:
             - quantity
             - disposition
             - marketplaceid
+    columns:
+      - name: date
+        tests:
+          - dbt_expectations.expect_row_values_to_have_recent_data:
+              datepart: day
+              interval: 1
 
   - name: ListFinancialEventsOrderFees
     description: A list of fees associated with the shipment item.
@@ -83,6 +107,12 @@ models:
             - amazonorderid
             - FeeType
             - _seq_id
+    columns:
+      - name: posteddate
+        tests:
+          - dbt_expectations.expect_row_values_to_have_recent_data:
+              datepart: day
+              interval: 1
 
   - name: ListFinancialEventsOrderPromotions
     description: A list of promotions which gives the amount of promotional discount applied to the item at an item & order level.
@@ -100,6 +130,12 @@ models:
             - amazonorderid
             - PromotionType
             - _seq_id
+    columns:
+      - name: posteddate
+        tests:
+          - dbt_expectations.expect_row_values_to_have_recent_data:
+              datepart: day
+              interval: 1
 
   - name: ListFinancialEventsOrderRevenue
     description: A list of shipment items which includes order & product level revenue
@@ -117,6 +153,12 @@ models:
             - amazonorderid
             - ChargeType
             - _seq_id
+    columns:
+      - name: posteddate
+        tests:
+          - dbt_expectations.expect_row_values_to_have_recent_data:
+              datepart: day
+              interval: 1
 
   - name: ListFinancialEventsOrderTaxes
     description: A list of order taxes
@@ -134,6 +176,12 @@ models:
             - amazonorderid
             - ChargeType
             - _seq_id
+    columns:
+      - name: posteddate
+        tests:
+          - dbt_expectations.expect_row_values_to_have_recent_data:
+              datepart: day
+              interval: 1
 
   - name: ListFinancialEventsRefundFees
     description: A list of fees associated with the refunded item.
@@ -151,6 +199,12 @@ models:
             - amazonorderid
             - FeeType
             - _seq_id
+    columns:
+      - name: posteddate
+        tests:
+          - dbt_expectations.expect_row_values_to_have_recent_data:
+              datepart: day
+              interval: 1
 
   - name: ListFinancialEventsRefundPromotions
     description: A list of promotions which gives the amount of promotional discount applied to the item at an refunded item level.
@@ -168,6 +222,12 @@ models:
             - amazonorderid
             - PromotionType
             - _seq_id
+    columns:
+      - name: posteddate
+        tests:
+          - dbt_expectations.expect_row_values_to_have_recent_data:
+              datepart: day
+              interval: 1
 
   - name: ListFinancialEventsRefundRevenue
     description: A list of refunded items which includes refund & product level revenue
@@ -185,6 +245,12 @@ models:
             - amazonorderid
             - ChargeType
             - _seq_id
+    columns:
+      - name: posteddate
+        tests:
+          - dbt_expectations.expect_row_values_to_have_recent_data:
+              datepart: day
+              interval: 1
 
   - name: ListFinancialEventsRefundTaxes
     description: A list of refund taxes
@@ -202,6 +268,12 @@ models:
             - amazonorderid
             - ChargeType
             - _seq_id
+    columns:
+      - name: posteddate
+        tests:
+          - dbt_expectations.expect_row_values_to_have_recent_data:
+              datepart: day
+              interval: 1
 
   - name: CatalogItemsSummary
     description: A list of product summary, manufacturer & dimensions
@@ -251,6 +323,12 @@ models:
             - fulfillment_center_id
             - _seq_id
             - marketplaceId
+    columns:
+      - name: return_date
+        tests:
+          - dbt_expectations.expect_row_values_to_have_recent_data:
+              datepart: day
+              interval: 1
 
   - name: FlatFileReturnsReportByReturnDate
     description: Returns report of the orders fulfilled by Merchant
@@ -267,6 +345,12 @@ models:
             - Order_ID
             - ASIN
             - marketplaceId
+    columns:
+      - name: Return_request_date
+        tests:
+          - dbt_expectations.expect_row_values_to_have_recent_data:
+              datepart: day
+              interval: 1
 
   - name: FBAAmazonFulfilledShipmentsReport
     description: Orders report with shipment details included
@@ -284,6 +368,12 @@ models:
             - amazon_order_id
             - marketplaceName
             - _seq_id
+    columns:
+      - name: purchase_date
+        tests:
+          - dbt_expectations.expect_row_values_to_have_recent_data:
+              datepart: day
+              interval: 1
 
   - name: FlatFileAllOrdersReportByLastUpdate
     description: Order & Item Level report
@@ -301,6 +391,12 @@ models:
             - asin
             - sku
             - _seq_id
+    columns:
+      - name: purchase_date
+        tests:
+          - dbt_expectations.expect_row_values_to_have_recent_data:
+              datepart: day
+              interval: 1
 
   - name: SalesAndTrafficReportByChildASIN
     description: Provides sales & traffic at SKU level that we see in the Business Report in the UI
@@ -318,3 +414,9 @@ models:
             - childAsin
             - sku
             - marketplaceId
+    columns:
+      - name: date
+        tests:
+          - dbt_expectations.expect_row_values_to_have_recent_data:
+              datepart: day
+              interval: 1
