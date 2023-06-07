@@ -108,12 +108,22 @@ models:
       partition_by: { 'field': 'posteddate', 'data_type': 'date' }
       cluster_by: ['marketplacename', 'amazonorderid']
 
+  - name: CatalogItems
+    description: A list of product summary, manufacturer & dimensions
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      cluster_by: ['ReferenceASIN']
+      partition_by: { 'field': 'RequestStartDate', 'data_type': 'timestamp', 'granularity': 'day' }
+      unique_key: ['brandName','ReferenceASIN','modelNumber','summaries_marketplaceId']
+
   - name: CatalogItemsSummary
     description: A list of product summary, manufacturer & dimensions
     config:
       materialized: incremental
       incremental_strategy: merge
       cluster_by: ['ReferenceASIN']
+      partition_by: { 'field': 'RequestStartDate', 'data_type': 'timestamp', 'granularity': 'day' }
       unique_key: ['brandName','ReferenceASIN','modelNumber','marketplaceId']
 
   - name: AllListingsReport
@@ -168,3 +178,11 @@ models:
       partition_by: { 'field': 'date', 'data_type': 'date' }
       cluster_by: ['parentAsin', 'childAsin']
       unique_key: ['date', 'parentAsin', 'childAsin','marketplaceId']
+
+  - name: ListingOffersForASIN
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      partition_by: { 'field': 'RequeststartDate', 'data_type': 'timestamp', 'granularity': 'day' }
+      cluster_by: ['ASIN', 'itemCondition']
+      unique_key: ['ASIN', 'itemCondition']
