@@ -167,6 +167,7 @@ models:
       materialized: incremental
       incremental_strategy: merge
       unique_key: ['purchase_date', 'amazon_order_id', 'asin', 'sku', '_seq_id']
+      merge_exclude_columns: ['quantity', 'currency','item_price','item_tax','shipping_price','shipping_tax','gift_wrap_price','gift_wrap_tax','item_promotion_discount','ship_promotion_discount']
       partition_by: { 'field': 'purchase_date', 'data_type': 'timestamp', 'granularity': 'day' }
       cluster_by: ['asin', 'sku', 'amazon_order_id']
 
