@@ -48,7 +48,7 @@ vars:
   InventoryLedgerDetailedReport: True
   ListOrder: True
   ListFinancialEventsOrderFees: True
-  ListFinancialEventsServicefees: True
+  ListFinancialEventsServiceFees: True
   ListFinancialEventsOrderPromotions: True
   ListFinancialEventsOrderRevenue: True
   ListFinancialEventsOrderTaxes: True
