@@ -117,15 +117,6 @@ models:
       partition_by: { 'field': 'RequestStartDate', 'data_type': 'timestamp', 'granularity': 'day' }
       cluster_by: ['marketplaceId', 'FeeReason']
 
-  - name: CatalogItems
-    description: A list of product summary, manufacturer & dimensions
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      cluster_by: ['ReferenceASIN']
-      partition_by: { 'field': 'RequestStartDate', 'data_type': 'timestamp', 'granularity': 'day' }
-      unique_key: ['brandName','ReferenceASIN','modelNumber','summaries_marketplaceId']
-
   - name: CatalogItemsSummary
     description: A list of product summary, manufacturer & dimensions
     config:
