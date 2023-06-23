@@ -38,7 +38,6 @@ vars:
 
   AllListingsreport: True
   CatalogItems: True
-  CatalogItemsSummary: True
   FBAAmazonFulfilledShipmentsReport: True
   FBAManageInventory: True
   FBAManageInventoryHealthReport: True
