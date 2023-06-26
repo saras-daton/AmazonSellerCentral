@@ -275,12 +275,22 @@ models:
               datepart: day
               interval: 1
 
-  - name: CatalogItemsSummary
+  - name: ListFinancialEventsServiceFees
+    description: A list of all the service level fees for Amazon Seller Central
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      unique_key: ['RequestStartDate', 'marketplaceId', 'FeeReason', 'FeeType', 'SellerSKU', 'FeeDescription','_seq_id']
+      partition_by: { 'field': 'RequestStartDate', 'data_type': 'timestamp', 'granularity': 'day' }
+      cluster_by: ['marketplaceId', 'FeeReason']
+
+  - name: CatalogItems
     description: A list of product summary, manufacturer & dimensions
     config:
       materialized: incremental
       incremental_strategy: merge
       cluster_by: ['ReferenceASIN']
+      partition_by: { 'field': 'RequestStartDate', 'data_type': 'timestamp', 'granularity': 'day' }
       unique_key: ['brandName','ReferenceASIN','modelNumber','marketplaceId']
     tests:
       - dbt_utils.unique_combination_of_columns:
@@ -289,6 +299,7 @@ models:
             - ReferenceASIN
             - modelNumber
             - marketplaceId
+
 
   - name: AllListingsReport
     description: A listing report with details about all types of listings
@@ -381,6 +392,7 @@ models:
       materialized: incremental
       incremental_strategy: merge
       unique_key: ['purchase_date', 'amazon_order_id', 'asin', 'sku', '_seq_id']
+      merge_exclude_columns: ['quantity', 'currency','item_price','item_tax','shipping_price','shipping_tax','gift_wrap_price','gift_wrap_tax','item_promotion_discount','ship_promotion_discount']
       partition_by: { 'field': 'purchase_date', 'data_type': 'timestamp', 'granularity': 'day' }
       cluster_by: ['asin', 'sku', 'amazon_order_id']
     tests:
@@ -416,6 +428,26 @@ models:
             - marketplaceId
     columns:
       - name: date
+        tests:
+          - dbt_expectations.expect_row_values_to_have_recent_data:
+              datepart: day
+              interval: 1
+
+
+  - name: ListingOffersForASIN
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      partition_by: { 'field': 'RequeststartDate', 'data_type': 'timestamp', 'granularity': 'day' }
+      cluster_by: ['ASIN', 'itemCondition']
+      unique_key: ['ASIN', 'itemCondition']
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - ASIN
+            - itemCondition
+    columns:
+      - name: RequeststartDate
         tests:
           - dbt_expectations.expect_row_values_to_have_recent_data:
               datepart: day
