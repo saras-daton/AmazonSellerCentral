@@ -448,6 +448,7 @@ models:
                 severity: error
 
 
+
   - name: AllListingsReport
     description: A listing report with details about all types of listings
     config:

@@ -1,4 +1,4 @@
-{% if var('ListFinancialEventsServicefees') %}
+{% if var('ListFinancialEventsServiceFees') %}
     {{ config( enabled = True ) }}
 {% else %}
     {{ config( enabled = False ) }}
@@ -86,12 +86,12 @@
             {% else %}
                 coalesce(ServiceFeeEventList.AmazonOrderId,'') as AmazonOrderId,
                 coalesce(ServiceFeeEventList.FeeReason,'') as FeeReason,
-                FeeList.FeeType as FeeType,
+                coalesce(FeeList.FeeType,'') as FeeType,
                 FeeAmount.CurrencyCode as CurrencyCode,
                 FeeAmount.CurrencyAmount as CurrencyAmount,
-                ServiceFeeEventList.SellerSKU as SellerSKU,
+                coalesce(ServiceFeeEventList.SellerSKU,'') as SellerSKU,
                 ServiceFeeEventList.FnSKU as FnSKU,
-                ServiceFeeEventList.FeeDescription as FeeDescription,
+                coalesce(ServiceFeeEventList.FeeDescription,'') as FeeDescription,
                 ServiceFeeEventList.ASIN as ASIN,
             {% endif %}
             {{daton_user_id()}} as _daton_user_id,
@@ -114,10 +114,11 @@
     {% endfor %}
     )
 
-    
+    select *, ROW_NUMBER() OVER (PARTITION BY date(RequestStartDate), marketplacename, FeeReason, FeeType, SellerSKU, FeeDescription order by _daton_batch_runtime, _daton_batch_id) as _seq_id
+    from (
     select * {{exclude()}} (rank)from (
             select *,
             DENSE_RANK() OVER (PARTITION BY date(RequestStartDate), marketplaceId, FeeReason, FeeType, SellerSKU, FeeDescription order by _daton_batch_runtime desc) rank
             from unnested_shipmenteventlist
-        ) where rank = 1
+        ) where rank = 1)
     

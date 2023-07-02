@@ -37,7 +37,7 @@ vars:
       # Above are Example entries for raw table level input offset hours
 
   AllListingsreport: True
-  CatalogItemsSummary: True
+  CatalogItems: True
   FBAAmazonFulfilledShipmentsReport: True
   FBAManageInventory: True
   FBAManageInventoryHealthReport: True
@@ -47,7 +47,7 @@ vars:
   InventoryLedgerDetailedReport: True
   ListOrder: True
   ListFinancialEventsOrderFees: True
-  ListFinancialEventsServicefees: True
+  ListFinancialEventsServiceFees: True
   ListFinancialEventsOrderPromotions: True
   ListFinancialEventsOrderRevenue: True
   ListFinancialEventsOrderTaxes: True
@@ -56,6 +56,7 @@ vars:
   ListFinancialEventsRefundRevenue: True
   ListFinancialEventsRefundTaxes: True
   SalesAndTrafficReportByChildASIN: True
+  ListingOffersForASIN: True
 
   
 # These configurations specify where dbt should look for different types of files.
