@@ -25,6 +25,9 @@ vars:
   default_storename: "" 
     # Example- default_storename: "US" --> for Single Store users, with no Storename in Daton Integration Name
 
+  # Variables used for dbt-tests
+  'dbt_date:time_zone': 'America/Los_Angeles'
+
 
   currency_conversion_flag: False
   timezone_conversion_flag: False
