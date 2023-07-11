@@ -356,18 +356,19 @@ models:
             - amazonorderid
             - ChargeType
             - _seq_id
-      - not_null:
-              config:
-                severity: error
+      
 
-   
+      
     columns:
       - name: posteddate
         tests:
           - dbt_expectations.expect_row_values_to_have_recent_data:
               datepart: day
               interval: 1
-
+          - not_null:
+              config:
+                severity: error
+      
       - name: brand
         tests:
           - accepted_values:
@@ -448,6 +449,7 @@ models:
           - not_null:
               config:
                 severity: error
+
 
 
   - name: AllListingsReport
