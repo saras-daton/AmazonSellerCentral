@@ -51,7 +51,7 @@
         SELECT *  {{exclude()}} (row_num)
         From (
             select 
-            '{{id}}' as brand,
+            '{{brand}}' as brand,
             '{{store}}' as store,
             CAST(ReportstartDate as timestamp) ReportstartDate,
             CAST(ReportendDate as timestamp) ReportendDate,
