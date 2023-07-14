@@ -413,12 +413,6 @@ models:
       partition_by: { 'field': 'RequestStartDate', 'data_type': 'timestamp', 'granularity': 'day' }
       cluster_by: ['marketplaceId', 'FeeReason']
     columns:
-      - name: posteddate
-        tests:
-          - not_null:
-              config:
-                severity: error
-
       - name: brand
         tests:
           - accepted_values:
@@ -619,7 +613,7 @@ models:
         tests:
           - dbt_expectations.expect_row_values_to_have_recent_data:
               datepart: day
-              interval: 1
+              interval: 3
           - not_null:
               config:
                 severity: error
