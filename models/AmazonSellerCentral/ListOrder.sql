@@ -32,6 +32,9 @@
         {% set tables_lowercase_list = [] %}
     {% endif %}
 
+    select * {{exclude()}} (row_num)from (
+        SELECT *, ROW_NUMBER() OVER (PARTITION BY Date(PurchaseDate), amazonorderid, marketplaceName, sellingPartnerId order by _daton_batch_runtime desc) as row_num
+            From (
 
     {% for i in results_list %}
     {% if var('get_brandname_from_tablename_flag') %}
@@ -51,10 +54,7 @@
     {% else %}
         {% set hr = 0 %}
     {% endif %}
-    
-     select * {{exclude()}} (row_num)from (
-        SELECT *, ROW_NUMBER() OVER (PARTITION BY Date(PurchaseDate), amazonorderid, marketplaceName order by _daton_batch_runtime desc) as row_num
-            From (
+     
             select 
             '{{brand}}' as brand,
             '{{store}}' as store,
@@ -130,10 +130,12 @@
                {% endif %}
 
 
-    ) unnested_BUYERINFO
-    ) final
-    where row_num = 1
+  
 
 
     {% if not loop.last %} union all {% endif %}
     {% endfor %}
+
+      ) unnested_BUYERINFO
+    ) final
+    where row_num = 1

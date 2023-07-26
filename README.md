@@ -118,6 +118,235 @@ This package contains models from the Amazon Selling Partner API which includes 
 |Sales | [SalesAndTrafficReportByChildASIN](models/AmazonSellerCentral/SalesAndTrafficReportByChildASIN.sql)|Provides sales & traffic at SKU level that we see in the Business Report in the UI |
 
 
+## DBT Tests
+
+The tests property defines assertions about a column, table, or view. The property contains a list of generic tests, referenced by name, which can include the four built-in generic tests available in dbt. For example, you can add tests that ensure a column contains no duplicates and zero null values. Any arguments or configurations passed to those tests should be nested below the test name.
+
+| **Tests**  | **Description** |
+| ---------------| ------------------------------------------- |
+| [Not Null Test](https://docs.getdbt.com/reference/resource-properties/tests#testing-an-expression)  | This test validates that there are no null values present in a column |
+| [Data Recency Test](https://github.com/dbt-labs/dbt-utils/blob/main/macros/generic_tests/recency.sql)  | This is used to check for issues with data refresh within 1 day |
+| [Accepted Value Test](https://docs.getdbt.com/reference/resource-properties/tests#accepted_values)  | This test validates that all of the values in a column are present in a supplied list of values. If any values other than those provided in the list are present, then the test will fail, by default it consists of default values and this needs to be changed based on the project |
+| [Uniqueness Test](https://docs.getdbt.com/reference/resource-properties/tests#testing-an-expression)  | This test validates that there are no duplicate values present in a field |
+
+### Table Name: ListOrder
+
+| **Columns**  | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+| :--------------- | :--------------- | :--------------- | :--------------- | :--------------- |
+| PurchaseDate | Yes | Yes |  | Yes |
+| amazonorderid | Yes |  |  | Yes |
+| marketplaceName |  |  |  | Yes |
+| brand |  |  | Yes |  |
+
+### Table Name: FBAManageInventoryHealthReport
+
+| **Columns**  | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+| :--------------- | :--------------- | :--------------- | :--------------- | :--------------- |
+| snapshot_date | Yes | Yes |  | Yes |
+| asin | Yes |  |  | Yes |
+| sku | Yes |  |  | Yes |
+| marketplaceId |  |  |  | Yes |
+| brand |  |  | Yes |  |
+
+
+### Table Name: FBAManageInventory
+
+| **Columns**  | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+| :--------------- | :--------------- | :--------------- | :--------------- | :--------------- |
+| ReportstartDate | Yes | Yes |  | Yes |
+| sku | Yes |  |  | Yes |
+| marketplaceId |  |  |  | Yes |
+| brand |  |  | Yes |  |
+
+### Table Name: InventoryLedgerDetailedReport
+
+| **Columns**  | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+| :--------------- | :--------------- | :--------------- | :--------------- | :--------------- |
+| date | Yes | Yes |  | Yes |
+| asin | Yes |  |  | Yes |
+| fulfillment_center | Yes |  |  | Yes |
+| msku | Yes |  |  | Yes |
+| event_type | Yes |  |  | Yes |
+| reference_id | Yes |  |  | Yes |
+| quantity | Yes |  |  |  |
+| disposition | Yes |  |  | Yes |
+| marketplaceid |  |  |  | Yes |
+| brand |  |  | Yes |  |
+
+### Table Name: ListFinancialEventsOrderFees
+
+| **Columns**  | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+| :--------------- | :--------------- | :--------------- | :--------------- | :--------------- |
+| posteddate | Yes | Yes |  | Yes |
+| marketplacename |  |  |  | Yes |
+| amazonorderid | Yes |  |  | Yes |
+| FeeType | Yes |  |  | Yes |
+| _seq_id |  |  |  | Yes |
+| brand |  |  | Yes |  |
+
+### Table Name: ListFinancialEventsOrderPromotions
+
+| **Columns**  | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+| :--------------- | :--------------- | :--------------- | :--------------- | :--------------- |
+| posteddate | Yes | Yes |  | Yes |
+| marketplacename |  |  |  | Yes |
+| amazonorderid |  |  |  | Yes |
+| PromotionType | Yes |  |  | Yes |
+| _seq_id |  |  |  | Yes |
+| brand |  |  | Yes |  |
+
+
+### Table Name: ListFinancialEventsOrderRevenue
+
+| **Columns**  | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+| :--------------- | :--------------- | :--------------- | :--------------- | :--------------- |
+| posteddate | Yes | Yes |  | Yes |
+| marketplacename |  |  |  | Yes |
+| amazonorderid | Yes |  |  | Yes |
+| ChargeType | Yes |  |  | Yes |
+| _seq_id |  |  |  | Yes |
+| brand |  |  | Yes |  |
+
+### Table Name: ListFinancialEventsOrderTaxes
+
+| **Columns**  | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+| :--------------- | :--------------- | :--------------- | :--------------- | :--------------- |
+| posteddate | Yes | Yes |  | Yes |
+| marketplacename |  |  |  | Yes |
+| amazonorderid |  |  |  | Yes |
+| ChargeType |  |  |  | Yes |
+| _seq_id |  |  |  | Yes |
+| brand |  |  | Yes |  |
+
+
+### Table Name: ListFinancialEventsRefundFees
+
+| **Columns**  | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+| :--------------- | :--------------- | :--------------- | :--------------- | :--------------- |
+| posteddate | Yes | Yes |  | Yes |
+| marketplacename |  |  |  | Yes |
+| amazonorderid |  |  |  | Yes |
+| FeeType |  |  |  | Yes |
+| _seq_id |  |  |  | Yes |
+| brand |  |  | Yes |  |
+
+
+### Table Name: ListFinancialEventsRefundPromotions
+
+| **Columns**  | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+| :--------------- | :--------------- | :--------------- | :--------------- | :--------------- |
+| posteddate | Yes | Yes |  | Yes |
+| marketplacename |  |  |  | Yes |
+| amazonorderid |  |  |  | Yes |
+| PromotionType |  |  |  | Yes |
+| _seq_id |  |  |  | Yes |
+| brand |  |  | Yes |  |
+
+### Table Name: ListFinancialEventsRefundRevenue
+
+| **Columns**  | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+| :--------------- | :--------------- | :--------------- | :--------------- | :--------------- |
+| posteddate | Yes | Yes |  | Yes |
+| marketplacename |  |  |  | Yes |
+| amazonorderid |  |  |  | Yes |
+| ChargeType |  |  |  | Yes |
+| _seq_id |  |  |  | Yes |
+| brand |  |  | Yes |  |
+
+
+### Table Name: ListFinancialEventsRefundTaxes
+
+| **Columns**  | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+| :--------------- | :--------------- | :--------------- | :--------------- | :--------------- |
+| posteddate | Yes | Yes |  | Yes |
+| marketplacename |  |  |  | Yes |
+| amazonorderid |  |  |  | Yes |
+| ChargeType |  |  |  | Yes |
+| _seq_id |  |  |  | Yes |
+| brand |  |  | Yes |  |
+
+### Table Name: CatalogItems
+
+| **Columns**  | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+| :--------------- | :--------------- | :--------------- | :--------------- | :--------------- |
+| brandName |  |  |  | Yes |
+| ReferenceASIN | Yes |  |  | Yes |
+| merchant_sku | Yes |  |  | Yes |
+| modelNumber |  |  |  | Yes |
+| marketplaceId |  |  |  | Yes |
+| RequestStartDate | Yes |  |  |  |
+
+### Table Name: AllListingsReport
+
+| **Columns**  | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+| :--------------- | :--------------- | :--------------- | :--------------- | :--------------- |
+| seller_sku | Yes |  |  | Yes |
+| listing_id | Yes |  |  | Yes |
+
+
+### Table Name: FBAReturnsReport
+
+| **Columns**  | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+| :--------------- | :--------------- | :--------------- | :--------------- | :--------------- |
+| return_date | Yes | Yes |  | Yes |
+| asin | Yes |  |  | Yes |
+| sku | Yes |  |  | Yes |
+| order_id | Yes |  |  | Yes |
+| fnsku | Yes |  |  | Yes |
+| license_plate_number | Yes |  |  | Yes |
+| fulfillment_center_id | Yes |  |  | Yes |
+| _seq_id |  |  |  | Yes |
+| marketplaceId |  |  |  | Yes |
+| brand |  |  | Yes |  |
+
+### Table Name: FlatFileReturnsReportByReturnDate
+
+| **Columns**  | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+| :--------------- | :--------------- | :--------------- | :--------------- | :--------------- |
+| Return_request_date | Yes | Yes |  | Yes |
+| Order_ID | Yes |  |  | Yes |
+| ASIN | Yes |  |  | Yes |
+| marketplaceId |  |  |  | Yes |
+| brand |  |  | Yes |  |
+
+### Table Name: FBAAmazonFulfilledShipmentsReport
+
+| **Columns**  | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+| :--------------- | :--------------- | :--------------- | :--------------- | :--------------- |
+| purchase_date | Yes | Yes |  | Yes |
+| sku | Yes |  |  | Yes |
+| amazon_order_id | Yes |  |  | Yes |
+| marketplaceName |  |  |  | Yes |
+| _seq_id |  |  |  | Yes |
+| brand |  |  | Yes |  |
+
+
+### Table Name: FlatFileAllOrdersReportByLastUpdate
+
+| **Columns**  | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+| :--------------- | :--------------- | :--------------- | :--------------- | :--------------- |
+| purchase_date | Yes | Yes |  | Yes |
+| amazon_order_id | Yes |  |  | Yes |
+| asin | Yes |  |  | Yes |
+| sku | Yes |  |  | Yes |
+| _seq_id |  |  |  | Yes |
+| brand |  |  | Yes |  |
+
+
+### Table Name: SalesAndTrafficReportByChildASIN
+
+| **Columns**  | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+| :--------------- | :--------------- | :--------------- | :--------------- | :--------------- |
+| date | Yes | Yes |  | Yes |
+| parentAsin | Yes |  |  | Yes |
+| childAsin | Yes |  |  | Yes |
+| sku |  |  |  | Yes |
+| marketplaceId |  |  |  | Yes |
+| brand |  |  | Yes |  |
+
+
+
+
 
 
 ### For details about default configurations for Table Primary Key columns, Partition columns, Clustering columns, please refer the properties.yaml used for this package as below. 
@@ -301,3 +530,6 @@ models:
 - Have questions, feedback, or need [help](https://calendly.com/srinivas-janipalli/30min)? Schedule a call with our data experts or email us at info@sarasanalytics.com.
 - Learn more about Daton [here](https://sarasanalytics.com/daton/).
 - Refer [this](https://youtu.be/6zDTbM6OUcs) to know more about how to create a dbt account & connect to {{Bigquery/Snowflake}}
+
+
+
