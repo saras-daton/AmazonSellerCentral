@@ -5,7 +5,7 @@ models:
     config:
       materialized: incremental
       incremental_strategy: merge
-      unique_key: ['PurchaseDate','amazonorderid','marketplaceName']
+      unique_key: ['brand','PurchaseDate','amazonorderid','marketplaceName']
       partition_by: { 'field': 'PurchaseDate', 'data_type': 'timestamp', 'granularity': 'day' }
       cluster_by: ['amazonorderid']
     tests:
@@ -40,7 +40,7 @@ models:
     config:
       materialized: incremental
       incremental_strategy: merge
-      unique_key: ['snapshot_date','asin','sku','marketplaceId']
+      unique_key: ['snapshot_date','asin','sku','marketplaceId','sellingPartnerId']
       partition_by: { 'field': 'snapshot_date', 'data_type': 'date' }
       cluster_by: ['asin','sku']
     tests:
@@ -109,7 +109,7 @@ models:
     config:
       materialized: incremental
       incremental_strategy: merge
-      unique_key: ['date','asin','fulfillment_center','msku', 'event_type', 'reference_id','quantity','disposition','marketplaceid']
+      unique_key: ['date','asin','fulfillment_center','msku', 'event_type', 'reference_id','quantity','disposition','marketplaceid','sellingPartnerId']
       partition_by: { 'field': 'date', 'data_type': 'timestamp', 'granularity': 'day' }
       cluster_by: ['date','msku']
     tests:
@@ -432,7 +432,7 @@ models:
       incremental_strategy: merge
       cluster_by: ['ReferenceASIN']
       partition_by: { 'field': 'RequestStartDate', 'data_type': 'timestamp', 'granularity': 'day' }
-      unique_key: ['brandName','ReferenceASIN','modelNumber','marketplaceId']
+      unique_key: ['brandName','ReferenceASIN','modelNumber','marketplaceId','sellingPartnerId']
     tests:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns:
@@ -607,7 +607,7 @@ models:
       incremental_strategy: merge
       partition_by: { 'field': 'date', 'data_type': 'date' }
       cluster_by: ['parentAsin', 'childAsin']
-      unique_key: ['date', 'parentAsin', 'childAsin','marketplaceId']
+      unique_key: ['date', 'parentAsin', 'childAsin','marketplaceId','sellingPartnerId']
     tests:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns:
@@ -638,7 +638,7 @@ models:
       incremental_strategy: merge
       partition_by: { 'field': 'RequeststartDate', 'data_type': 'timestamp', 'granularity': 'day' }
       cluster_by: ['ASIN', 'itemCondition']
-      unique_key: ['ASIN', 'itemCondition']
+      unique_key: ['ASIN', 'itemCondition','sellingPartnerId']
     tests:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns:
