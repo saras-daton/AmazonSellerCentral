@@ -5,7 +5,7 @@ models:
     config:
       materialized: incremental
       incremental_strategy: merge
-      unique_key: ['brand','PurchaseDate','amazonorderid','marketplaceName']
+      unique_key: ['PurchaseDate','amazonorderid','marketplaceName','sellingPartnerId']
       partition_by: { 'field': 'PurchaseDate', 'data_type': 'timestamp', 'granularity': 'day' }
       cluster_by: ['amazonorderid']
     tests:
