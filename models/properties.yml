@@ -110,7 +110,7 @@ models:
       materialized: incremental
       incremental_strategy: merge
       unique_key: ['date','asin','fulfillment_center','msku', 'event_type', 'reference_id','quantity','disposition','marketplaceid','sellingPartnerId']
-      partition_by: { 'field': 'date', 'data_type': 'timestamp', 'granularity': 'day' }
+      partition_by: { 'field': 'date', 'data_type': 'date' }
       cluster_by: ['date','msku']
     tests:
       - dbt_utils.unique_combination_of_columns:
@@ -154,19 +154,19 @@ models:
     config:
       materialized: incremental
       incremental_strategy: merge
-      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'FeeType','_seq_id']
-      partition_by: { 'field': 'posteddate', 'data_type': 'date' }
-      cluster_by: ['marketplacename', 'amazonorderid']
+      unique_key: ['ShipmentEventlist_PostedDate', 'ShipmentEventlist_MarketplaceName', 'ShipmentEventlist_AmazonOrderId', 'ItemFeeList_FeeType','_seq_id']
+      partition_by: { 'field': 'ShipmentEventlist_PostedDate', 'data_type': 'timestamp', 'granularity': 'day' }
+      cluster_by: ['ShipmentEventlist_MarketplaceName', 'ShipmentEventlist_AmazonOrderId']
     tests:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns:
-            - posteddate
-            - marketplacename
-            - amazonorderid
-            - FeeType
+            - ShipmentEventlist_PostedDate
+            - ShipmentEventlist_MarketplaceName
+            - ShipmentEventlist_AmazonOrderId
+            - ItemFeeList_FeeType
             - _seq_id
     columns:
-      - name: posteddate
+      - name: ShipmentEventlist_PostedDate
         tests:
           - dbt_expectations.expect_row_values_to_have_recent_data:
               datepart: day
@@ -186,19 +186,19 @@ models:
     config:
       materialized: incremental
       incremental_strategy: merge
-      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'PromotionType','_seq_id']
-      partition_by: { 'field': 'posteddate', 'data_type': 'date' }
-      cluster_by: ['marketplacename', 'amazonorderid']
+      unique_key: ['ShipmentEventlist_PostedDate', 'ShipmentEventlist_MarketplaceName', 'ShipmentEventlist_AmazonOrderId', 'PromotionList_PromotionType','_seq_id']
+      partition_by: { 'field': 'ShipmentEventlist_PostedDate', 'data_type': 'timestamp', 'granularity': 'day' }
+      cluster_by: ['ShipmentEventlist_MarketplaceName', 'ShipmentEventlist_AmazonOrderId']
     tests:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns:
-            - posteddate
-            - marketplacename
-            - amazonorderid
-            - PromotionType
+            - ShipmentEventlist_PostedDate
+            - ShipmentEventlist_MarketplaceName
+            - ShipmentEventlist_AmazonOrderId
+            - PromotionList_PromotionType
             - _seq_id
     columns:
-      - name: posteddate
+      - name: ShipmentEventlist_PostedDate
         tests:
           - dbt_expectations.expect_row_values_to_have_recent_data:
               datepart: day
@@ -219,19 +219,19 @@ models:
     config:
       materialized: incremental
       incremental_strategy: merge
-      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'ChargeType','_seq_id']
-      partition_by: { 'field': 'posteddate', 'data_type': 'date' }
-      cluster_by: ['marketplacename', 'amazonorderid']
+      unique_key: ['ShipmentEventlist_PostedDate', 'ShipmentEventlist_MarketplaceName', 'ShipmentEventlist_AmazonOrderId', 'ItemChargeList_ChargeType','_seq_id']
+      partition_by: { 'field': 'ShipmentEventlist_PostedDate', 'data_type': 'timestamp', 'granularity': 'day' }
+      cluster_by: ['ShipmentEventlist_MarketplaceName', 'ShipmentEventlist_AmazonOrderId']
     tests:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns:
-            - posteddate
-            - marketplacename
-            - amazonorderid
-            - ChargeType
+            - ShipmentEventlist_PostedDate
+            - ShipmentEventlist_MarketplaceName
+            - ShipmentEventlist_AmazonOrderId
+            - ItemChargeList_ChargeType
             - _seq_id
     columns:
-      - name: posteddate
+      - name: ShipmentEventlist_PostedDate
         tests:
           - dbt_expectations.expect_row_values_to_have_recent_data:
               datepart: day
@@ -252,19 +252,19 @@ models:
     config:
       materialized: incremental
       incremental_strategy: merge
-      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'ChargeType','_seq_id']
-      partition_by: { 'field': 'posteddate', 'data_type': 'date' }
-      cluster_by: ['marketplacename', 'amazonorderid']
+      unique_key: ['ShipmentEventlist_PostedDate', 'ShipmentEventlist_MarketplaceName', 'ShipmentEventlist_AmazonOrderId', 'TaxesWithheld_ChargeType','_seq_id']
+      partition_by: { 'field': 'ShipmentEventlist_PostedDate', 'data_type': 'timestamp', 'granularity': 'day' }
+      cluster_by: ['ShipmentEventlist_MarketplaceName', 'ShipmentEventlist_AmazonOrderId']
     tests:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns:
-            - posteddate
-            - marketplacename
-            - amazonorderid
-            - ChargeType
+            - ShipmentEventlist_PostedDate
+            - ShipmentEventlist_MarketplaceName
+            - ShipmentEventlist_AmazonOrderId
+            - TaxesWithheld_ChargeType
             - _seq_id
     columns:
-      - name: posteddate
+      - name: ShipmentEventlist_PostedDate
         tests:
           - dbt_expectations.expect_row_values_to_have_recent_data:
               datepart: day
@@ -283,19 +283,19 @@ models:
     config:
       materialized: incremental
       incremental_strategy: merge
-      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'FeeType', '_seq_id']
-      partition_by: { 'field': 'posteddate', 'data_type': 'date' }
-      cluster_by: ['marketplacename', 'amazonorderid']
+      unique_key: ['RefundEventlist_PostedDate', 'RefundEventlist_MarketplaceName', 'RefundEventlist_AmazonOrderId', 'ItemFeeAdjustmentList_FeeType', '_seq_id']
+      partition_by: { 'field': 'RefundEventlist_PostedDate', 'data_type': 'timestamp', 'granularity': 'day' }
+      cluster_by: ['RefundEventlist_MarketplaceName', 'RefundEventlist_AmazonOrderId']
     tests:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns:
-            - posteddate
-            - marketplacename
-            - amazonorderid
-            - FeeType
+            - RefundEventlist_PostedDate
+            - RefundEventlist_MarketplaceName
+            - RefundEventlist_AmazonOrderId
+            - ItemFeeAdjustmentList_FeeType
             - _seq_id
     columns:
-      - name: posteddate
+      - name: RefundEventlist_PostedDate
         tests:
           - dbt_expectations.expect_row_values_to_have_recent_data:
               datepart: day
@@ -314,19 +314,19 @@ models:
     config:
       materialized: incremental
       incremental_strategy: merge
-      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'PromotionType', '_seq_id']
-      partition_by: { 'field': 'posteddate', 'data_type': 'date' }
-      cluster_by: ['marketplacename', 'amazonorderid']
+      unique_key: ['RefundEventlist_PostedDate', 'RefundEventlist_MarketplaceName', 'RefundEventlist_AmazonOrderId', 'PromotionList_PromotionType', '_seq_id']
+      partition_by: { 'field': 'RefundEventlist_PostedDate', 'data_type': 'timestamp', 'granularity': 'day' }
+      cluster_by: ['RefundEventlist_MarketplaceName', 'RefundEventlist_AmazonOrderId']
     tests:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns:
-            - posteddate
-            - marketplacename
-            - amazonorderid
-            - PromotionType
+            - RefundEventlist_PostedDate
+            - RefundEventlist_MarketplaceName
+            - RefundEventlist_AmazonOrderId
+            - PromotionList_PromotionType
             - _seq_id
     columns:
-      - name: posteddate
+      - name: RefundEventlist_PostedDate
         tests:
           - dbt_expectations.expect_row_values_to_have_recent_data:
               datepart: day
@@ -345,22 +345,22 @@ models:
     config:
       materialized: incremental
       incremental_strategy: merge
-      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'ChargeType', '_seq_id']
-      partition_by: { 'field': 'posteddate', 'data_type': 'date' }
-      cluster_by: ['marketplacename', 'amazonorderid']
+      unique_key: ['RefundEventlist_PostedDate', 'RefundEventlist_MarketplaceName', 'RefundEventlist_AmazonOrderId', 'ItemChargeAdjustmentList_ChargeType', '_seq_id']
+      partition_by: { 'field': 'RefundEventlist_PostedDate', 'data_type': 'timestamp', 'granularity': 'day' }
+      cluster_by: ['RefundEventlist_MarketplaceName', 'RefundEventlist_AmazonOrderId']
     tests:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns:
-            - posteddate
-            - marketplacename
-            - amazonorderid
-            - ChargeType
+            - RefundEventlist_PostedDate
+            - RefundEventlist_MarketplaceName
+            - RefundEventlist_AmazonOrderId
+            - ItemChargeAdjustmentList_ChargeType
             - _seq_id
       
 
       
     columns:
-      - name: posteddate
+      - name: RefundEventlist_PostedDate
         tests:
           - dbt_expectations.expect_row_values_to_have_recent_data:
               datepart: day
@@ -379,19 +379,19 @@ models:
     config:
       materialized: incremental
       incremental_strategy: merge
-      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'ChargeType', '_seq_id']
-      partition_by: { 'field': 'posteddate', 'data_type': 'date' }
-      cluster_by: ['marketplacename', 'amazonorderid']
+      unique_key: ['RefundEventlist_PostedDate', 'RefundEventlist_MarketplaceName', 'RefundEventlist_AmazonOrderId', 'TaxesWithheld_ChargeType', '_seq_id']
+      partition_by: { 'field': 'RefundEventlist_PostedDate', 'data_type': 'timestamp', 'granularity': 'day' }
+      cluster_by: ['RefundEventlist_MarketplaceName', 'RefundEventlist_AmazonOrderId']
     tests:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns:
-            - posteddate
-            - marketplacename
-            - amazonorderid
-            - ChargeType
+            - RefundEventlist_PostedDate
+            - RefundEventlist_MarketplaceName
+            - RefundEventlist_AmazonOrderId
+            - TaxesWithheld_ChargeType
             - _seq_id
     columns:
-      - name: posteddate
+      - name: RefundEventlist_PostedDate
         tests:
           - dbt_expectations.expect_row_values_to_have_recent_data:
               datepart: day
@@ -410,9 +410,9 @@ models:
     config:
       materialized: incremental
       incremental_strategy: merge
-      unique_key: ['RequestStartDate', 'marketplaceId', 'FeeReason', 'FeeType', 'SellerSKU', 'FeeDescription','_seq_id']
+      unique_key: ['RequestStartDate', 'marketplaceId', 'ServiceFeeEventList_FeeReason', 'FeeList_FeeType', 'ServiceFeeEventList_SellerSKU', 'ServiceFeeEventList_FeeDescription','_seq_id']
       partition_by: { 'field': 'RequestStartDate', 'data_type': 'timestamp', 'granularity': 'day' }
-      cluster_by: ['marketplaceId', 'FeeReason']
+      cluster_by: ['marketplaceId', 'ServiceFeeEventList_FeeReason']
     columns:
       - name: posteddate
         tests:
