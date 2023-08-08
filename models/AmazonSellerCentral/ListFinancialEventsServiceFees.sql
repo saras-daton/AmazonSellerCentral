@@ -10,7 +10,7 @@
 
     {% if is_incremental() %}
     {%- set max_loaded_query -%}
-    SELECT coalesce(MAX(_daton_batch_runtime) - 2592000000,0) FROM {{ this }}
+    select coalesce(max(_daton_batch_runtime) - 2592000000,0) from {{ this }}
     {% endset %}
 
     {%- set max_loaded_results = run_query(max_loaded_query) -%}
@@ -22,7 +22,8 @@
     {%- endif -%}
     {% endif %}
 
-   with unnested_shipmenteventlist as (
+    select *, row_number() over (partition by date(RequestStartDate), marketplacename, ServiceFeeEventList_FeeReason, FeeList_FeeType, ServiceFeeEventList_SellerSKU, ServiceFeeEventList_FeeDescription order by _daton_batch_runtime, _daton_batch_id) as _seq_id
+    from (
     {% set table_name_query %}
     {{set_table_name('%listfinancialevents')}}    
     {% endset %}  
@@ -49,17 +50,23 @@
             {% set store = var('default_storename') %}
         {% endif %}
 
-    SELECT * FROM (
+        {% if var('timezone_conversion_flag') and i.lower() in tables_lowercase_list and i in var('raw_table_timezone_offset_hours') %}
+            {% set hr = var('raw_table_timezone_offset_hours')[i] %}
+        {% else %}
+            {% set hr = 0 %}
+        {% endif %}
+
+    select * from (
         select 
             '{{brand}}' as brand,
             '{{store}}' as store,
             a.* {{exclude()}} (_daton_user_id, _daton_batch_runtime, _daton_batch_id),
             {% if var('currency_conversion_flag') %}
                 case when c.value is null then 1 else c.value end as exchange_currency_rate,
-                case when c.from_currency_code is null then a.CurrencyCode else c.from_currency_code end as exchange_currency_code,
+                case when c.from_currency_code is null then a.FeeAmount_CurrencyCode else c.from_currency_code end as exchange_currency_code,
             {% else %}
                 cast(1 as decimal) as exchange_currency_rate,
-                a.CurrencyCode as exchange_currency_code, 
+                a.FeeAmount_CurrencyCode as exchange_currency_code, 
             {% endif %}
 	   		a._daton_user_id,
             a._daton_batch_runtime,
@@ -68,57 +75,49 @@
             '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as _run_id
             from (
             select
-            RequestStartDate,
-            RequestEndDate,
+            cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="RequestStartDate") }} as {{ dbt.type_timestamp() }}) as RequestStartDate,
+            cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="RequestEndDate") }} as {{ dbt.type_timestamp() }}) as RequestEndDate,
             sellingPartnerId,
             marketplaceName,
             marketplaceId,
             {% if target.type=='snowflake' %}
-                ServiceFeeEventList.VALUE:AmazonOrderId :: varchar as AmazonOrderId,
-                ServiceFeeEventList.VALUE:FeeReason :: varchar as FeeReason,
-                FeeList.VALUE:FeeType :: varchar as FeeType,
-                FeeAmount.VALUE:CurrencyCode :: varchar as CurrencyCode,
-                FeeAmount.value:CurrencyAmount :: FLOAT as CurrencyAmount ,
-                ServiceFeeEventList.value:SellerSKU::varchar as SellerSKU,
-                ServiceFeeEventList.value:FnSKU::varchar as FnSKU,
-                ServiceFeeEventList.value:FeeDescription::varchar as FeeDescription,
-                ServiceFeeEventList.value:ASIN::varchar as ASIN,
+                ServiceFeeEventList.value:AmazonOrderId :: varchar as ServiceFeeEventList_AmazonOrderId,
+                ServiceFeeEventList.value:FeeReason :: varchar as ServiceFeeEventList_FeeReason,
+                FeeList.value:FeeType :: varchar as FeeList_FeeType,
+                FeeAmount.value:CurrencyCode :: varchar as FeeAmount_CurrencyCode,
+                FeeAmount.value:CurrencyAmount :: float as FeeAmount_CurrencyAmount,
+                ServiceFeeEventList.value:SellerSKU :: varchar as ServiceFeeEventList_SellerSKU,
+                ServiceFeeEventList.value:FnSKU :: varchar as ServiceFeeEventList_FnSKU,
+                ServiceFeeEventList.value:FeeDescription :: varchar as ServiceFeeEventList_FeeDescription,
+                ServiceFeeEventList.value:ASIN :: varchar as ServiceFeeEventList_ASIN,
             {% else %}
-                coalesce(ServiceFeeEventList.AmazonOrderId,'') as AmazonOrderId,
-                coalesce(ServiceFeeEventList.FeeReason,'') as FeeReason,
-                coalesce(FeeList.FeeType,'') as FeeType,
-                FeeAmount.CurrencyCode as CurrencyCode,
-                FeeAmount.CurrencyAmount as CurrencyAmount,
-                coalesce(ServiceFeeEventList.SellerSKU,'') as SellerSKU,
-                ServiceFeeEventList.FnSKU as FnSKU,
-                coalesce(ServiceFeeEventList.FeeDescription,'') as FeeDescription,
-                ServiceFeeEventList.ASIN as ASIN,
+                coalesce(ServiceFeeEventList.AmazonOrderId,'N/A') as ServiceFeeEventList_AmazonOrderId,
+                coalesce(ServiceFeeEventList.FeeReason,'N/A') as ServiceFeeEventList_FeeReason,
+                coalesce(FeeList.FeeType,'N/A') as FeeList_FeeType,
+                FeeAmount.CurrencyCode as FeeAmount_CurrencyCode,
+                FeeAmount.CurrencyAmount as FeeAmount_CurrencyAmount,
+                coalesce(ServiceFeeEventList.SellerSKU,'N/A') as ServiceFeeEventList_SellerSKU,
+                ServiceFeeEventList.FnSKU as ServiceFeeEventList_FnSKU,
+                coalesce(ServiceFeeEventList.FeeDescription,'N/A') as ServiceFeeEventList_FeeDescription,
+                ServiceFeeEventList.ASIN as ServiceFeeEventList_ASIN,
             {% endif %}
             {{daton_user_id()}} as _daton_user_id,
        		{{daton_batch_runtime()}} as _daton_batch_runtime,
         	{{daton_batch_id()}} as _daton_batch_id
-            FROM {{i}} 
+            from {{i}} 
                 {{unnesting("ServiceFeeEventList")}}
                 {{multi_unnesting("ServiceFeeEventList","FeeList")}}
                 {{multi_unnesting("FeeList","FeeAmount")}}
             {% if is_incremental() %}
             {# /* -- this filter will only be applied on an incremental run */ #}
-            WHERE {{daton_batch_runtime()}}  >= {{max_loaded}}
+            where {{daton_batch_runtime()}}  >= {{max_loaded}}
             {% endif %}
             ) a
             {% if var('currency_conversion_flag') %}
-                left join {{ref('ExchangeRates')}} c on date(a.RequestStartDate) = c.date and a.CurrencyCode = c.to_currency_code
+                left join {{ref('ExchangeRates')}} c on date(a.RequestStartDate) = c.date and a.FeeAmount_CurrencyCode = c.to_currency_code
             {% endif %}
         )
+        qualify dense_rank() over (partition by date(RequestStartDate), marketplaceId, ServiceFeeEventList_FeeReason, FeeList_FeeType, ServiceFeeEventList_SellerSKU, ServiceFeeEventList_FeeDescription order by _daton_batch_runtime desc) = 1
     {% if not loop.last %} union all {% endif %}
     {% endfor %}
     )
-
-    select *, ROW_NUMBER() OVER (PARTITION BY date(RequestStartDate), marketplacename, FeeReason, FeeType, SellerSKU, FeeDescription order by _daton_batch_runtime, _daton_batch_id) as _seq_id
-    from (
-    select * {{exclude()}} (rank)from (
-            select *,
-            DENSE_RANK() OVER (PARTITION BY date(RequestStartDate), marketplaceId, FeeReason, FeeType, SellerSKU, FeeDescription order by _daton_batch_runtime desc) rank
-            from unnested_shipmenteventlist
-        ) where rank = 1)
-    

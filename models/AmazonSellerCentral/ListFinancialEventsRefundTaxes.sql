@@ -10,7 +10,7 @@
 
     {% if is_incremental() %}
     {%- set max_loaded_query -%}
-    SELECT coalesce(MAX(_daton_batch_runtime) - 2592000000,0) FROM {{ this }}
+    select coalesce(max(_daton_batch_runtime) - 2592000000,0) from {{ this }}
     {% endset %}
 
     {%- set max_loaded_results = run_query(max_loaded_query) -%}
@@ -22,7 +22,8 @@
     {%- endif -%}
     {% endif %}
 
-    with unnested_refundeventlist as (
+    select *, row_number() over (partition by date(RefundEventlist_PostedDate), RefundEventlist_MarketplaceName, RefundEventlist_AmazonOrderId order by _daton_batch_runtime, TaxesWithheld_ChargeType, ShipmentItemAdjustmentList_QuantityShipped) as _seq_id
+    from (
     {% set table_name_query %}
     {{set_table_name('%listfinancialevents')}}    
     {% endset %}  
@@ -48,16 +49,22 @@
         {% else %}
             {% set store = var('default_storename') %}
         {% endif %}
-    
-        SELECT * FROM (
+
+        {% if var('timezone_conversion_flag') and i.lower() in tables_lowercase_list and i in var('raw_table_timezone_offset_hours') %}
+            {% set hr = var('raw_table_timezone_offset_hours')[i] %}
+        {% else %}
+            {% set hr = 0 %}
+        {% endif %}
+
+        select * from (
         select 
         a.* {{exclude()}} (_daton_user_id, _daton_batch_runtime, _daton_batch_id),
         {% if var('currency_conversion_flag') %}
             case when c.value is null then 1 else c.value end as exchange_currency_rate,
-            case when c.from_currency_code is null then a.CurrencyCode else c.from_currency_code end as exchange_currency_code,
+            case when c.from_currency_code is null then a.ChargeAmount_CurrencyCode else c.from_currency_code end as exchange_currency_code,
         {% else %}
             cast(1 as decimal) as exchange_currency_rate,
-            a.CurrencyCode as exchange_currency_code, 
+            a.ChargeAmount_CurrencyCode as exchange_currency_code, 
         {% endif %}
         a._daton_user_id,
         a._daton_batch_runtime,
@@ -68,29 +75,29 @@
         '{{brand}}' as brand,
         '{{store}}' as store,
         {% if target.type=='snowflake' %} 
-            REFUNDEVENTLIST.VALUE:PostedDate :: DATE as posteddate,
-            REFUNDEVENTLIST.VALUE:AmazonOrderId :: varchar as AmazonOrderId,
-            REFUNDEVENTLIST.VALUE:MarketplaceName :: varchar as marketplacename,
-            ShipmentItemAdjustmentList.VALUE:SellerSKU :: varchar as SellerSKU,
-            ShipmentItemAdjustmentList.VALUE:QuantityShipped :: FLOAT as QuantityShipped,
-            ItemTaxWithHeldList.VALUE:TaxCollectionModel :: VARCHAR as taxCollectionModel,
-            TaxesWithheld.value:ChargeType :: varchar as ChargeType ,
-            ChargeAmount.value:CurrencyCode::varchar as CurrencyCode,
-            ChargeAmount.value:CurrencyAmount::FLOAT as CurrencyAmount,
+            cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="RefundEventlist.value:PostedDate") }} as {{ dbt.type_timestamp() }}) as RefundEventlist_PostedDate,
+            RefundEventlist.value:AmazonOrderId :: varchar as RefundEventlist_AmazonOrderId,
+            RefundEventlist.value:MarketplaceName :: varchar as RefundEventlist_MarketplaceName,
+            ShipmentItemAdjustmentList.value:SellerSKU :: varchar as ShipmentItemAdjustmentList_SellerSKU,
+            ShipmentItemAdjustmentList.value:QuantityShipped :: integer as ShipmentItemAdjustmentList_QuantityShipped,
+            ItemTaxWithHeldList.value:TaxCollectionModel :: varchar as ItemTaxWithHeldList_taxCollectionModel,
+            TaxesWithheld.value:ChargeType :: varchar as TaxesWithheld_ChargeType,
+            ChargeAmount.value:CurrencyCode :: varchar as ChargeAmount_CurrencyCode,
+            ChargeAmount.value:CurrencyAmount :: float as ChargeAmount_CurrencyAmount,
         {% else %}
-            date(RefundEventlist.posteddate) as posteddate,
-            coalesce(RefundEventlist.amazonorderid,'') as amazonorderid,
-            coalesce(RefundEventlist.marketplacename,'') as marketplacename,
-            ShipmentItemAdjustmentList.sellerSKU as sellerSKU,
-            ShipmentItemAdjustmentList.quantityshipped as quantityshipped,
-            coalesce(TaxesWithheld.ChargeType,'') as ChargeType,
-            ChargeAmount.CurrencyCode as CurrencyCode,
-            ChargeAmount.CurrencyAmount as CurrencyAmount,
+            cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="cast(RefundEventlist.PostedDate as timestamp)") }} as {{ dbt.type_timestamp() }}) as RefundEventlist_PostedDate,
+            coalesce(RefundEventlist.amazonorderid,'N/A') as RefundEventlist_AmazonOrderId,
+            coalesce(RefundEventlist.marketplacename,'N/A') as RefundEventlist_MarketplaceName,
+            coalesce(ShipmentItemAdjustmentList.SellerSKU,'N/A') as ShipmentItemAdjustmentList_SellerSKU,
+            cast(ShipmentItemAdjustmentList.QuantityShipped as integer) as ShipmentItemAdjustmentList_QuantityShipped,
+            coalesce(TaxesWithheld.ChargeType,'N/A') as TaxesWithheld_ChargeType,
+            ChargeAmount.CurrencyCode as ChargeAmount_CurrencyCode,
+            ChargeAmount.CurrencyAmount as ChargeAmount_CurrencyAmount,
         {% endif %}
 	   	{{daton_user_id()}} as _daton_user_id,
         {{daton_batch_runtime()}} as _daton_batch_runtime,
         {{daton_batch_id()}} as _daton_batch_id
-        FROM  {{i}} 
+        from  {{i}} 
         {{unnesting("RefundEventlist")}}
         {{multi_unnesting("RefundEventlist","ShipmentItemAdjustmentList")}}
         {{multi_unnesting("ShipmentItemAdjustmentList","ItemTaxWithHeldList")}}
@@ -98,22 +105,14 @@
         {{multi_unnesting("TaxesWithheld","ChargeAmount")}}
         {% if is_incremental() %}
             {# /* -- this filter will only be applied on an incremental run */ #}
-            WHERE {{daton_batch_runtime()}}  >= {{max_loaded}}
+            where {{daton_batch_runtime()}}  >= {{max_loaded}}
         {% endif %}
         )a
             {% if var('currency_conversion_flag') %}
-                left join {{ref('ExchangeRates')}} c on date(posteddate) = c.date and a.CurrencyCode = c.to_currency_code
+                left join {{ref('ExchangeRates')}} c on date(RefundEventlist_PostedDate) = c.date and a.ChargeAmount_CurrencyCode = c.to_currency_code
             {% endif %}
         )
+        qualify dense_rank() over (partition by date(RefundEventlist_PostedDate), RefundEventlist_MarketplaceName, RefundEventlist_AmazonOrderId, TaxesWithheld_ChargeType order by _daton_batch_runtime desc) = 1
         {% if not loop.last %} union all {% endif %}
     {% endfor %}
     )
-
-    select *, ROW_NUMBER() OVER (PARTITION BY posteddate, marketplacename, amazonorderid order by _daton_batch_runtime, ChargeType, quantityshipped) as _seq_id
-    from (
-        select * {{exclude()}} (rank) from (
-            select *,
-            DENSE_RANK() OVER (PARTITION BY posteddate, marketplacename, amazonorderid, ChargeType order by _daton_batch_runtime desc) rank
-            from unnested_refundeventlist
-            ) where rank=1  
-        )

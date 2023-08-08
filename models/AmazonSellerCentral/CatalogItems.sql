@@ -6,7 +6,7 @@
 
     {% if is_incremental() %}
     {%- set max_loaded_query -%}
-    SELECT coalesce(MAX(_daton_batch_runtime) - 2592000000,0) FROM {{ this }}
+    select coalesce(max(_daton_batch_runtime) - 2592000000,0) from {{ this }}
     {% endset %}
 
     {%- set max_loaded_results = run_query(max_loaded_query) -%}
@@ -45,48 +45,46 @@
             {% set store = var('default_storename') %}
         {% endif %}
 
-        SELECT *  {{exclude()}} (row_num)
-        From (
+        {% if var('timezone_conversion_flag') and i.lower() in tables_lowercase_list and i in var('raw_table_timezone_offset_hours') %}
+            {% set hr = var('raw_table_timezone_offset_hours')[i] %}
+        {% else %}
+            {% set hr = 0 %}
+        {% endif %}
+
             select 
             '{{brand}}' as brand,
             '{{store}}' as store,
-            CAST(RequeststartDate as timestamp) RequeststartDate,
-            CAST(RequestendDate as timestamp) RequestendDate,
-            coalesce(ReferenceASIN,'') as ReferenceASIN,
+            cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="cast(RequeststartDate as timestamp)") }} as {{ dbt.type_timestamp() }}) as RequeststartDate,
+            cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="cast(RequestendDate as timestamp)") }} as {{ dbt.type_timestamp() }}) as RequestendDate,
+            coalesce(ReferenceASIN,'N/A') as ReferenceASIN,
             sellingPartnerId,
             marketplaceName,
             a.marketplaceId,
             asin,
-            attributes,
-            dimensions,
-            identifiers,
-            images,
-            productTypes,
-            relationships,
             {% if target.type=='snowflake' %} 
-            salesRanks.VALUE:marketplaceId as salesRanks_marketplaceId,
-            classificationRanks.VALUE:classificationId as classificationRanks_classificationId,
-            classificationRanks.VALUE:title as classificationRanks_title,
-            classificationRanks.VALUE:link as classificationRanks_link,
-            classificationRanks.VALUE:rank as classificationRanks_rank,
-            displayGroupRanks.VALUE:websiteDisplayGroup as displayGroupRanks_websiteDisplayGroup,
-            displayGroupRanks.VALUE:title as displayGroupRanks_title,
-            displayGroupRanks.VALUE:link as displayGroupRanks_link,
-            displayGroupRanks.VALUE:rank as displayGroupRanks_rank,
-            summaries.VALUE:marketplaceId as summaries_marketplaceId,
-            summaries.VALUE:brand as brandName,
-            summaries.VALUE:browseClassification,
-            summaries.VALUE:color as colorName,
-            summaries.VALUE:itemClassification,
-            summaries.VALUE:itemName as itemName,
-            summaries.VALUE:manufacturer as manufacturer,
-            coalesce(summaries.VALUE:modelNumber,'') as modelNumber,
-            summaries.VALUE:packageQuantity,
-            summaries.VALUE:partNumber,
-            summaries.VALUE:size as sizeName,
-            summaries.VALUE:style as styleName,
-            summaries.VALUE:websiteDisplayGroup as summaries_websiteDisplayGroup,
-            summaries.VALUE:websiteDisplayGroupName as summaries_websiteDisplayGroupName,
+            salesRanks.value:marketplaceId as salesRanks_marketplaceId,
+            classificationRanks.value:classificationId as classificationRanks_classificationId,
+            classificationRanks.value:title as classificationRanks_title,
+            classificationRanks.value:link as classificationRanks_link,
+            classificationRanks.value:rank as classificationRanks_rank,
+            displayGroupRanks.value:websiteDisplayGroup as displayGroupRanks_websiteDisplayGroup,
+            displayGroupRanks.value:title as displayGroupRanks_title,
+            displayGroupRanks.value:link as displayGroupRanks_link,
+            displayGroupRanks.value:rank as displayGroupRanks_rank,
+            summaries.value:marketplaceId as summaries_marketplaceId,
+            summaries.value:brand as brandName,
+            summaries.value:browseClassification,
+            summaries.value:color as colorName,
+            summaries.value:itemClassification,
+            summaries.value:itemName as itemName,
+            summaries.value:manufacturer as manufacturer,
+            coalesce(summaries.value:modelNumber,'N/A') as modelNumber,
+            summaries.value:packageQuantity,
+            summaries.value:partNumber,
+            summaries.value:size as sizeName,
+            summaries.value:style as styleName,
+            summaries.value:websiteDisplayGroup as summaries_websiteDisplayGroup,
+            summaries.value:websiteDisplayGroupName as summaries_websiteDisplayGroupName,
             {% else %}
             salesRanks.marketplaceId as salesRanks_marketplaceId,
             classificationRanks.classificationId as classificationRanks_classificationId,
@@ -104,7 +102,7 @@
             summaries.itemClassification,
             summaries.itemName as itemName,
             summaries.manufacturer as manufacturer,
-            coalesce(summaries.modelNumber,'') as modelNumber,
+            coalesce(summaries.modelNumber,'N/A') as modelNumber,
             summaries.packageQuantity,
             summaries.partNumber,
             summaries.size as sizeName,
@@ -112,17 +110,11 @@
             summaries.websiteDisplayGroup as summaries_websiteDisplayGroup,
             summaries.websiteDisplayGroupName as summaries_websiteDisplayGroupName,
             {% endif %}
-            vendorDetails,
 	        {{daton_user_id()}} as _daton_user_id,
             {{daton_batch_runtime()}} as _daton_batch_runtime,
             {{daton_batch_id()}} as _daton_batch_id,
             current_timestamp() as _last_updated,
             '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as _run_id,
-            {% if target.type=='snowflake' %} 
-            ROW_NUMBER() OVER (PARTITION BY summaries.VALUE:brand,ReferenceASIN,summaries.VALUE:modelNumber,summaries.VALUE:marketplaceId order by {{daton_batch_runtime()}} desc, {{daton_batch_id()}} desc) row_num
-            {% else %}
-            ROW_NUMBER() OVER (PARTITION BY summaries.brand,ReferenceASIN,summaries.modelNumber,summaries.marketplaceId order by {{daton_batch_runtime()}} desc, {{daton_batch_id()}} desc) row_num
-            {% endif %}
     	    from {{i}} a
                 {{unnesting("summaries")}}
                 {{unnesting("salesRanks")}}
@@ -130,9 +122,12 @@
                 {{multi_unnesting("salesRanks","displayGroupRanks")}}
                 {% if is_incremental() %}
                 {# /* -- this filter will only be applied on an incremental run */ #}
-                WHERE {{daton_batch_runtime()}}  >= {{max_loaded}}
+                where {{daton_batch_runtime()}}  >= {{max_loaded}}
                 {% endif %}   
-             )
-          where row_num = 1 
+            {% if target.type=='snowflake' %} 
+            qualify row_number() over (partition by summaries.value:brand,ReferenceASIN,summaries.value:modelNumber,summaries.value:marketplaceId order by {{daton_batch_runtime()}} desc, {{daton_batch_id()}} desc) = 1
+            {% else %}
+            qualify row_number() over (partition by summaries.brand,ReferenceASIN,summaries.modelNumber,summaries.marketplaceId order by {{daton_batch_runtime()}} desc, {{daton_batch_id()}} desc) = 1
+            {% endif %}
         {% if not loop.last %} union all {% endif %}
     {% endfor %}

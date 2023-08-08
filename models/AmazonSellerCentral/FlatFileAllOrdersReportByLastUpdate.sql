@@ -10,7 +10,7 @@
 
     {% if is_incremental() %}
         {%- set max_loaded_query -%}
-            SELECT coalesce(MAX(_daton_batch_runtime) - 2592000000,0) FROM {{ this }}
+            select coalesce(max(_daton_batch_runtime) - 2592000000,0) from {{ this }}
         {% endset %}
 
         {%- set max_loaded_results = run_query(max_loaded_query) -%}
@@ -57,25 +57,23 @@
             {% set hr = 0 %}
         {% endif %}
 
-        SELECT * {{exclude()}} (rank1,rank2)
-        FROM (
-            SELECT *, ROW_NUMBER() OVER (PARTITION BY purchase_date, amazon_order_id, asin, sku order by _daton_batch_runtime desc, quantity desc) as _seq_id
-            From (
-                select *, ROW_NUMBER() OVER (PARTITION BY purchase_date, amazon_order_id, asin, sku order by last_updated_date desc, _daton_batch_runtime desc) rank2
-                From (
+        select *, row_number() over (partition by purchase_date, amazon_order_id, asin, sku order by _daton_batch_runtime desc, quantity desc) as _seq_id
+            from (
+                select *
+                from (
                     select
                     '{{brand}}' as brand,
                     '{{store}}' as store,
-                    CAST(ReportstartDate as timestamp) ReportstartDate,
-                    CAST(ReportendDate as timestamp) ReportendDate,
-                    CAST(ReportRequestTime as timestamp) ReportRequestTime,
+                    cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="ReportstartDate") }} as {{ dbt.type_timestamp() }}) as ReportstartDate,
+                    cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="ReportendDate") }} as {{ dbt.type_timestamp() }}) as ReportendDate,
+                    cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="ReportRequestTime") }} as {{ dbt.type_timestamp() }}) as ReportRequestTime,
                     sellingPartnerId
                     marketplaceName,
                     marketplaceId,
-                    coalesce(amazon_order_id,'') as amazon_order_id,
+                    coalesce(amazon_order_id,'N/A') as amazon_order_id,
                     merchant_order_id,
-                    CAST({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="purchase_date") }} as {{ dbt.type_timestamp() }}) as purchase_date,
-                    CAST({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="cast(last_updated_date as timestamp)") }} as {{ dbt.type_timestamp() }}) as last_updated_date,
+                    cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="purchase_date") }} as {{ dbt.type_timestamp() }}) as purchase_date,
+                    cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="cast(last_updated_date as timestamp)") }} as {{ dbt.type_timestamp() }}) as last_updated_date,
                     order_status, 
                     fulfillment_channel, 
                     sales_channel,
@@ -83,8 +81,8 @@
                     url,
                     ship_service_level,
                     product_name, 
-                    coalesce(sku,'') as sku, 
-                    coalesce(asin,'') as asin,
+                    coalesce(sku,'N/A') as sku, 
+                    coalesce(asin,'N/A') as asin,
                     item_status, 
                     quantity, 
                     currency,
@@ -126,20 +124,19 @@
                     a.{{daton_batch_runtime()}} as _daton_batch_runtime,
                     a.{{daton_batch_id()}} as _daton_batch_id,
                     current_timestamp() as _last_updated,
-                    '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as _run_id,
-                    ROW_NUMBER() OVER (PARTITION BY last_updated_date, purchase_date, amazon_order_id, asin, sku order by a.{{daton_batch_runtime()}} desc) as rank1
+                    '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as _run_id
                     from {{i}}  a  
                     {% if var('currency_conversion_flag') %}
                         left join {{ref('ExchangeRates')}} c on date(a.purchase_date) = c.date and a.currency = c.to_currency_code                      
                     {% endif %}
                     {% if is_incremental() %}
                         {# /* -- this filter will only be applied on an incremental run */ #}
-                        WHERE a.{{daton_batch_runtime()}}  >= {{max_loaded}}
+                        where a.{{daton_batch_runtime()}}  >= {{max_loaded}}
                     {% endif %}    
 
                     ) 
-                where rank1 = 1 
-                ) where rank2 = 1
-            )
+                    qualify row_number() over (partition by last_updated_date, purchase_date, amazon_order_id, asin, sku order by _daton_batch_runtime desc) = 1 
+                )
+                qualify row_number() over (partition by purchase_date, amazon_order_id, asin, sku order by last_updated_date desc, _daton_batch_runtime desc) = 1
         {% if not loop.last %} union all {% endif %}
     {% endfor %}
