@@ -74,28 +74,17 @@
             '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as _run_id
             from (
             select
-            {% if target.type=='snowflake' %}
-                cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="ShipmentEventlist.value:PostedDate") }} as {{ dbt.type_timestamp() }}) as ShipmentEventlist_PostedDate,
-                ShipmentEventlist.value:AmazonOrderId :: varchar as ShipmentEventlist_AmazonOrderId,
-                ShipmentEventlist.value:MarketplaceName :: varchar as ShipmentEventlist_MarketplaceName,
-                ShipmentItemList.value:SellerSKU :: varchar as ShipmentItemlist_SellerSKU,
-                ShipmentItemList.value:QuantityShipped :: integer as ShipmentItemlist_QuantityShipped,
-                ItemFeeList.value:FeeType :: varchar as ItemFeeList_FeeType,
-                FeeAmount.value:CurrencyCode :: varchar as FeeAmount_CurrencyCode,
-                FeeAmount.value:CurrencyAmount :: float as FeeAmount_CurrencyAmount,
-            {% else %}
-                cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="cast(ShipmentEventlist.PostedDate as timestamp)") }} as {{ dbt.type_timestamp() }}) as ShipmentEventlist_PostedDate,
-                coalesce(ShipmentEventlist.AmazonOrderId,'N/A') as ShipmentEventlist_AmazonOrderId,
-                coalesce(ShipmentEventlist.MarketplaceName,'N/A') as ShipmentEventlist_MarketplaceName,
-                coalesce(ShipmentItemList.SellerSKU,'N/A') as ShipmentItemlist_SellerSKU,
-                cast(ShipmentItemList.QuantityShipped as integer) as ShipmentItemlist_QuantityShipped,
-                coalesce(ItemFeeList.FeeType,'N/A') as ItemFeeList_FeeType,
-                FeeAmount.CurrencyCode as FeeAmount_CurrencyCode,
-                FeeAmount.CurrencyAmount as FeeAmount_CurrencyAmount,
-            {% endif %}
+            cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="{{extract_nested_value("ShipmentEventlist","PostedDate","timestamp")}}") }} as {{ dbt.type_timestamp() }}) as ShipmentEventlist_PostedDate,
+            {{extract_nested_value("ShipmentEventlist","AmazonOrderId","string")}} as ShipmentEventlist_AmazonOrderId,
+            {{extract_nested_value("ShipmentEventlist","MarketplaceName","string")}} as ShipmentEventlist_MarketplaceName,
+            {{extract_nested_value("ShipmentItemList","SellerSKU","string")}} as ShipmentItemlist_SellerSKU,
+            {{extract_nested_value("ShipmentItemList","QuantityShipped","integer")}} as ShipmentItemlist_QuantityShipped,
+            {{extract_nested_value("ItemFeeList","FeeType","string")}} as ItemFeeList_FeeType,
+            {{extract_nested_value("FeeAmount","CurrencyCode","string")}} as FeeAmount_CurrencyCode,
+            {{extract_nested_value("FeeAmount","CurrencyAmount","float")}} as FeeAmount_CurrencyAmount,
             {{daton_user_id()}} as _daton_user_id,
-       		{{daton_batch_runtime()}} as _daton_batch_runtime,
-        	{{daton_batch_id()}} as _daton_batch_id
+            {{daton_batch_runtime()}} as _daton_batch_runtime,
+            {{daton_batch_id()}} as _daton_batch_id
             from {{i}} 
                 {{unnesting("ShipmentEventlist")}}
                 {{multi_unnesting("ShipmentEventlist","ShipmentItemList")}}
