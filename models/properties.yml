@@ -432,14 +432,15 @@ models:
       incremental_strategy: merge
       cluster_by: ['ReferenceASIN']
       partition_by: { 'field': 'RequestStartDate', 'data_type': 'timestamp', 'granularity': 'day' }
-      unique_key: ['brandName','ReferenceASIN','modelNumber','marketplaceId','sellingPartnerId']
+      unique_key: ['summaries_brandName','ReferenceASIN','summaries_modelNumber','marketplaceId','sellingPartnerId']
     tests:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns:
-            - brandName
+            - summaries_brandName
             - ReferenceASIN
-            - modelNumber
+            - summaries_modelNumber
             - marketplaceId
+            - sellingPartnerId
     columns:
       - name: RequestStartDate
         tests:
