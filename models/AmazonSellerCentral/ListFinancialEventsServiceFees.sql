@@ -86,9 +86,9 @@
             {{extract_nested_value("FeeAmount","CurrencyCode","string")}} as FeeAmount_CurrencyCode,
             {{extract_nested_value("FeeAmount","CurrencyAmount","float")}} as FeeAmount_CurrencyAmount,
             coalesce({{extract_nested_value("ServiceFeeEventList","SellerSKU","string")}},'N/A') as ServiceFeeEventList_SellerSKU,
-            coalesce({{extract_nested_value("ServiceFeeEventList","FnSKU","float")}},'N/A') as ServiceFeeEventList_FnSKU,
+            coalesce({{extract_nested_value("ServiceFeeEventList","FnSKU","string")}},'N/A') as ServiceFeeEventList_FnSKU,
             {{extract_nested_value("ServiceFeeEventList","FeeDescription","string")}} as ServiceFeeEventList_FeeDescription,
-            {{extract_nested_value("ServiceFeeEventList","ASIN","float")}} as ServiceFeeEventList_ASIN,
+            {{extract_nested_value("ServiceFeeEventList","ASIN","string")}} as ServiceFeeEventList_ASIN,
             {{daton_user_id()}} as _daton_user_id,
        		{{daton_batch_runtime()}} as _daton_batch_runtime,
         	{{daton_batch_id()}} as _daton_batch_id

@@ -103,7 +103,7 @@
             left join {{ref('ExchangeRates')}} c on date(ShipmentEventlist_PostedDate) = c.date and a.PromotionAmount_CurrencyCode = c.to_currency_code
             {% endif %}
         )
-        qualify dense_rank() over (partition by date(ShipmentEventlist_PostedDate), ShipmentEventlist_MarketplaceName, ShipmentEventlist_AmazonOrderId, PromotionList_PromotionType order by {{daton_batch_runtime()}} desc) = 1
+        qualify dense_rank() over (partition by date(ShipmentEventlist_PostedDate), ShipmentEventlist_MarketplaceName, ShipmentEventlist_AmazonOrderId, PromotionList_PromotionType order by _daton_batch_runtime desc) = 1
 
     {% if not loop.last %} union all {% endif %}
     {% endfor %}

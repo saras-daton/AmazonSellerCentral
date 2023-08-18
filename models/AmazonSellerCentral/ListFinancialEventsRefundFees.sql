@@ -87,7 +87,7 @@
         coalesce({{extract_nested_value("ItemFeeAdjustmentList","FeeType","string")}},'N/A') as ItemFeeAdjustmentList_FeeType,
         {{extract_nested_value("FeeAmount","CurrencyCode","string")}} as FeeAmount_CurrencyCode,
         {{extract_nested_value("FeeAmount","CurrencyAmount","float")}} as FeeAmount_CurrencyAmount,
-\	   	{{daton_user_id()}} as _daton_user_id,
+	   	{{daton_user_id()}} as _daton_user_id,
         {{daton_batch_runtime()}} as _daton_batch_runtime,
         {{daton_batch_id()}} as _daton_batch_id
         from  {{i}} 
