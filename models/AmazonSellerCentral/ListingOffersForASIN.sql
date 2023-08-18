@@ -71,9 +71,9 @@
             {{extract_nested_value("BuyBoxPrices","quantityTier","integer")}} as BuyBoxPrices_quantityTier,
             {{extract_nested_value("BuyBoxPrices","quantityDiscountType","string")}} as BuyBoxPrices_quantityDiscountType,
             {{extract_nested_value("LandedPrice","CurrencyCode","string")}} as LandedPrice_CurrencyCode,
-            {{extract_nested_value("LandedPrice","Amount","float")}} as LandedPrice_Amount,
+            {{extract_nested_value("LandedPrice","Amount","numeric")}} as LandedPrice_Amount,
             {{extract_nested_value("ListingPrice","CurrencyCode","string")}} as ListingPrice_CurrencyCode,
-            {{extract_nested_value("ListingPrice","Amount","float")}} as ListingPrice_Amount,
+            {{extract_nested_value("ListingPrice","Amount","numeric")}} as ListingPrice_Amount,
             {{extract_nested_value("BuyBoxPrices","sellerId","string")}} as BuyBoxPrices_sellerId,
             {% if target.type=='snowflake' %} 
                 cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="Summary.value:OffersAvailableTime") }} as {{ dbt.type_timestamp() }}) as Summary_OffersAvailableTime,

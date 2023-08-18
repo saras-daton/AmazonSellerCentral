@@ -85,7 +85,7 @@
             {{extract_nested_value("ShipmentItemList","QuantityShipped","integer")}} as ShipmentItemlist_QuantityShipped,
             {{extract_nested_value("ItemFeeList","FeeType","string")}} as ItemFeeList_FeeType,
             {{extract_nested_value("FeeAmount","CurrencyCode","string")}} as FeeAmount_CurrencyCode,
-            {{extract_nested_value("FeeAmount","CurrencyAmount","float")}} as FeeAmount_CurrencyAmount,
+            {{extract_nested_value("FeeAmount","CurrencyAmount","numeric")}} as FeeAmount_CurrencyAmount,
             {{daton_user_id()}} as _daton_user_id,
             {{daton_batch_runtime()}} as _daton_batch_runtime,
             {{daton_batch_id()}} as _daton_batch_id

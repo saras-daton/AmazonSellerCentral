@@ -85,7 +85,7 @@
             {{extract_nested_value("ShipmentItemList","QuantityShipped","integer")}} as ShipmentItemList_QuantityShipped,
             coalesce({{extract_nested_value("ItemChargeList","ChargeType","string")}},'N/A') as ItemChargeList_ChargeType,
             {{extract_nested_value("ChargeAmount","CurrencyCode","string")}} as ChargeAmount_CurrencyCode,
-            {{extract_nested_value("ChargeAmount","CurrencyAmount","float")}} as ChargeAmount_CurrencyAmount,
+            {{extract_nested_value("ChargeAmount","CurrencyAmount","numeric")}} as ChargeAmount_CurrencyAmount,
 	   		{{daton_user_id()}} as _daton_user_id,
             {{daton_batch_runtime()}} as _daton_batch_runtime,
             {{daton_batch_id()}} as _daton_batch_id

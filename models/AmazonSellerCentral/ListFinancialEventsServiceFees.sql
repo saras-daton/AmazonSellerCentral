@@ -84,7 +84,7 @@
             coalesce({{extract_nested_value("ServiceFeeEventList","FeeReason","string")}},'N/A') as ServiceFeeEventList_FeeReason,
             coalesce({{extract_nested_value("FeeList","FeeType","string")}},'N/A') as FeeList_FeeType,
             {{extract_nested_value("FeeAmount","CurrencyCode","string")}} as FeeAmount_CurrencyCode,
-            {{extract_nested_value("FeeAmount","CurrencyAmount","float")}} as FeeAmount_CurrencyAmount,
+            {{extract_nested_value("FeeAmount","CurrencyAmount","numeric")}} as FeeAmount_CurrencyAmount,
             coalesce({{extract_nested_value("ServiceFeeEventList","SellerSKU","string")}},'N/A') as ServiceFeeEventList_SellerSKU,
             coalesce({{extract_nested_value("ServiceFeeEventList","FnSKU","string")}},'N/A') as ServiceFeeEventList_FnSKU,
             {{extract_nested_value("ServiceFeeEventList","FeeDescription","string")}} as ServiceFeeEventList_FeeDescription,

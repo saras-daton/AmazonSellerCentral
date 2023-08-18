@@ -87,7 +87,7 @@
         {{extract_nested_value("ShipmentItemAdjustmentList","QuantityShipped","integer")}} as ShipmentItemAdjustmentList_QuantityShipped,
         coalesce({{extract_nested_value("PromotionList","PromotionType","string")}},'N/A') as PromotionList_PromotionType,
         {{extract_nested_value("PromotionAmount","CurrencyCode","string")}} as PromotionAmount_CurrencyCode,
-        {{extract_nested_value("PromotionAmount","CurrencyAmount","float")}} as PromotionAmount_CurrencyAmount,
+        {{extract_nested_value("PromotionAmount","CurrencyAmount","numeric")}} as PromotionAmount_CurrencyAmount,
 	   	{{daton_user_id()}} as _daton_user_id,
         {{daton_batch_runtime()}} as _daton_batch_runtime,
         {{daton_batch_id()}} as _daton_batch_id
