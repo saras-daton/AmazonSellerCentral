@@ -74,7 +74,11 @@
             '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as _run_id
             from (
             select
-            cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="{{extract_nested_value("ShipmentEventlist","PostedDate","timestamp")}}") }} as {{ dbt.type_timestamp() }}) as ShipmentEventlist_PostedDate,
+            {% if target.type=='snowflake' %} 
+            cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="ShipmentEventlist.value:PostedDate") }} as {{ dbt.type_timestamp() }}) as ShipmentEventlist_PostedDate,
+            {% else %}
+            cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="cast(ShipmentEventlist.PostedDate as timestamp)") }} as {{ dbt.type_timestamp() }}) as ShipmentEventlist_PostedDate,
+            {% endif %}
             {{extract_nested_value("ShipmentEventlist","AmazonOrderId","string")}} as ShipmentEventlist_AmazonOrderId,
             {{extract_nested_value("ShipmentEventlist","MarketplaceName","string")}} as ShipmentEventlist_MarketplaceName,
             {{extract_nested_value("ShipmentItemList","SellerSKU","string")}} as ShipmentItemlist_SellerSKU,

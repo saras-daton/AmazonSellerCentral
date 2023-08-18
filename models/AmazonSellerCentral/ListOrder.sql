@@ -94,19 +94,10 @@
         BuyerInvoicePreference,
         IsISPU,
         SellerDisplayName,
-        {% if target.type == 'snowflake' %} 
-        BuyerInfo.value:BuyerEmail :: varchar as BuyerEmail,
-        BuyerInfo.value:BuyerName :: varchar as BuyerName,
-        BuyerInfo.value:BuyerCounty :: varchar as BuyerCounty,
-        BuyerInfo.value:BuyerTaxInfo :: varchar as BuyerTaxInfo,
-        BuyerInfo.value:PurchaseOrderNumber :: varchar as PurchaseOrderNumber,
-        {% else %}
-        BuyerInfo.BuyerEmail,
-        BuyerInfo.BuyerName,
-        BuyerInfo.BuyerCounty,
-        BuyerInfo.BuyerTaxInfo,
-        BuyerInfo.PurchaseOrderNumber,
-        {% endif %}
+        {{extract_nested_value("BuyerInfo","BuyerEmail","string")}} as BuyerInfo_BuyerEmail,
+        {{extract_nested_value("BuyerInfo","BuyerName","string")}} as BuyerInfo_BuyerName,
+        {{extract_nested_value("BuyerInfo","BuyerCounty","string")}} as BuyerInfo_BuyerCounty,
+        {{extract_nested_value("BuyerInfo","PurchaseOrderNumber","string")}} as BuyerInfo_PurchaseOrderNumber,
         {{daton_user_id()}} as _daton_user_id,
         {{daton_batch_runtime()}} as _daton_batch_runtime,
         {{daton_batch_id()}} as _daton_batch_id,

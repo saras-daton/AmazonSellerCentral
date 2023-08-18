@@ -76,23 +76,16 @@
             select 
             {% if target.type=='snowflake' %} 
                 cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="ShipmentEventlist.value:PostedDate") }} as {{ dbt.type_timestamp() }}) as ShipmentEventlist_PostedDate,
-                ShipmentEventlist.value:AmazonOrderId :: varchar as ShipmentEventlist_AmazonOrderId,
-                ShipmentEventlist.value:MarketplaceName :: varchar as ShipmentEventlist_MarketplaceName,
-                ShipmentItemList.value:SellerSKU :: varchar as ShipmentItemlist_SellerSKU,
-                ShipmentItemList.value:QuantityShipped :: integer as ShipmentItemlist_QuantityShipped,
-                PromotionList.value:PromotionType :: varchar as PromotionList_PromotionType,
-                PromotionAmount.value:CurrencyCode :: varchar as PromotionAmount_CurrencyCode,
-                PromotionAmount.value:CurrencyAmount :: float as PromotionAmount_CurrencyAmount,
             {% else %}
                 cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="cast(ShipmentEventlist.PostedDate as timestamp)") }} as {{ dbt.type_timestamp() }}) as ShipmentEventlist_PostedDate,
-                coalesce(ShipmentEventlist.AmazonOrderId,'N/A') as ShipmentEventlist_AmazonOrderId,
-                coalesce(ShipmentEventlist.Marketplacename,'N/A') as ShipmentEventlist_MarketplaceName,
-                coalesce(ShipmentItemList.SellerSKU,'N/A') as ShipmentItemlist_SellerSKU,
-                cast(ShipmentItemList.QuantityShipped as integer) as ShipmentItemlist_QuantityShipped,
-                coalesce(PromotionList.PromotionType,'N/A') as PromotionList_PromotionType,
-                PromotionAmount.CurrencyCode as PromotionAmount_CurrencyCode,
-                PromotionAmount.CurrencyAmount as PromotionAmount_CurrencyAmount,
             {% endif %}
+            coalesce({{extract_nested_value("ShipmentEventlist","AmazonOrderId","string")}},'N/A') as ShipmentEventlist_AmazonOrderId,
+            coalesce({{extract_nested_value("ShipmentEventlist","MarketplaceName","string")}},'N/A') as ShipmentEventlist_MarketplaceName,
+            coalesce({{extract_nested_value("ShipmentItemList","SellerSKU","string")}},'N/A') as ShipmentItemlist_SellerSKU,
+            {{extract_nested_value("ShipmentItemList","QuantityShipped","integer")}} as ShipmentItemlist_QuantityShipped,
+            coalesce({{extract_nested_value("PromotionList","PromotionType","string")}},'N/A') as PromotionList_PromotionType,
+            {{extract_nested_value("PromotionAmount","CurrencyCode","string")}} as PromotionAmount_CurrencyCode,
+            {{extract_nested_value("PromotionAmount","CurrencyAmount","float")}} as PromotionAmount_CurrencyAmount,
 	   		{{daton_user_id()}} as _daton_user_id,
             {{daton_batch_runtime()}} as _daton_batch_runtime,
             {{daton_batch_id()}} as _daton_batch_id

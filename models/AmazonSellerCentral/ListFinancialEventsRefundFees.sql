@@ -77,24 +77,17 @@
         '{{store}}' as store,
         {% if target.type=='snowflake' %} 
             cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="RefundEventlist.value:PostedDate") }} as {{ dbt.type_timestamp() }}) as RefundEventlist_PostedDate,
-            RefundEventlist.value:AmazonOrderId :: varchar as RefundEventlist_AmazonOrderId,
-            RefundEventlist.value:MarketplaceName :: varchar as RefundEventlist_MarketplaceName,
-            ShipmentItemAdjustmentList.value:SellerSKU :: varchar as ShipmentItemAdjustmentList_SellerSKU,
-            ShipmentItemAdjustmentList.value:QuantityShipped :: integer as ShipmentItemAdjustmentList_QuantityShipped,
-            ItemFeeAdjustmentList.value:FeeType :: varchar as ItemFeeAdjustmentList_FeeType,
-            FeeAmount.value:CurrencyCode :: varchar as FeeAmount_CurrencyCode,
-            FeeAmount.value:CurrencyAmount :: float as FeeAmount_CurrencyAmount,
         {% else %}
             cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="cast(RefundEventlist.PostedDate as timestamp)") }} as {{ dbt.type_timestamp() }}) as RefundEventlist_PostedDate,
-            coalesce(RefundEventlist.amazonorderid,'N/A') as RefundEventlist_AmazonOrderId,
-            coalesce(RefundEventlist.marketplacename,'N/A') as RefundEventlist_MarketplaceName,
-            coalesce(ShipmentItemAdjustmentList.SellerSKU,'N/A') as ShipmentItemAdjustmentList_SellerSKU,
-            cast(ShipmentItemAdjustmentList.QuantityShipped as integer) as ShipmentItemAdjustmentList_QuantityShipped,
-            coalesce(ItemFeeAdjustmentList.FeeType,'N/A') as ItemFeeAdjustmentList_FeeType,
-            FeeAmount.CurrencyCode as FeeAmount_CurrencyCode,
-            FeeAmount.CurrencyAmount as FeeAmount_CurrencyAmount,
         {% endif %}
-	   	{{daton_user_id()}} as _daton_user_id,
+        coalesce({{extract_nested_value("RefundEventlist","AmazonOrderId","string")}},'N/A') as RefundEventlist_AmazonOrderId,
+        coalesce({{extract_nested_value("RefundEventlist","MarketplaceName","string")}},'N/A') as RefundEventlist_MarketplaceName,
+        coalesce({{extract_nested_value("ShipmentItemAdjustmentList","SellerSKU","string")}},'N/A') as ShipmentItemAdjustmentList_SellerSKU,
+        {{extract_nested_value("ShipmentItemAdjustmentList","QuantityShipped","integer")}} as ShipmentItemAdjustmentList_QuantityShipped,
+        coalesce({{extract_nested_value("ItemFeeAdjustmentList","FeeType","string")}},'N/A') as ItemFeeAdjustmentList_FeeType,
+        {{extract_nested_value("FeeAmount","CurrencyCode","string")}} as FeeAmount_CurrencyCode,
+        {{extract_nested_value("FeeAmount","CurrencyAmount","float")}} as FeeAmount_CurrencyAmount,
+\	   	{{daton_user_id()}} as _daton_user_id,
         {{daton_batch_runtime()}} as _daton_batch_runtime,
         {{daton_batch_id()}} as _daton_batch_id
         from  {{i}} 
