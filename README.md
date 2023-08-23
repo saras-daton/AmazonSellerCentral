@@ -75,7 +75,16 @@ raw_table_timezone_offset_hours: {
     "Amazon.SellerCentral.Brand_US_AmazonSellerCentral_FlatFileAllOrdersReportbyLastUpdate":-7,
     "Amazon.SellerCentral.Brand_US_AmazonSellerCentral_ListOrder":-7,
     "Amazon.SellerCentral.Brand_US_AmazonSellerCentral_FBAAmazonFulfilledShipmentsReport":-7,
-    "Amazon.SellerCentral.Brand_US_AmazonSellerCentral_InventoryLedgerDetailedReport":-7
+    "Amazon.SellerCentral.Brand_US_AmazonSellerCentral_InventoryLedgerDetailedReport":-7,
+    "Amazon.SellerCentral.Brand_US_AmazonSellerCentral_CatalogItems":-7,
+    "Amazon.SellerCentral.Brand_US_AmazonSellerCentral_AllListingsReport":-7,
+    "Amazon.SellerCentral.Brand_US_AmazonSellerCentral_FBAManageInventory":-7,
+    "Amazon.SellerCentral.Brand_US_AmazonSellerCentral_FBAManageInventoryHealthReport":-7,
+    "Amazon.SellerCentral.Brand_US_AmazonSellerCentral_FBAReturnsReport":-7,
+    "Amazon.SellerCentral.Brand_US_AmazonSellerCentral_FlatFileReturnsReportbyReturnDate":-7,
+    "Amazon.SellerCentral.Brand_US_AmazonSellerCentral_ListFinancialEvents":-7,
+    "Amazon.SellerCentral.Brand_US_AmazonSellerCentral_ListingOffersForASIN":-7,
+    "Amazon.SellerCentral.Brand_US_AmazonSellerCentral_SalesAndTrafficReportByChildASIN":-7
     }
 ```
 Here, -7 represents the offset hours between UTC and PDT considering we are sitting in PDT timezone and want the data in this timezone
@@ -94,207 +103,258 @@ ListOrder: False
 
 This package contains models from the Amazon Selling Partner API which includes reports on {{sales, margin, inventory, product}}. The primary outputs of this package are described below.
 
-| **Category**                 | **Model**  | **Description** |
+| **Category**                 | **Model**  | **Description** | **Unique Key** | **Partition Key** | **Cluster Key** |
 | ------------------------- | ---------------| ----------------------- |
-|Customer | [ListOrder](models/Customer/ListOrder.sql)  | A list orders along with the customer details |
-|Inventory | [FBAManageInventoryHealthReport](models/AmazonSellerCentral/FBAManageInventoryHealthReport.sql)  | A detailed report which gives details about inventory age , current inventory levels, recommended inventory levels |
-|Inventory | [FBAManageInventory](models/AmazonSellerCentral/FBAManageInventory.sql)  | A list of ad groups associated with the accountA report which gives details about inventory movement - inbound, outbound, sellable |
-|Inventory | [InventoryLedgerDetailedReport](models/AmazonSellerCentral/InventoryLedgerDetailedReport.sql)| A report about available quantity at the warehouse level |
-|Financial Events | [ListFinancialEventsOrderFees](models/AmazonSellerCentral/ListFinancialEventsOrderFees.sql)| A list of fees associated with the shipment item. |
-|Financial Events | [ListFinancialEventsOrderPromotions](models/AmazonSellerCentral/ListFinancialEventsOrderPromotions.sql)| A list of promotions which gives the amount of promotional discount applied to the item at an item & order level.|
-|Financial Events | [ListFinancialEventsOrderRevenue](models/AmazonSellerCentral/ListFinancialEventsOrderRevenue.sql)| A list of shipment items which includes order & product level revenue |
-|Financial Events | [ListFinancialEventsOrderTaxes](models/AmazonSellerCentral/ListFinancialEventsOrderTaxes.sql)| A list of order taxes |
-|Financial Events | [ListFinancialEventsRefundFees](models/AmazonSellerCentral/ListFinancialEventsRefundFees.sql)| A list of fees associated with the refunded item.	 |
-|Financial Events | [ListFinancialEventsRefundPromotions](models/AmazonSellerCentral/ListFinancialEventsRefundPromotions.sql)|A list of promotions which gives the amount of promotional discount applied to the item at an refunded item level. |
-|Financial Events | [ListFinancialEventsRefundRevenue](models/AmazonSellerCentral/ListFinancialEventsRefundRevenue.sql)| A list of refunded items which includes refund & product level revenue |
-|Financial Events | [ListFinancialEventsRefundTaxes](models/AmazonSellerCentral/ListFinancialEventsRefundTaxes.sql)| A list of refund taxes |
-|Financial Events | [ListFinancialEventsServicefees](models/AmazonSellerCentral/ListFinancialEventsServicefees.sql)| A list of service level fees |
-|Product | [CatalogItemsSummary](models/AmazonSellerCentral/CatalogItemsSummary.sql)| A list of product summary, manufacturer & dimensions |
-|Product | [AllListingsReport](models/AmazonSellerCentral/AllListingsReport.sql)|  listing report with details about all types of listings |
-|Returns | [FBAReturnsReport](models/AmazonSellerCentral/FBAReturnsReport.sql)|Returns report of the orders fulfilled by Amazon |
-|Returns | [FlatFileReturnsReportByReturnDate](models/AmazonSellerCentral/FlatFileReturnsReportByReturnDate.sql)|Returns report of the orders fulfilled by Merchant |
-|Sales | [FBAAmazonFulfilledShipmentsReport](models/AmazonSellerCentral/FBAAmazonFulfilledShipmentsReport.sql)|Orders report with shipment details included |
-|Sales | [FlatFileAllOrdersReportByLastUpdate](models/AmazonSellerCentral/FlatFileAllOrdersReportByLastUpdate.sql)|Order & Item Level report |
-|Sales | [SalesAndTrafficReportByChildASIN](models/AmazonSellerCentral/SalesAndTrafficReportByChildASIN.sql)|Provides sales & traffic at SKU level that we see in the Business Report in the UI |
+|Customer | [ListOrder](models/Customer/ListOrder.sql)  | A list orders along with the customer details | PurchaseDate,amazonorderid,marketplaceName,sellingPartnerId | PurchaseDate | LastUpdateDate,PurchaseDate,amazonorderid |
+|Inventory | [FBAManageInventoryHealthReport](models/AmazonSellerCentral/FBAManageInventoryHealthReport.sql)  | A detailed report which gives details about inventory age , current inventory levels, recommended inventory levels | snapshot_date,asin,sku,marketplaceId,sellingPartnerId | snapshot_date | snapshot_date,asin,sku |
+|Inventory | [FBAManageInventory](models/AmazonSellerCentral/FBAManageInventory.sql)  | A list of ad groups associated with the accountA report which gives details about inventory movement - inbound, outbound, sellable | ReportstartDate,sku,marketplaceId | ReportstartDate | ReportstartDate,sku |
+|Inventory | [InventoryLedgerDetailedReport](models/AmazonSellerCentral/InventoryLedgerDetailedReport.sql)| A report about available quantity at the warehouse level | date,asin,fulfillment_center,msku,event_type,reference_id,quantity,disposition,marketplaceid,sellingPartnerId | date | date,asin,msku |
+|Financial Events | [ListFinancialEventsOrderFees](models/AmazonSellerCentral/ListFinancialEventsOrderFees.sql)| A list of fees associated with the shipment item. | ShipmentEventlist_PostedDate,ShipmentEventlist_MarketplaceName,ShipmentEventlist_AmazonOrderId,ItemFeeList_FeeType,_seq_id | ShipmentEventlist_PostedDate | ShipmentEventlist_PostedDate,ShipmentEventlist_MarketplaceName,ShipmentEventlist_AmazonOrderId |
+|Financial Events | [ListFinancialEventsOrderPromotions](models/AmazonSellerCentral/ListFinancialEventsOrderPromotions.sql)| A list of promotions which gives the amount of promotional discount applied to the item at an item & order level.| ShipmentEventlist_PostedDate,ShipmentEventlist_MarketplaceName,ShipmentEventlist_AmazonOrderId,PromotionList_PromotionType,_seq_id | ShipmentEventlist_PostedDate | ShipmentEventlist_PostedDate,ShipmentEventlist_MarketplaceName,ShipmentEventlist_AmazonOrderId |
+|Financial Events | [ListFinancialEventsOrderRevenue](models/AmazonSellerCentral/ListFinancialEventsOrderRevenue.sql)| A list of shipment items which includes order & product level revenue | ShipmentEventlist_PostedDate,ShipmentEventlist_MarketplaceName,ShipmentEventlist_AmazonOrderId,ItemChargeList_ChargeType,_seq_id | ShipmentEventlist_PostedDate | ShipmentEventlist_PostedDate,ShipmentEventlist_MarketplaceName,ShipmentEventlist_AmazonOrderId |
+|Financial Events | [ListFinancialEventsOrderTaxes](models/AmazonSellerCentral/ListFinancialEventsOrderTaxes.sql)| A list of order taxes | ShipmentEventlist_PostedDate,ShipmentEventlist_MarketplaceName,ShipmentEventlist_AmazonOrderId,TaxesWithheld_ChargeType,_seq_id | ShipmentEventlist_PostedDate | ShipmentEventlist_PostedDate,ShipmentEventlist_MarketplaceName,ShipmentEventlist_AmazonOrderId |
+|Financial Events | [ListFinancialEventsRefundFees](models/AmazonSellerCentral/ListFinancialEventsRefundFees.sql)| A list of fees associated with the refunded item.	 | RefundEventlist_PostedDate,RefundEventlist_MarketplaceName,RefundEventlist_AmazonOrderId,ItemFeeAdjustmentList_FeeType,_seq_id | RefundEventlist_PostedDate | RefundEventlist_PostedDate,RefundEventlist_MarketplaceName,RefundEventlist_AmazonOrderId |
+|Financial Events | [ListFinancialEventsRefundPromotions](models/AmazonSellerCentral/ListFinancialEventsRefundPromotions.sql)|A list of promotions which gives the amount of promotional discount applied to the item at an refunded item level. | RefundEventlist_PostedDate,RefundEventlist_MarketplaceName,RefundEventlist_AmazonOrderId,PromotionList_PromotionType,_seq_id | RefundEventlist_PostedDate | RefundEventlist_PostedDate,RefundEventlist_MarketplaceName,RefundEventlist_AmazonOrderId |
+|Financial Events | [ListFinancialEventsRefundRevenue](models/AmazonSellerCentral/ListFinancialEventsRefundRevenue.sql)| A list of refunded items which includes refund & product level revenue | RefundEventlist_PostedDate,RefundEventlist_MarketplaceName,RefundEventlist_AmazonOrderId,ItemChargeAdjustmentList_ChargeType,_seq_id | RefundEventlist_PostedDate | RefundEventlist_PostedDate,RefundEventlist_MarketplaceName,RefundEventlist_AmazonOrderId |
+|Financial Events | [ListFinancialEventsRefundTaxes](models/AmazonSellerCentral/ListFinancialEventsRefundTaxes.sql)| A list of refund taxes | RefundEventlist_PostedDate,RefundEventlist_MarketplaceName,RefundEventlist_AmazonOrderId,TaxesWithheld_ChargeType,_seq_id | RefundEventlist_PostedDate | RefundEventlist_PostedDate,RefundEventlist_MarketplaceName,RefundEventlist_AmazonOrderId |
+|Financial Events | [ListFinancialEventsServicefees](models/AmazonSellerCentral/ListFinancialEventsServicefees.sql)| A list of service level fees | RequestStartDate,marketplaceId,ServiceFeeEventList_FeeReason,FeeList_FeeType,ServiceFeeEventList_SellerSKU,ServiceFeeEventList_FeeDescription,_seq_id | RequestStartDate | RequestStartDate,marketplaceName,sellingPartnerId |
+|Product | [CatalogItems](models/AmazonSellerCentral/CatalogItems.sql)| A list of products, manufacturer & dimensions | summaries_brandName,ReferenceASIN,summaries_modelNumber,marketplaceId,sellingPartnerId | RequestStartDate | RequestStartDate,summaries_brandName,ReferenceASIN |
+|Product | [AllListingsReport](models/AmazonSellerCentral/AllListingsReport.sql)|  listing report with details about all types of listings | seller_sku,listing_id | - | ReportstartDate,seller_sku |
+|Returns | [FBAReturnsReport](models/AmazonSellerCentral/FBAReturnsReport.sql)|Returns report of the orders fulfilled by Amazon | return_date,asin,sku,order_id,fnsku,license_plate_number,fulfillment_center_id,_seq_id,marketplaceId | return_date | ReportstartDate,return_date,asin,sku |
+|Returns | [FlatFileReturnsReportByReturnDate](models/AmazonSellerCentral/FlatFileReturnsReportByReturnDate.sql)|Returns report of the orders fulfilled by Merchant | Return_request_date,Order_ID,ASIN,marketplaceId | Return_request_date | ReportstartDate,Return_request_date,ASIN,Merchant_SKU,Order_ID |
+|Sales | [FBAAmazonFulfilledShipmentsReport](models/AmazonSellerCentral/FBAAmazonFulfilledShipmentsReport.sql)|Orders report with shipment details included | purchase_date,sku,amazon_order_id,marketplaceName,_seq_id | purchase_date | reporting_date,purchase_date,sku,amazon_order_id |
+|Sales | [FlatFileAllOrdersReportByLastUpdate](models/AmazonSellerCentral/FlatFileAllOrdersReportByLastUpdate.sql)|Order & Item Level report | purchase_date,amazon_order_id,asin,sku,_seq_id | purchase_date | last_updated_date,purchase_date,asin,sku,amazon_order_id |
+|Sales | [SalesAndTrafficReportByChildASIN](models/AmazonSellerCentral/SalesAndTrafficReportByChildASIN.sql)|Provides sales & traffic at SKU level that we see in the Business Report in the UI | date,parentAsin,childAsin,marketplaceId,sellingPartnerId | date | ReportstartDate,date,parentAsin,childAsin |
+|Product | [ListingOffersForASIN](models/AmazonSellerCentral/ListingOffersForASIN.sql)|  listing report with details about all types of listings offers at ASIN level | ASIN,itemCondition,sellingPartnerId | RequeststartDate | RequeststartDate,ASIN,itemCondition |
 
+## DBT Tests
 
+The tests property defines assertions about a column, table, or view. The property contains a list of generic tests, referenced by name, which can include the four built-in generic tests available in dbt. For example, you can add tests that ensure a column contains no duplicates and zero null values. Any arguments or configurations passed to those tests should be nested below the test name.
 
+| **Tests**  | **Description** |
+| :--  | ------------------------------------------- |
+| [Not Null Test](https://docs.getdbt.com/reference/resource-properties/tests#testing-an-expression)  | This test validates that there are no null values present in a column |
+| [Data Recency Test](https://github.com/dbt-labs/dbt-utils/blob/main/macros/generic_tests/recency.sql)  | This is used to check for issues with data refresh within {{ x }} days, please specify the value of number of days at {{ x }} |
+| [Accepted Value Test](https://docs.getdbt.com/reference/resource-properties/tests#accepted_values)  | This test validates that all of the values in a column are present in a supplied list of values. If any values other than those provided in the list are present, then the test will fail, by default it consists of default values and this needs to be changed based on the project |
+| [Uniqueness Test](https://docs.getdbt.com/reference/resource-properties/tests#testing-an-expression)  | This test validates that there are no duplicate values present in a field |
 
-### For details about default configurations for Table Primary Key columns, Partition columns, Clustering columns, please refer the properties.yaml used for this package as below. 
-	You can overwrite these default configurations by using your project specific properties yaml.
-```yaml
-version: 2
-models:
-  - name: ListOrder
-    description: A list orders along with the customer details
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      unique_key: ['PurchaseDate','amazonorderid']
-      partition_by: { 'field': 'PurchaseDate', 'data_type': 'timestamp', 'granularity': 'day' }
-      cluster_by: ['amazonorderid']
+### Table Name: AllListingsReport
 
-  - name: FBAManageInventoryHealthReport  
-    description: A detailed report which gives details about inventory age , current inventory levels, recommended inventory levels
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      unique_key: ['snapshot_date','asin','sku']
-      partition_by: { 'field': 'snapshot_date', 'data_type': 'date' }
-      cluster_by: ['asin','sku']
+|   **Columns**    | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+|       :--        |        :-:        |          :-:          |           :-:           |         :-:         |
+| `    brand      `|        Yes        |          Yes          |           Yes           |                     |
+| `    store      `|        Yes        |                       |                         |                     |
+| `  seller_sku   `|        Yes        |                       |                         |         Yes         |
+| `  listing_id   `|        Yes        |                       |                         |         Yes         |
+| `  created_at   `|        Yes        |                       |                         |                     |
+| `  updated_at   `|        Yes        |      Yes (1 day)      |                         |                     |
 
-  - name: FBAManageInventory
-    description: A list of ad groups associated with the accountA report which gives details about inventory movement - inbound, outbound, sellable
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      unique_key: ['ReportstartDate','sku']
-      partition_by: { 'field': 'ReportstartDate', 'data_type': 'date' }
-      cluster_by: ['sku']
+### Table Name: CatalogItems
 
-  - name: InventoryLedgerDetailedReport
-    description: A report about available quantity at the warehouse level
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      unique_key: ['date','asin','fulfillment_center','msku', 'event_type', 'reference_id','quantity','disposition']
-      partition_by: { 'field': 'date', 'data_type': 'timestamp', 'granularity': 'day' }
-      cluster_by: ['date','msku']
+|   **Columns**    | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+|       :--        |        :-:        |          :-:          |           :-:           |         :-:         |
+| `    brand      `|        Yes        |          Yes          |           Yes           |                     |
+| `    store      `|        Yes        |                       |                         |                     |
+| `      id       `|        Yes        |                       |                         |         Yes         |
+| `    email      `|        Yes        |                       |                         |                     |
+| `  created_at   `|        Yes        |                       |                         |                     |
+| `  updated_at   `|        Yes        |      Yes (1 day)      |                         |                     |
 
-  - name: ListFinancialEventsOrderFees
-    description: A list of fees associated with the shipment item.
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'FeeType', 'TransactionType', 'AmountType','_seq_id']
-      partition_by: { 'field': 'posteddate', 'data_type': 'date' }
-      cluster_by: ['marketplacename', 'amazonorderid']
+### Table Name: FBAAmazonFulfilledShipmentsReport
 
-  - name: ListFinancialEventsOrderPromotions
-    description: A list of promotions which gives the amount of promotional discount applied to the item at an item & order level.
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'PromotionType', 'TransactionType', 'AmountType','_seq_id']
-      partition_by: { 'field': 'posteddate', 'data_type': 'date' }
-      cluster_by: ['marketplacename', 'amazonorderid']
+|   **Columns**    | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+|       :--        |        :-:        |          :-:          |           :-:           |         :-:         |
+| `    brand      `|        Yes        |          Yes          |           Yes           |                     |
+| `    store      `|        Yes        |                       |                         |                     |
+| `      id       `|        Yes        |                       |                         |         Yes         |
+| `    email      `|        Yes        |                       |                         |                     |
+| `  created_at   `|        Yes        |                       |                         |                     |
+| `  updated_at   `|        Yes        |      Yes (1 day)      |                         |                     |
 
-  - name: ListFinancialEventsOrderRevenue
-    description: A list of shipment items which includes order & product level revenue
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'ChargeType', 'TransactionType', 'AmountType', '_seq_id']
-      partition_by: { 'field': 'posteddate', 'data_type': 'date' }
-      cluster_by: ['marketplacename', 'amazonorderid']
+### Table Name: FBAManageInventory
 
-  - name: ListFinancialEventsOrderTaxes
-    description: A list of order taxes
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'ChargeType', 'TransactionType', 'AmountType', '_seq_id']
-      partition_by: { 'field': 'posteddate', 'data_type': 'date' }
-      cluster_by: ['marketplacename', 'amazonorderid']
+|   **Columns**    | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+|       :--        |        :-:        |          :-:          |           :-:           |         :-:         |
+| `    brand      `|        Yes        |          Yes          |           Yes           |                     |
+| `    store      `|        Yes        |                       |                         |                     |
+| `      id       `|        Yes        |                       |                         |         Yes         |
+| `    email      `|        Yes        |                       |                         |                     |
+| `  created_at   `|        Yes        |                       |                         |                     |
+| `  updated_at   `|        Yes        |      Yes (1 day)      |                         |                     |
 
-  - name: ListFinancialEventsRefundFees
-    description: A list of fees associated with the refunded item.
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'FeeType', '_seq_id']
-      partition_by: { 'field': 'posteddate', 'data_type': 'date' }
-      cluster_by: ['marketplacename', 'amazonorderid']
+### Table Name: FBAManageInventoryHealthReport
 
-  - name: ListFinancialEventsRefundPromotions
-    description: A list of promotions which gives the amount of promotional discount applied to the item at an refunded item level.
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'PromotionType', '_seq_id']
-      partition_by: { 'field': 'posteddate', 'data_type': 'date' }
-      cluster_by: ['marketplacename', 'amazonorderid']
+|   **Columns**    | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+|       :--        |        :-:        |          :-:          |           :-:           |         :-:         |
+| `    brand      `|        Yes        |          Yes          |           Yes           |                     |
+| `    store      `|        Yes        |                       |                         |                     |
+| `      id       `|        Yes        |                       |                         |         Yes         |
+| `    email      `|        Yes        |                       |                         |                     |
+| `  created_at   `|        Yes        |                       |                         |                     |
+| `  updated_at   `|        Yes        |      Yes (1 day)      |                         |                     |
 
-  - name: ListFinancialEventsRefundRevenue
-    description: A list of refunded items which includes refund & product level revenue
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'ChargeType', '_seq_id']
-      partition_by: { 'field': 'posteddate', 'data_type': 'date' }
-      cluster_by: ['marketplacename', 'amazonorderid']
+### Table Name: FBAReturnsReport
 
-  - name: ListFinancialEventsRefundTaxes
-    description: A list of refund taxes
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'ChargeType', '_seq_id']
-      partition_by: { 'field': 'posteddate', 'data_type': 'date' }
-      cluster_by: ['marketplacename', 'amazonorderid']
+|   **Columns**    | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+|       :--        |        :-:        |          :-:          |           :-:           |         :-:         |
+| `    brand      `|        Yes        |          Yes          |           Yes           |                     |
+| `    store      `|        Yes        |                       |                         |                     |
+| `      id       `|        Yes        |                       |                         |         Yes         |
+| `    email      `|        Yes        |                       |                         |                     |
+| `  created_at   `|        Yes        |                       |                         |                     |
+| `  updated_at   `|        Yes        |      Yes (1 day)      |                         |                     |
 
-  - name: CatalogItemsSummary
-    description: A list of product summary, manufacturer & dimensions
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      cluster_by: ['ReferenceASIN']
-      unique_key: ['brandName','ReferenceASIN','modelNumber']
+### Table Name: FlatFileAllOrdersReportByLastUpdate
 
-  - name: AllListingsReport
-    description: A listing report with details about all types of listings
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      cluster_by: ['seller_sku']
-      unique_key: ['seller_sku']
+|   **Columns**    | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+|       :--        |        :-:        |          :-:          |           :-:           |         :-:         |
+| `    brand      `|        Yes        |          Yes          |           Yes           |                     |
+| `    store      `|        Yes        |                       |                         |                     |
+| `      id       `|        Yes        |                       |                         |         Yes         |
+| `    email      `|        Yes        |                       |                         |                     |
+| `  created_at   `|        Yes        |                       |                         |                     |
+| `  updated_at   `|        Yes        |      Yes (1 day)      |                         |                     |
 
-  - name: FBAReturnsReport
-    description: Returns report of the orders fulfilled by Amazon
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      unique_key: ['return_date','asin','sku','order_id','fnsku','license_plate_number','fulfillment_center_id','_seq_id']
-      partition_by: { 'field': 'return_date', 'data_type': 'date' }
-      cluster_by: ['asin','sku']
+### Table Name: FlatFileReturnsReportByReturnDate
 
-  - name: FlatFileReturnsReportByReturnDate
-    description: Returns report of the orders fulfilled by Merchant
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      unique_key: ['Return_request_date', 'Order_ID', 'ASIN']
-      partition_by: { 'field': 'Return_request_date', 'data_type': 'date' }
-      cluster_by: ['ASIN','Merchant_SKU', 'Order_ID']
+|   **Columns**    | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+|       :--        |        :-:        |          :-:          |           :-:           |         :-:         |
+| `    brand      `|        Yes        |          Yes          |           Yes           |                     |
+| `    store      `|        Yes        |                       |                         |                     |
+| `      id       `|        Yes        |                       |                         |         Yes         |
+| `    email      `|        Yes        |                       |                         |                     |
+| `  created_at   `|        Yes        |                       |                         |                     |
+| `  updated_at   `|        Yes        |      Yes (1 day)      |                         |                     |
 
-  - name: FBAAmazonFulfilledShipmentsReport
-    description: Orders report with shipment details included
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      unique_key: ['purchase_date', 'sku', 'amazon_order_id', '_seq_id']
-      partition_by: { 'field': 'purchase_date', 'data_type': 'timestamp', 'granularity': 'day' }
-      cluster_by: ['sku','amazon_order_id']
+### Table Name: InventoryLedgerDetailedReport
 
-  - name: FlatFileAllOrdersReportByLastUpdate
-    description: Order & Item Level report
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      unique_key: ['purchase_date', 'amazon_order_id', 'asin', 'sku', '_seq_id']
-      partition_by: { 'field': 'purchase_date', 'data_type': 'timestamp', 'granularity': 'day' }
-      cluster_by: ['asin', 'sku', 'amazon_order_id']
+|   **Columns**    | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+|       :--        |        :-:        |          :-:          |           :-:           |         :-:         |
+| `    brand      `|        Yes        |          Yes          |           Yes           |                     |
+| `    store      `|        Yes        |                       |                         |                     |
+| `      id       `|        Yes        |                       |                         |         Yes         |
+| `    email      `|        Yes        |                       |                         |                     |
+| `  created_at   `|        Yes        |                       |                         |                     |
+| `  updated_at   `|        Yes        |      Yes (1 day)      |                         |                     |
 
-  - name: SalesAndTrafficReportByChildASIN
-    description: Provides sales & traffic at SKU level that we see in the Business Report in the UI
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      partition_by: { 'field': 'date', 'data_type': 'date' }
-      cluster_by: ['parentAsin', 'childAsin']
-      unique_key: ['date', 'parentAsin', 'childAsin']
-```
+### Table Name: ListFinancialEventsOrderFees
 
+|   **Columns**    | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+|       :--        |        :-:        |          :-:          |           :-:           |         :-:         |
+| `    brand      `|        Yes        |          Yes          |           Yes           |                     |
+| `    store      `|        Yes        |                       |                         |                     |
+| `      id       `|        Yes        |                       |                         |         Yes         |
+| `    email      `|        Yes        |                       |                         |                     |
+| `  created_at   `|        Yes        |                       |                         |                     |
+| `  updated_at   `|        Yes        |      Yes (1 day)      |                         |                     |
+
+### Table Name: ListFinancialEventsOrderPromotions
+
+|   **Columns**    | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+|       :--        |        :-:        |          :-:          |           :-:           |         :-:         |
+| `    brand      `|        Yes        |          Yes          |           Yes           |                     |
+| `    store      `|        Yes        |                       |                         |                     |
+| `      id       `|        Yes        |                       |                         |         Yes         |
+| `    email      `|        Yes        |                       |                         |                     |
+| `  created_at   `|        Yes        |                       |                         |                     |
+| `  updated_at   `|        Yes        |      Yes (1 day)      |                         |                     |
+
+### Table Name: ListFinancialEventsOrderRevenue
+
+|   **Columns**    | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+|       :--        |        :-:        |          :-:          |           :-:           |         :-:         |
+| `    brand      `|        Yes        |          Yes          |           Yes           |                     |
+| `    store      `|        Yes        |                       |                         |                     |
+| `      id       `|        Yes        |                       |                         |         Yes         |
+| `    email      `|        Yes        |                       |                         |                     |
+| `  created_at   `|        Yes        |                       |                         |                     |
+| `  updated_at   `|        Yes        |      Yes (1 day)      |                         |                     |
+
+### Table Name: ListFinancialEventsOrderTaxes
+
+|   **Columns**    | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+|       :--        |        :-:        |          :-:          |           :-:           |         :-:         |
+| `    brand      `|        Yes        |          Yes          |           Yes           |                     |
+| `    store      `|        Yes        |                       |                         |                     |
+| `      id       `|        Yes        |                       |                         |         Yes         |
+| `    email      `|        Yes        |                       |                         |                     |
+| `  created_at   `|        Yes        |                       |                         |                     |
+| `  updated_at   `|        Yes        |      Yes (1 day)      |                         |                     |
+
+### Table Name: ListFinancialEventsRefundFees
+
+|   **Columns**    | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+|       :--        |        :-:        |          :-:          |           :-:           |         :-:         |
+| `    brand      `|        Yes        |          Yes          |           Yes           |                     |
+| `    store      `|        Yes        |                       |                         |                     |
+| `      id       `|        Yes        |                       |                         |         Yes         |
+| `    email      `|        Yes        |                       |                         |                     |
+| `  created_at   `|        Yes        |                       |                         |                     |
+| `  updated_at   `|        Yes        |      Yes (1 day)      |                         |                     |
+
+### Table Name: ListFinancialEventsRefundPromotions
+
+|   **Columns**    | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+|       :--        |        :-:        |          :-:          |           :-:           |         :-:         |
+| `    brand      `|        Yes        |          Yes          |           Yes           |                     |
+| `    store      `|        Yes        |                       |                         |                     |
+| `      id       `|        Yes        |                       |                         |         Yes         |
+| `    email      `|        Yes        |                       |                         |                     |
+| `  created_at   `|        Yes        |                       |                         |                     |
+| `  updated_at   `|        Yes        |      Yes (1 day)      |                         |                     |
+
+### Table Name: ListFinancialEventsRefundRevenue
+
+|   **Columns**    | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+|       :--        |        :-:        |          :-:          |           :-:           |         :-:         |
+| `    brand      `|        Yes        |          Yes          |           Yes           |                     |
+| `    store      `|        Yes        |                       |                         |                     |
+| `      id       `|        Yes        |                       |                         |         Yes         |
+| `    email      `|        Yes        |                       |                         |                     |
+| `  created_at   `|        Yes        |                       |                         |                     |
+| `  updated_at   `|        Yes        |      Yes (1 day)      |                         |                     |
+
+### Table Name: ListFinancialEventsRefundTaxes
+
+|   **Columns**    | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+|       :--        |        :-:        |          :-:          |           :-:           |         :-:         |
+| `    brand      `|        Yes        |          Yes          |           Yes           |                     |
+| `    store      `|        Yes        |                       |                         |                     |
+| `      id       `|        Yes        |                       |                         |         Yes         |
+| `    email      `|        Yes        |                       |                         |                     |
+| `  created_at   `|        Yes        |                       |                         |                     |
+| `  updated_at   `|        Yes        |      Yes (1 day)      |                         |                     |
+
+### Table Name: ListFinancialEventsServiceFees
+
+|   **Columns**    | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+|       :--        |        :-:        |          :-:          |           :-:           |         :-:         |
+| `    brand      `|        Yes        |          Yes          |           Yes           |                     |
+| `    store      `|        Yes        |                       |                         |                     |
+| `      id       `|        Yes        |                       |                         |         Yes         |
+| `    email      `|        Yes        |                       |                         |                     |
+| `  created_at   `|        Yes        |                       |                         |                     |
+| `  updated_at   `|        Yes        |      Yes (1 day)      |                         |                     |
+
+### Table Name: ListOrder
+
+|   **Columns**    | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+|       :--        |        :-:        |          :-:          |           :-:           |         :-:         |
+| `    brand      `|        Yes        |          Yes          |           Yes           |                     |
+| `    store      `|        Yes        |                       |                         |                     |
+| ` PurchaseDate  `|        Yes        |      Yes (1 day)      |                         |         Yes         |
+| ` amazonorderid `|        Yes        |                       |                         |         Yes         |
+| `marketplaceName`|        Yes        |                       |                         |         Yes         |
+
+### Table Name: ListingOffersForASIN
+
+|   **Columns**    | **Not Null Test** | **Data Recency Test** | **Accepted Value Test** | **Uniqueness Test** |
+|       :--        |        :-:        |          :-:          |           :-:           |         :-:         |
+| `    brand      `|        Yes        |          Yes          |           Yes           |                     |
+| `    store      `|        Yes        |                       |                         |                     |
+| ` PurchaseDate  `|        Yes        |      Yes (1 day)      |                         |         Yes         |
+| ` amazonorderid `|        Yes        |                       |                         |         Yes         |
+| `marketplaceName`|        Yes        |                       |                         |         Yes         |
 
 
 ## Resources:
