@@ -1,5 +1,7 @@
 {% if var('ListFinancialEventsOrderPromotions') %}
-    {{ config( enabled = True ) }}
+    {{ config( enabled = True,
+    post_hook = "drop table {{this|replace('ListFinancialEventsOrderPromotions', 'ListFinancialEventsOrderPromotions_temp')}}"
+    ) }}
 {% else %}
     {{ config( enabled = False ) }}
 {% endif %}
@@ -55,7 +57,19 @@
             {% set hr = 0 %}
         {% endif %}
 
-    select * from (
+        {% if i==results_list[0] %}
+            {% set action1 = 'create or replace table' %}
+            {% set tbl = this ~ ' as ' %}
+        {% else %}
+            {% set action1 = 'insert into ' %}
+            {% set tbl = this %}
+        {% endif %}
+
+        {%- set query -%}
+        {{action1}}
+        {{tbl|replace('ListFinancialEventsOrderPromotions', 'ListFinancialEventsOrderPromotions_temp')}}
+
+        select * from (
         select 
             '{{brand}}' as brand,
             '{{store}}' as store,
@@ -105,6 +119,10 @@
         )
         qualify dense_rank() over (partition by date(ShipmentEventlist_PostedDate), ShipmentEventlist_MarketplaceName, ShipmentEventlist_AmazonOrderId, PromotionList_PromotionType order by _daton_batch_runtime desc) = 1
 
-    {% if not loop.last %} union all {% endif %}
+    {% endset %}
+
+    {% do run_query(query) %}
+
     {% endfor %}
+    select * from {{this|replace('ListFinancialEventsOrderPromotions', 'ListFinancialEventsOrderPromotions_temp')}}    
     )

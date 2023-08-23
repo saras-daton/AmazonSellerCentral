@@ -1,5 +1,7 @@
 {% if var('FBAManageInventory') %}
-    {{ config( enabled = True ) }}
+    {{ config( enabled = True,
+    post_hook = "drop table {{this|replace('FBAManageInventory', 'FBAManageInventory_temp')}}"
+    ) }}
 {% else %}
     {{ config( enabled = False ) }}
 {% endif %}
@@ -51,6 +53,18 @@
             {% set hr = 0 %}
         {% endif %}
 
+        {% if i==results_list[0] %}
+            {% set action1 = 'create or replace table' %}
+            {% set tbl = this ~ ' as ' %}
+        {% else %}
+            {% set action1 = 'insert into ' %}
+            {% set tbl = this %}
+        {% endif %}
+
+        {%- set query -%}
+        {{action1}}
+        {{tbl|replace('FBAManageInventory', 'FBAManageInventory_temp')}}
+
             select 
             '{{brand}}' as brand,
             '{{store}}' as store,
@@ -94,5 +108,9 @@
                 where {{daton_batch_runtime()}}  >= {{max_loaded}}
                 {% endif %} 
             qualify dense_rank() over (partition by date(ReportstartDate),sku, marketplaceId order by {{daton_batch_runtime()}} desc) = 1 
-        {% if not loop.last %} union all {% endif %}
+    {% endset %}
+
+    {% do run_query(query) %}
+
     {% endfor %}
+    select * from {{this|replace('FBAManageInventory', 'FBAManageInventory_temp')}}    

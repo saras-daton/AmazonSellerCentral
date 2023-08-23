@@ -1,5 +1,7 @@
 {% if var('FlatFileReturnsReportByReturnDate') %}
-    {{ config( enabled = True ) }}
+    {{ config( enabled = True,
+    post_hook = "drop table {{this|replace('FlatFileReturnsReportByReturnDate', 'FlatFileReturnsReportByReturnDate_temp')}}"
+    ) }}
 {% else %}
     {{ config( enabled = False ) }}
 {% endif %}
@@ -54,6 +56,18 @@
         {% else %}
             {% set hr = 0 %}
         {% endif %}
+
+        {% if i==results_list[0] %}
+            {% set action1 = 'create or replace table' %}
+            {% set tbl = this ~ ' as ' %}
+        {% else %}
+            {% set action1 = 'insert into ' %}
+            {% set tbl = this %}
+        {% endif %}
+
+        {%- set query -%}
+        {{action1}}
+        {{tbl|replace('FlatFileReturnsReportByReturnDate', 'FlatFileReturnsReportByReturnDate_temp')}}
 
         select * from (
             select * from (
@@ -124,5 +138,9 @@
             qualify dense_rank() over (partition by Return_request_date, Order_ID, ASIN, marketplaceId order by _daton_batch_runtime desc) = 1
         )
         qualify row_number() over(partition by Return_request_date, Order_ID, ASIN order by _daton_batch_runtime desc, Amazon_RMA_ID desc) = 1
-        {% if not loop.last %} union all {% endif %}
+    {% endset %}
+
+    {% do run_query(query) %}
+
     {% endfor %}
+    select * from {{this|replace('FlatFileReturnsReportByReturnDate', 'FlatFileReturnsReportByReturnDate_temp')}}    

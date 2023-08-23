@@ -1,5 +1,7 @@
 {% if var('InventoryLedgerDetailedReport') %}
-    {{ config( enabled = True ) }}
+    {{ config( enabled = True,
+    post_hook = "drop table {{this|replace('InventoryLedgerDetailedReport', 'InventoryLedgerDetailedReport_temp')}}"
+    ) }}
 {% else %}
     {{ config( enabled = False ) }}
 {% endif %}
@@ -57,6 +59,18 @@
                 {% set hr = 0 %}
             {% endif %}
 
+            {% if i==results_list[0] %}
+                {% set action1 = 'create or replace table' %}
+                {% set tbl = this ~ ' as ' %}
+            {% else %}
+                {% set action1 = 'insert into ' %}
+                {% set tbl = this %}
+            {% endif %}
+
+            {%- set query -%}
+            {{action1}}
+            {{tbl|replace('InventoryLedgerDetailedReport', 'InventoryLedgerDetailedReport_temp')}}
+
             select * from (
                 select 
                 '{{brand}}' as brand,
@@ -91,5 +105,9 @@
                     {% endif %}
                 )
             qualify row_number() over (partition by Date,asin, msku, fulfillment_center, event_type, reference_id, quantity, disposition, marketplaceid order by _daton_batch_runtime desc) = 1
-            {% if not loop.last %} union all {% endif %}
-        {% endfor %}
+    {% endset %}
+
+    {% do run_query(query) %}
+
+    {% endfor %}
+    select * from {{this|replace('InventoryLedgerDetailedReport', 'InventoryLedgerDetailedReport_temp')}}    

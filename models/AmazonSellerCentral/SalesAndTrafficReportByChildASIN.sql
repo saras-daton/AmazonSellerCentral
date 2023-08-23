@@ -1,5 +1,7 @@
 {% if var('SalesAndTrafficReportByChildASIN') %}
-    {{ config( enabled = True ) }}
+    {{ config( enabled = True,
+    post_hook = "drop table {{this|replace('SalesAndTrafficReportByChildASIN', 'SalesAndTrafficReportByChildASIN_temp')}}"
+    ) }}
 {% else %}
     {{ config( enabled = False ) }}
 {% endif %}
@@ -55,62 +57,78 @@
             {% set hr = 0 %}
         {% endif %}
 
-            select 
-            '{{brand}}' as brand,
-            '{{store}}' as store,
-            cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="cast(ReportstartDate as timestamp)") }} as {{ dbt.type_timestamp() }}) as ReportstartDate,
-            cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="cast(ReportendDate as timestamp)") }} as {{ dbt.type_timestamp() }}) as ReportendDate,
-            cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="cast(ReportRequestTime as timestamp)") }} as {{ dbt.type_timestamp() }}) as ReportRequestTime,
-            sellingPartnerId,
-            marketplaceName,
-            marketplaceId,
-            a.date,
-            coalesce(parentAsin,'N/A') as parentAsin,
-            coalesce(childAsin,'N/A') as childAsin,
-            unitsOrdered,
-            unitsOrderedB2B,
-            orderedProductSales_amount,
-            orderedProductSales_currencyCode,
-            orderedProductSalesB2B_amount,
-            orderedProductSalesB2B_currencyCode,
-            totalOrderItems,
-            totalOrderItemsB2B,
-            browserSessions,
-            mobileAppSessions,
-            sessions,
-            browserSessionPercentage,
-            mobileAppSessionPercentage,
-            sessionPercentage,
-            browserPageViews,
-            mobileAppPageViews,
-            pageViews,
-            browserPageViewsPercentage,
-            mobileAppPageViewsPercentage,
-            pageViewsPercentage,
-            buyBoxPercentage,
-            unitSessionPercentage,
-            unitSessionPercentageB2B,
-            {% if var('currency_conversion_flag') %}
-                case when c.value is null then 1 else c.value end as exchange_currency_rate,
-                case when c.from_currency_code is null then a.orderedProductSales_currencyCode else c.from_currency_code end as exchange_currency_code,
-            {% else %}
-                cast(1 as decimal) as exchange_currency_rate,
-                a.orderedProductSales_currencyCode as exchange_currency_code, 
-            {% endif %} 
-	   	    a.{{daton_user_id()}} as _daton_user_id,
-            a.{{daton_batch_runtime()}} as _daton_batch_runtime,
-            a.{{daton_batch_id()}} as _daton_batch_id,
-            current_timestamp() as _last_updated,
-            '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as _run_id
-            from {{i}} a 
-                        {% if var('currency_conversion_flag') %}
-                            left join {{ref('ExchangeRates')}} c on date(a.date) = c.date and a.orderedProductSales_currencyCode = c.to_currency_code   
-                        {% endif %}
-                        {% if is_incremental() %}
-                        {# /* -- this filter will only be applied on an incremental run */ #}
-                        where a.{{daton_batch_runtime()}}  >= {{max_loaded}}
-                        {% endif %}
+        {% if i==results_list[0] %}
+            {% set action1 = 'create or replace table' %}
+            {% set tbl = this ~ ' as ' %}
+        {% else %}
+            {% set action1 = 'insert into ' %}
+            {% set tbl = this %}
+        {% endif %}
 
-            qualify row_number() over (partition by '{{brand}}', a.date, parentAsin, childASIN, marketplaceId  order by a.{{daton_batch_runtime()}} desc) = 1
-    {% if not loop.last %} union all {% endif %}
+        {%- set query -%}
+        {{action1}}
+        {{tbl|replace('SalesAndTrafficReportByChildASIN', 'SalesAndTrafficReportByChildASIN_temp')}}
+
+        select 
+        '{{brand}}' as brand,
+        '{{store}}' as store,
+        cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="cast(ReportstartDate as timestamp)") }} as {{ dbt.type_timestamp() }}) as ReportstartDate,
+        cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="cast(ReportendDate as timestamp)") }} as {{ dbt.type_timestamp() }}) as ReportendDate,
+        cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="cast(ReportRequestTime as timestamp)") }} as {{ dbt.type_timestamp() }}) as ReportRequestTime,
+        sellingPartnerId,
+        marketplaceName,
+        marketplaceId,
+        a.date,
+        coalesce(parentAsin,'N/A') as parentAsin,
+        coalesce(childAsin,'N/A') as childAsin,
+        unitsOrdered,
+        unitsOrderedB2B,
+        orderedProductSales_amount,
+        orderedProductSales_currencyCode,
+        orderedProductSalesB2B_amount,
+        orderedProductSalesB2B_currencyCode,
+        totalOrderItems,
+        totalOrderItemsB2B,
+        browserSessions,
+        mobileAppSessions,
+        sessions,
+        browserSessionPercentage,
+        mobileAppSessionPercentage,
+        sessionPercentage,
+        browserPageViews,
+        mobileAppPageViews,
+        pageViews,
+        browserPageViewsPercentage,
+        mobileAppPageViewsPercentage,
+        pageViewsPercentage,
+        buyBoxPercentage,
+        unitSessionPercentage,
+        unitSessionPercentageB2B,
+        {% if var('currency_conversion_flag') %}
+            case when c.value is null then 1 else c.value end as exchange_currency_rate,
+            case when c.from_currency_code is null then a.orderedProductSales_currencyCode else c.from_currency_code end as exchange_currency_code,
+        {% else %}
+            cast(1 as decimal) as exchange_currency_rate,
+            a.orderedProductSales_currencyCode as exchange_currency_code, 
+        {% endif %} 
+        a.{{daton_user_id()}} as _daton_user_id,
+        a.{{daton_batch_runtime()}} as _daton_batch_runtime,
+        a.{{daton_batch_id()}} as _daton_batch_id,
+        current_timestamp() as _last_updated,
+        '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as _run_id
+        from {{i}} a 
+                    {% if var('currency_conversion_flag') %}
+                        left join {{ref('ExchangeRates')}} c on date(a.date) = c.date and a.orderedProductSales_currencyCode = c.to_currency_code   
+                    {% endif %}
+                    {% if is_incremental() %}
+                    {# /* -- this filter will only be applied on an incremental run */ #}
+                    where a.{{daton_batch_runtime()}}  >= {{max_loaded}}
+                    {% endif %}
+
+        qualify row_number() over (partition by '{{brand}}', a.date, parentAsin, childASIN, marketplaceId  order by a.{{daton_batch_runtime()}} desc) = 1
+    {% endset %}
+
+    {% do run_query(query) %}
+
     {% endfor %}
+    select * from {{this|replace('SalesAndTrafficReportByChildASIN', 'SalesAndTrafficReportByChildASIN_temp')}}    

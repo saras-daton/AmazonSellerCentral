@@ -1,5 +1,7 @@
 {% if var('CatalogItems') %}
-    {{ config( enabled = True ) }}
+    {{ config( enabled = True,
+    post_hook = "drop table {{this|replace('CatalogItems', 'CatalogItems_temp')}}"
+    ) }}
 {% else %}
     {{ config( enabled = False ) }}
 {% endif %}
@@ -51,6 +53,18 @@
             {% set hr = 0 %}
         {% endif %}
 
+        {% if i==results_list[0] %}
+            {% set action1 = 'create or replace table' %}
+            {% set tbl = this ~ ' as ' %}
+        {% else %}
+            {% set action1 = 'insert into ' %}
+            {% set tbl = this %}
+        {% endif %}
+
+        {%- set query -%}
+        {{action1}}
+        {{tbl|replace('CatalogItems', 'CatalogItems_temp')}}
+
             select 
             '{{brand}}' as brand,
             '{{store}}' as store,
@@ -98,5 +112,9 @@
                 where {{daton_batch_runtime()}}  >= {{max_loaded}}
                 {% endif %}   
             qualify row_number() over (partition by {{extract_nested_value("summaries","brand","string")}},ReferenceASIN,{{extract_nested_value("summaries","modelNumber","string")}},{{extract_nested_value("summaries","marketplaceId","string")}} order by {{daton_batch_runtime()}} desc, {{daton_batch_id()}} desc) = 1
-        {% if not loop.last %} union all {% endif %}
+    {% endset %}
+
+    {% do run_query(query) %}
+
     {% endfor %}
+    select * from {{this|replace('CatalogItems', 'CatalogItems_temp')}}    

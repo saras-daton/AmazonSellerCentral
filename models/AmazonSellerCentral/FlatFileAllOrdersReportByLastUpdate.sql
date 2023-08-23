@@ -1,5 +1,7 @@
 {% if var('FlatFileAllOrdersReportByLastUpdate') %}
-    {{ config( enabled = True ) }}
+    {{ config( enabled = True,
+    post_hook = "drop table {{this|replace('FlatFileAllOrdersReportByLastUpdate', 'FlatFileAllOrdersReportByLastUpdate_temp')}}"
+    ) }}
 {% else %}
     {{ config( enabled = False ) }}
 {% endif %}
@@ -56,6 +58,18 @@
         {% else %}
             {% set hr = 0 %}
         {% endif %}
+
+        {% if i==results_list[0] %}
+            {% set action1 = 'create or replace table' %}
+            {% set tbl = this ~ ' as ' %}
+        {% else %}
+            {% set action1 = 'insert into ' %}
+            {% set tbl = this %}
+        {% endif %}
+
+        {%- set query -%}
+        {{action1}}
+        {{tbl|replace('FlatFileAllOrdersReportByLastUpdate', 'FlatFileAllOrdersReportByLastUpdate_temp')}}
 
         select *, row_number() over (partition by purchase_date, amazon_order_id, asin, sku order by _daton_batch_runtime desc, quantity desc) as _seq_id
             from (
@@ -138,5 +152,9 @@
                     qualify row_number() over (partition by last_updated_date, purchase_date, amazon_order_id, asin, sku order by _daton_batch_runtime desc) = 1 
                 )
                 qualify row_number() over (partition by purchase_date, amazon_order_id, asin, sku order by last_updated_date desc, _daton_batch_runtime desc) = 1
-        {% if not loop.last %} union all {% endif %}
+    {% endset %}
+
+    {% do run_query(query) %}
+
     {% endfor %}
+    select * from {{this|replace('FlatFileAllOrdersReportByLastUpdate', 'FlatFileAllOrdersReportByLastUpdate_temp')}}    

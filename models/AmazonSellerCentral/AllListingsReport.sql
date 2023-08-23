@@ -1,5 +1,7 @@
 {% if var('AllListingsreport') %}
-    {{ config( enabled = True ) }}
+    {{ config( enabled = True,
+    post_hook = "drop table {{this|replace('AllListingsreport', 'AllListingsreport_temp')}}"
+    ) }}
 {% else %}
     {{ config( enabled = False ) }}
 {% endif %}
@@ -50,6 +52,18 @@
         {% else %}
             {% set hr = 0 %}
         {% endif %}
+
+        {% if i==results_list[0] %}
+            {% set action1 = 'create or replace table' %}
+            {% set tbl = this ~ ' as ' %}
+        {% else %}
+            {% set action1 = 'insert into ' %}
+            {% set tbl = this %}
+        {% endif %}
+
+        {%- set query -%}
+        {{action1}}
+        {{tbl|replace('AllListingsreport', 'AllListingsreport_temp')}}
 
             select 
             '{{brand}}' as brand,
@@ -107,5 +121,9 @@
                 where {{daton_batch_runtime()}}  >= {{max_loaded}}
                 {% endif %}         
             qualify dense_rank() over (partition by seller_sku, listing_id order by {{daton_batch_runtime()}} desc) = 1
-        {% if not loop.last %} union all {% endif %}
+    {% endset %}
+
+    {% do run_query(query) %}
+
     {% endfor %}
+    select * from {{this|replace('AllListingsreport', 'AllListingsreport_temp')}}    

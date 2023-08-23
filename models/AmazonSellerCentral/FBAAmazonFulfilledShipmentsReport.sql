@@ -1,5 +1,7 @@
 {% if var('FBAAmazonFulfilledShipmentsReport') %}
-    {{ config( enabled = True ) }}
+    {{ config( enabled = True,
+    post_hook = "drop table {{this|replace('FBAAmazonFulfilledShipmentsReport', 'FBAAmazonFulfilledShipmentsReport_temp')}}"
+    ) }}
 {% else %}
     {{ config( enabled = False ) }}
 {% endif %}
@@ -56,6 +58,17 @@
             {% set hr = 0 %}
         {% endif %}
 
+        {% if i==results_list[0] %}
+            {% set action1 = 'create or replace table' %}
+            {% set tbl = this ~ ' as ' %}
+        {% else %}
+            {% set action1 = 'insert into ' %}
+            {% set tbl = this %}
+        {% endif %}
+
+        {%- set query -%}
+        {{action1}}
+        {{tbl|replace('FBAAmazonFulfilledShipmentsReport', 'FBAAmazonFulfilledShipmentsReport_temp')}}
 
         select *, row_number() over (partition by purchase_date, sku, amazon_order_id order by _daton_batch_runtime, quantity_shipped) as _seq_id
         from (
@@ -141,5 +154,9 @@
                 {% endif %}     
             qualify row_number() over (partition by purchase_date, sku, amazon_order_id,marketplaceName order by a.{{daton_batch_runtime()}} desc) = 1
         )
-        {% if not loop.last %} union all {% endif %}
+    {% endset %}
+
+    {% do run_query(query) %}
+
     {% endfor %}
+    select * from {{this|replace('FBAAmazonFulfilledShipmentsReport', 'FBAAmazonFulfilledShipmentsReport_temp')}}    

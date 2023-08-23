@@ -1,5 +1,7 @@
 {% if var('ListFinancialEventsRefundTaxes') %}
-    {{ config( enabled = True ) }}
+    {{ config( enabled = True,
+    post_hook = "drop table {{this|replace('ListFinancialEventsRefundTaxes', 'ListFinancialEventsRefundTaxes_temp')}}"
+    ) }}
 {% else %}
     {{ config( enabled = False ) }}
 {% endif %}
@@ -56,6 +58,18 @@
             {% set hr = 0 %}
         {% endif %}
 
+        {% if i==results_list[0] %}
+            {% set action1 = 'create or replace table' %}
+            {% set tbl = this ~ ' as ' %}
+        {% else %}
+            {% set action1 = 'insert into ' %}
+            {% set tbl = this %}
+        {% endif %}
+
+        {%- set query -%}
+        {{action1}}
+        {{tbl|replace('ListFinancialEventsRefundTaxes', 'ListFinancialEventsRefundTaxes_temp')}}
+
         select * from (
         select 
         a.* {{exclude()}} (_daton_user_id, _daton_batch_runtime, _daton_batch_id),
@@ -105,6 +119,10 @@
             {% endif %}
         )
         qualify dense_rank() over (partition by date(RefundEventlist_PostedDate), RefundEventlist_MarketplaceName, RefundEventlist_AmazonOrderId, TaxesWithheld_ChargeType order by _daton_batch_runtime desc) = 1
-        {% if not loop.last %} union all {% endif %}
+    {% endset %}
+
+    {% do run_query(query) %}
+
     {% endfor %}
+    select * from {{this|replace('ListFinancialEventsRefundTaxes', 'ListFinancialEventsRefundTaxes_temp')}}    
     )
