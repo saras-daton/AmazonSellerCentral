@@ -1,6 +1,6 @@
-{% if var('AllListingsreport') %}
+{% if var('AllListingsReport') %}
     {{ config( enabled = True,
-    post_hook = "drop table {{this|replace('AllListingsreport', 'AllListingsreport_temp')}}"
+    post_hook = "drop table {{this|replace('AllListingsReport', 'AllListingsReport_temp')}}"
     ) }}
 {% else %}
     {{ config( enabled = False ) }}
@@ -63,7 +63,7 @@
 
         {%- set query -%}
         {{action1}}
-        {{tbl|replace('AllListingsreport', 'AllListingsreport_temp')}}
+        {{tbl|replace('AllListingsReport', 'AllListingsReport_temp')}}
 
             select 
             '{{brand}}' as brand,
@@ -126,4 +126,4 @@
     {% do run_query(query) %}
 
     {% endfor %}
-    select * from {{this|replace('AllListingsreport', 'AllListingsreport_temp')}}    
+    select * from {{this|replace('AllListingsReport', 'AllListingsReport_temp')}}    
