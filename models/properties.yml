@@ -515,7 +515,7 @@ models:
       incremental_strategy: merge
       unique_key: ['Return_request_date', 'Order_ID', 'ASIN','marketplaceId']
       partition_by: { 'field': 'Return_request_date', 'data_type': 'date' }
-      cluster_by: ['ReportstartDate','Return_request_date','ASIN','Merchant_SKU', 'Order_ID']
+      cluster_by: ['ReportstartDate','Return_request_date','ASIN', 'Order_ID']
     tests:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns:
@@ -577,7 +577,7 @@ models:
       unique_key: ['purchase_date', 'amazon_order_id', 'asin', 'sku', '_seq_id']
       merge_exclude_columns: ['quantity', 'currency','item_price','item_tax','shipping_price','shipping_tax','gift_wrap_price','gift_wrap_tax','item_promotion_discount','ship_promotion_discount']
       partition_by: { 'field': 'purchase_date', 'data_type': 'timestamp', 'granularity': 'day' }
-      cluster_by: ['last_updated_date','purchase_date','asin', 'sku', 'amazon_order_id']
+      cluster_by: ['last_updated_date','purchase_date','asin', 'amazon_order_id']
     tests:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns:
