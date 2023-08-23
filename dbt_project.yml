@@ -39,7 +39,7 @@ vars:
     }
       # Above are Example entries for raw table level input offset hours
 
-  AllListingsreport: True
+  AllListingsReport: True
   CatalogItems: True
   FBAAmazonFulfilledShipmentsReport: True
   FBAManageInventory: True

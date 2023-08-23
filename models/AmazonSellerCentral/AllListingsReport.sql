@@ -1,4 +1,4 @@
-{% if var('AllListingsreport') %}
+{% if var('AllListingsReport') %}
     {{ config( enabled = True ) }}
 {% else %}
     {{ config( enabled = False ) }}
