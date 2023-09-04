@@ -94,208 +94,31 @@ ListOrder: False
 
 This package contains models from the Amazon Selling Partner API which includes reports on {{sales, margin, inventory, product}}. The primary outputs of this package are described below.
 
-| **Category**                 | **Model**  | **Description** |
-| ------------------------- | ---------------| ----------------------- |
-|Customer | [ListOrder](models/Customer/ListOrder.sql)  | A list orders along with the customer details |
-|Inventory | [FBAManageInventoryHealthReport](models/AmazonSellerCentral/FBAManageInventoryHealthReport.sql)  | A detailed report which gives details about inventory age , current inventory levels, recommended inventory levels |
-|Inventory | [FBAManageInventory](models/AmazonSellerCentral/FBAManageInventory.sql)  | A list of ad groups associated with the accountA report which gives details about inventory movement - inbound, outbound, sellable |
-|Inventory | [InventoryLedgerDetailedReport](models/AmazonSellerCentral/InventoryLedgerDetailedReport.sql)| A report about available quantity at the warehouse level |
-|Financial Events | [ListFinancialEventsOrderFees](models/AmazonSellerCentral/ListFinancialEventsOrderFees.sql)| A list of fees associated with the shipment item. |
-|Financial Events | [ListFinancialEventsOrderPromotions](models/AmazonSellerCentral/ListFinancialEventsOrderPromotions.sql)| A list of promotions which gives the amount of promotional discount applied to the item at an item & order level.|
-|Financial Events | [ListFinancialEventsOrderRevenue](models/AmazonSellerCentral/ListFinancialEventsOrderRevenue.sql)| A list of shipment items which includes order & product level revenue |
-|Financial Events | [ListFinancialEventsOrderTaxes](models/AmazonSellerCentral/ListFinancialEventsOrderTaxes.sql)| A list of order taxes |
-|Financial Events | [ListFinancialEventsRefundFees](models/AmazonSellerCentral/ListFinancialEventsRefundFees.sql)| A list of fees associated with the refunded item.	 |
-|Financial Events | [ListFinancialEventsRefundPromotions](models/AmazonSellerCentral/ListFinancialEventsRefundPromotions.sql)|A list of promotions which gives the amount of promotional discount applied to the item at an refunded item level. |
-|Financial Events | [ListFinancialEventsRefundRevenue](models/AmazonSellerCentral/ListFinancialEventsRefundRevenue.sql)| A list of refunded items which includes refund & product level revenue |
-|Financial Events | [ListFinancialEventsRefundTaxes](models/AmazonSellerCentral/ListFinancialEventsRefundTaxes.sql)| A list of refund taxes |
-|Financial Events | [ListFinancialEventsServicefees](models/AmazonSellerCentral/ListFinancialEventsServicefees.sql)| A list of service level fees |
-|Product | [CatalogItemsSummary](models/AmazonSellerCentral/CatalogItemsSummary.sql)| A list of product summary, manufacturer & dimensions |
-|Product | [AllListingsReport](models/AmazonSellerCentral/AllListingsReport.sql)|  listing report with details about all types of listings |
-|Returns | [FBAReturnsReport](models/AmazonSellerCentral/FBAReturnsReport.sql)|Returns report of the orders fulfilled by Amazon |
-|Returns | [FlatFileReturnsReportByReturnDate](models/AmazonSellerCentral/FlatFileReturnsReportByReturnDate.sql)|Returns report of the orders fulfilled by Merchant |
-|Sales | [FBAAmazonFulfilledShipmentsReport](models/AmazonSellerCentral/FBAAmazonFulfilledShipmentsReport.sql)|Orders report with shipment details included |
-|Sales | [FlatFileAllOrdersReportByLastUpdate](models/AmazonSellerCentral/FlatFileAllOrdersReportByLastUpdate.sql)|Order & Item Level report |
-|Sales | [SalesAndTrafficReportByChildASIN](models/AmazonSellerCentral/SalesAndTrafficReportByChildASIN.sql)|Provides sales & traffic at SKU level that we see in the Business Report in the UI |
+| **Category**                 | **Model**  | **Description** | **Unique Key** | **Partition Key** | **Cluster Key** |
+| ----------------- | ---------------| ----------------------- | ------------ | ---------- | ------------ |
+|Customer | [ListOrder](models/Customer/ListOrder.sql)  | A list orders along with the customer details |  ['PurchaseDate','amazonorderid'] | { 'field': 'snapshot_date', 'data_type': 'date' } | ['amazonorderid'] |
+|Inventory | [FBAManageInventoryHealthReport](models/AmazonSellerCentral/FBAManageInventoryHealthReport.sql)  | A detailed report which gives details about inventory age , current inventory levels, recommended inventory levels | ['snapshot_date','asin','sku'] | { 'field': 'snapshot_date', 'data_type': 'date' } | ['asin','sku'] |
+|Inventory | [FBAManageInventory](models/AmazonSellerCentral/FBAManageInventory.sql)  | A list of ad groups associated with the accountA report which gives details about inventory movement - inbound, outbound, sellable | ['ReportstartDate','sku'] | { 'field': 'ReportstartDate', 'data_type': 'date' } | ['sku'] |
+|Inventory | [InventoryLedgerDetailedReport](models/AmazonSellerCentral/InventoryLedgerDetailedReport.sql)| A report about available quantity at the warehouse level | ['date','asin','fulfillment_center','msku', 'event_type', 'reference_id','quantity','disposition']  | { 'field': 'date', 'data_type': 'timestamp', 'granularity': 'day' } | ['date','msku']
+|Financial Events | [ListFinancialEventsOrderFees](models/AmazonSellerCentral/ListFinancialEventsOrderFees.sql)| A list of fees associated with the shipment item. | ['posteddate', 'marketplacename', 'amazonorderid', 'FeeType', 'TransactionType', 'AmountType','_seq_id'] | { 'field': 'posteddate', 'data_type': 'date' } | ['marketplacename', 'amazonorderid']
+|Financial Events | [ListFinancialEventsOrderPromotions](models/AmazonSellerCentral/ListFinancialEventsOrderPromotions.sql)| A list of promotions which gives the amount of promotional discount applied to the item at an item & order level.|  ['posteddate', 'marketplacename', 'amazonorderid', 'PromotionType', 'TransactionType', 'AmountType','_seq_id'] | { 'field': 'posteddate', 'data_type': 'date' } | ['marketplacename', 'amazonorderid']
+|Financial Events | [ListFinancialEventsOrderRevenue](models/AmazonSellerCentral/ListFinancialEventsOrderRevenue.sql)| A list of shipment items which includes order & product level revenue | ['posteddate', 'marketplacename', 'amazonorderid', 'ChargeType', 'TransactionType', 'AmountType', '_seq_id'] | { 'field': 'posteddate', 'data_type': 'date' } | ['marketplacename', 'amazonorderid']
+|Financial Events | [ListFinancialEventsOrderTaxes](models/AmazonSellerCentral/ListFinancialEventsOrderTaxes.sql)| A list of order taxes | ['posteddate', 'marketplacename', 'amazonorderid', 'ChargeType', 'TransactionType', 'AmountType', '_seq_id'] | { 'field': 'posteddate', 'data_type': 'date' } | ['marketplacename', 'amazonorderid']
+|Financial Events | [ListFinancialEventsRefundFees](models/AmazonSellerCentral/ListFinancialEventsRefundFees.sql)| A list of fees associated with the refunded item.	 | ['posteddate', 'marketplacename', 'amazonorderid', 'FeeType', '_seq_id'] | { 'field': 'posteddate', 'data_type': 'date' } | ['marketplacename', 'amazonorderid']
+|Financial Events | [ListFinancialEventsRefundPromotions](models/AmazonSellerCentral/ListFinancialEventsRefundPromotions.sql)|A list of promotions which gives the amount of promotional discount applied to the item at an refunded item level. | ['posteddate', 'marketplacename', 'amazonorderid', 'PromotionType', '_seq_id'] | { 'field': 'posteddate', 'data_type': 'date' } | ['marketplacename', 'amazonorderid']
+|Financial Events | [ListFinancialEventsRefundRevenue](models/AmazonSellerCentral/ListFinancialEventsRefundRevenue.sql)| A list of refunded items which includes refund & product level revenue | ['posteddate', 'marketplacename', 'amazonorderid', 'ChargeType', '_seq_id'] | { 'field': 'posteddate', 'data_type': 'date' } | ['marketplacename', 'amazonorderid']
+|Financial Events | [ListFinancialEventsRefundTaxes](models/AmazonSellerCentral/ListFinancialEventsRefundTaxes.sql)| A list of refund taxes | ['posteddate', 'marketplacename', 'amazonorderid', 'ChargeType', '_seq_id'] | { 'field': 'posteddate', 'data_type': 'date' } | ['marketplacename', 'amazonorderid']
+|Financial Events | [ListFinancialEventsServicefees](models/AmazonSellerCentral/ListFinancialEventsServicefees.sql)| A list of service level fees | 
+|Product | [CatalogItemsSummary](models/AmazonSellerCentral/CatalogItemsSummary.sql)| A list of product summary, manufacturer & dimensions | ['brandName','ReferenceASIN','modelNumber'] | |['ReferenceASIN']
+|Product | [AllListingsReport](models/AmazonSellerCentral/AllListingsReport.sql)|  listing report with details about all types of listings | ['seller_sku'] | | ['seller_sku']
+|Returns | [FBAReturnsReport](models/AmazonSellerCentral/FBAReturnsReport.sql)|Returns report of the orders fulfilled by Amazon | ['return_date','asin','sku','order_id','fnsku','license_plate_number','fulfillment_center_id','_seq_id'] | { 'field': 'return_date', 'data_type': 'date' } | ['asin','sku']
+|Returns | [FlatFileReturnsReportByReturnDate](models/AmazonSellerCentral/FlatFileReturnsReportByReturnDate.sql)|Returns report of the orders fulfilled by Merchant | ['Return_request_date', 'Order_ID', 'ASIN'] | { 'field': 'Return_request_date', 'data_type': 'date' } | ['ASIN','Merchant_SKU', 'Order_ID']
+|Sales | [FBAAmazonFulfilledShipmentsReport](models/AmazonSellerCentral/FBAAmazonFulfilledShipmentsReport.sql)|Orders report with shipment details included | ['purchase_date', 'sku', 'amazon_order_id', '_seq_id'] | { 'field': 'purchase_date', 'data_type': 'timestamp', 'granularity': 'day' } | ['sku','amazon_order_id'] | 
+|Sales | [FlatFileAllOrdersReportByLastUpdate](models/AmazonSellerCentral/FlatFileAllOrdersReportByLastUpdate.sql)|Order & Item Level report | ['purchase_date', 'amazon_order_id', 'asin', 'sku', '_seq_id'] | { 'field': 'purchase_date', 'data_type': 'timestamp', 'granularity': 'day' } | ['asin', 'sku', 'amazon_order_id']
+|Sales | [SalesAndTrafficReportByChildASIN](models/AmazonSellerCentral/SalesAndTrafficReportByChildASIN.sql)|Provides sales & traffic at SKU level that we see in the Business Report in the UI | { 'field': 'date', 'data_type': 'date' } | ['parentAsin', 'childAsin'] | ['date', 'parentAsin', 'childAsin']
 
 
-
-
-### For details about default configurations for Table Primary Key columns, Partition columns, Clustering columns, please refer the properties.yaml used for this package as below. 
-	You can overwrite these default configurations by using your project specific properties yaml.
-```yaml
-version: 2
-models:
-  - name: ListOrder
-    description: A list orders along with the customer details
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      unique_key: ['PurchaseDate','amazonorderid']
-      partition_by: { 'field': 'PurchaseDate', 'data_type': 'timestamp', 'granularity': 'day' }
-      cluster_by: ['amazonorderid']
-
-  - name: FBAManageInventoryHealthReport  
-    description: A detailed report which gives details about inventory age , current inventory levels, recommended inventory levels
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      unique_key: ['snapshot_date','asin','sku']
-      partition_by: { 'field': 'snapshot_date', 'data_type': 'date' }
-      cluster_by: ['asin','sku']
-
-  - name: FBAManageInventory
-    description: A list of ad groups associated with the accountA report which gives details about inventory movement - inbound, outbound, sellable
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      unique_key: ['ReportstartDate','sku']
-      partition_by: { 'field': 'ReportstartDate', 'data_type': 'date' }
-      cluster_by: ['sku']
-
-  - name: InventoryLedgerDetailedReport
-    description: A report about available quantity at the warehouse level
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      unique_key: ['date','asin','fulfillment_center','msku', 'event_type', 'reference_id','quantity','disposition']
-      partition_by: { 'field': 'date', 'data_type': 'timestamp', 'granularity': 'day' }
-      cluster_by: ['date','msku']
-
-  - name: ListFinancialEventsOrderFees
-    description: A list of fees associated with the shipment item.
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'FeeType', 'TransactionType', 'AmountType','_seq_id']
-      partition_by: { 'field': 'posteddate', 'data_type': 'date' }
-      cluster_by: ['marketplacename', 'amazonorderid']
-
-  - name: ListFinancialEventsOrderPromotions
-    description: A list of promotions which gives the amount of promotional discount applied to the item at an item & order level.
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'PromotionType', 'TransactionType', 'AmountType','_seq_id']
-      partition_by: { 'field': 'posteddate', 'data_type': 'date' }
-      cluster_by: ['marketplacename', 'amazonorderid']
-
-  - name: ListFinancialEventsOrderRevenue
-    description: A list of shipment items which includes order & product level revenue
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'ChargeType', 'TransactionType', 'AmountType', '_seq_id']
-      partition_by: { 'field': 'posteddate', 'data_type': 'date' }
-      cluster_by: ['marketplacename', 'amazonorderid']
-
-  - name: ListFinancialEventsOrderTaxes
-    description: A list of order taxes
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'ChargeType', 'TransactionType', 'AmountType', '_seq_id']
-      partition_by: { 'field': 'posteddate', 'data_type': 'date' }
-      cluster_by: ['marketplacename', 'amazonorderid']
-
-  - name: ListFinancialEventsRefundFees
-    description: A list of fees associated with the refunded item.
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'FeeType', '_seq_id']
-      partition_by: { 'field': 'posteddate', 'data_type': 'date' }
-      cluster_by: ['marketplacename', 'amazonorderid']
-
-  - name: ListFinancialEventsRefundPromotions
-    description: A list of promotions which gives the amount of promotional discount applied to the item at an refunded item level.
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'PromotionType', '_seq_id']
-      partition_by: { 'field': 'posteddate', 'data_type': 'date' }
-      cluster_by: ['marketplacename', 'amazonorderid']
-
-  - name: ListFinancialEventsRefundRevenue
-    description: A list of refunded items which includes refund & product level revenue
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'ChargeType', '_seq_id']
-      partition_by: { 'field': 'posteddate', 'data_type': 'date' }
-      cluster_by: ['marketplacename', 'amazonorderid']
-
-  - name: ListFinancialEventsRefundTaxes
-    description: A list of refund taxes
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      unique_key: ['posteddate', 'marketplacename', 'amazonorderid', 'ChargeType', '_seq_id']
-      partition_by: { 'field': 'posteddate', 'data_type': 'date' }
-      cluster_by: ['marketplacename', 'amazonorderid']
-
-  - name: CatalogItemsSummary
-    description: A list of product summary, manufacturer & dimensions
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      cluster_by: ['ReferenceASIN']
-      unique_key: ['brandName','ReferenceASIN','modelNumber']
-
-  - name: AllListingsReport
-    description: A listing report with details about all types of listings
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      cluster_by: ['seller_sku']
-      unique_key: ['seller_sku']
-
-  - name: FBAReturnsReport
-    description: Returns report of the orders fulfilled by Amazon
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      unique_key: ['return_date','asin','sku','order_id','fnsku','license_plate_number','fulfillment_center_id','_seq_id']
-      partition_by: { 'field': 'return_date', 'data_type': 'date' }
-      cluster_by: ['asin','sku']
-
-  - name: FlatFileReturnsReportByReturnDate
-    description: Returns report of the orders fulfilled by Merchant
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      unique_key: ['Return_request_date', 'Order_ID', 'ASIN']
-      partition_by: { 'field': 'Return_request_date', 'data_type': 'date' }
-      cluster_by: ['ASIN','Merchant_SKU', 'Order_ID']
-
-  - name: FBAAmazonFulfilledShipmentsReport
-    description: Orders report with shipment details included
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      unique_key: ['purchase_date', 'sku', 'amazon_order_id', '_seq_id']
-      partition_by: { 'field': 'purchase_date', 'data_type': 'timestamp', 'granularity': 'day' }
-      cluster_by: ['sku','amazon_order_id']
-
-  - name: FlatFileAllOrdersReportByLastUpdate
-    description: Order & Item Level report
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      unique_key: ['purchase_date', 'amazon_order_id', 'asin', 'sku', '_seq_id']
-      partition_by: { 'field': 'purchase_date', 'data_type': 'timestamp', 'granularity': 'day' }
-      cluster_by: ['asin', 'sku', 'amazon_order_id']
-
-  - name: SalesAndTrafficReportByChildASIN
-    description: Provides sales & traffic at SKU level that we see in the Business Report in the UI
-    config:
-      materialized: incremental
-      incremental_strategy: merge
-      partition_by: { 'field': 'date', 'data_type': 'date' }
-      cluster_by: ['parentAsin', 'childAsin']
-      unique_key: ['date', 'parentAsin', 'childAsin']
-```
-
-
+### For details about default configurations for Table Primary Key columns, Partition columns, Clustering columns, please refer the properties.yaml used for this package.
 
 ## Resources:
 - Have questions, feedback, or need [help](https://calendly.com/srinivas-janipalli/30min)? Schedule a call with our data experts or email us at info@sarasanalytics.com.
