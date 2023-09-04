@@ -104,7 +104,7 @@ ListOrder: False
 This package contains models from the Amazon Selling Partner API which includes reports on {{sales, margin, inventory, product}}. The primary outputs of this package are described below.
 
 | **Category**                 | **Model**  | **Description** | **Unique Key** | **Partition Key** | **Cluster Key** |
-| ------------------------- | ---------------| ----------------------- |
+| ------------------------- | ---------------| ----------------------- | ------ | -------- | ---------|
 |Customer | [ListOrder](models/Customer/ListOrder.sql)  | A list orders along with the customer details | PurchaseDate,amazonorderid,marketplaceName,sellingPartnerId | PurchaseDate | LastUpdateDate,PurchaseDate,amazonorderid |
 |Inventory | [FBAManageInventoryHealthReport](models/AmazonSellerCentral/FBAManageInventoryHealthReport.sql)  | A detailed report which gives details about inventory age , current inventory levels, recommended inventory levels | snapshot_date,asin,sku,marketplaceId,sellingPartnerId | snapshot_date | snapshot_date,asin,sku |
 |Inventory | [FBAManageInventory](models/AmazonSellerCentral/FBAManageInventory.sql)  | A list of ad groups associated with the accountA report which gives details about inventory movement - inbound, outbound, sellable | ReportstartDate,sku,marketplaceId | ReportstartDate | ReportstartDate,sku |
