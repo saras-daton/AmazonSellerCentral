@@ -119,6 +119,7 @@ This package contains models from the Amazon Selling Partner API which includes 
 |Sales | [FBAAmazonFulfilledShipmentsReport](models/AmazonSellerCentral/FBAAmazonFulfilledShipmentsReport.sql)|Orders report with shipment details included | purchase_date, <br /> sku, <br /> amazon_order_id, <br /> marketplaceName, <br /> _seq_id | purchase_date | reporting_date, <br /> purchase_date, <br /> sku, <br /> amazon_order_id | 
 |Sales | [FlatFileAllOrdersReportByLastUpdate](models/AmazonSellerCentral/FlatFileAllOrdersReportByLastUpdate.sql)|Order & Item Level report | purchase_date, <br /> amazon_order_id, <br /> asin, <br /> sku, <br /> _seq_id | purchase_date | last_updated_date, <br /> purchase_date, <br /> asin, <br /> amazon_order_id |
 |Sales | [SalesAndTrafficReportByChildASIN](models/AmazonSellerCentral/SalesAndTrafficReportByChildASIN.sql)|Provides sales & traffic at SKU level that we see in the Business Report in the UI | date, <br /> parentAsin, <br /> childAsin, <br /> marketplaceId, <br /> sellingPartnerId | date | ReportstartDate, <br /> date, <br /> parentAsin, <br /> childAsin |
+|Sales | [ListingOffersForASIN](models/AmazonSellerCentral/ListingOffersForASIN.sql)|Provides offers at ASIN level. | ASIN, <br /> itemCondition, <br /> sellingPartnerId | RequeststartDate | RequeststartDate, <br /> ASIN, <br /> itemCondition |
 
 
 ### For details about default configurations for Table Primary Key columns, Partition columns, Clustering columns, please refer the properties.yaml used for this package.
