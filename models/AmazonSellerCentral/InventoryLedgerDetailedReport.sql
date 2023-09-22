@@ -10,7 +10,7 @@
 
     {% if is_incremental() %}
     {%- set max_loaded_query -%}
-    SELECT coalesce(MAX(_daton_batch_runtime) - 2592000000,0) FROM {{ this }}
+    select coalesce(max(_daton_batch_runtime) - 2592000000,0) from {{ this }}
     {% endset %}
 
     {%- set max_loaded_results = run_query(max_loaded_query) -%}
@@ -57,41 +57,39 @@
                 {% set hr = 0 %}
             {% endif %}
 
-            SELECT *  {{exclude()}} (row_num)
-                From (
+            select * from (
                 select 
                 '{{brand}}' as brand,
                 '{{store}}' as store,
-                reportstartdate,
-                reportenddate,
-                reportrequesttime,
+                cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="reportstartdate") }} as {{ dbt.type_timestamp() }}) as reportstartdate,
+                cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="reportenddate") }} as {{ dbt.type_timestamp() }}) as reportenddate,
+                cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="reportrequesttime") }} as {{ dbt.type_timestamp() }}) as reportrequesttime,
                 sellingpartnerid,
                 marketplacename,
                 marketplaceid,
-                CAST({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="Date") }} as {{ dbt.type_timestamp() }}) as Date,
+                cast(Date as date) as Date,
                 fnsku,
-                coalesce(asin,'') as asin,
-                coalesce(msku,'') as msku,
+                coalesce(asin,'N/A') as asin,
+                coalesce(msku,'N/A') as msku,
                 title,
-                coalesce(event_type,'') as event_type,
-                coalesce(reference_id,'') as reference_id,
+                coalesce(event_type,'N/A') as event_type,
+                coalesce(reference_id,'N/A') as reference_id,
                 coalesce(quantity,0) as quantity,
-                coalesce(fulfillment_center,'') as fulfillment_center,
-                coalesce(disposition,'') as disposition,
+                coalesce(fulfillment_center,'N/A') as fulfillment_center,
+                coalesce(disposition,'N/A') as disposition,
                 reason,
                 country,
 	   	        {{daton_user_id()}} as _daton_user_id,
                 {{daton_batch_runtime()}} as _daton_batch_runtime,
                 {{daton_batch_id()}} as _daton_batch_id,
                 current_timestamp() as _last_updated,
-                '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as _run_id,
-                ROW_NUMBER() OVER (PARTITION BY Date,asin, msku, fulfillment_center, event_type, reference_id, quantity, disposition, marketplaceid order by {{daton_batch_runtime()}} desc) row_num
+                '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as _run_id
                 from {{i}} 
                     {% if is_incremental() %}
                     {# /* -- this filter will only be applied on an incremental run */ #}
-                    WHERE {{daton_batch_runtime()}}  >= {{max_loaded}}
+                    where {{daton_batch_runtime()}}  >= {{max_loaded}}
                     {% endif %}
                 )
-            where row_num =1 
+            qualify row_number() over (partition by Date,asin, msku, fulfillment_center, event_type, reference_id, quantity, disposition, marketplaceid order by _daton_batch_runtime desc) = 1
             {% if not loop.last %} union all {% endif %}
         {% endfor %}

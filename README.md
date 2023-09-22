@@ -98,7 +98,7 @@ ListOrder: False
 This package contains models from the Amazon Selling Partner API which includes reports on {{sales, margin, inventory, product}}. The primary outputs of this package are described below.
 
 | **Category**                 | **Model**  | **Description** | **Unique Key** | **Partition Key** | **Cluster Key** |
-| ----------------- | ---------------| ----------------------- | ------------ | ---------- | ------------ |
+| :----------------- | :---------------:| :-----------------------: | :------------: | :----------: | :------------: |
 |Customer | [ListOrder](models/AmazonSellerCentral/ListOrder.sql)  | A list orders along with the customer details |  PurchaseDate, <br /> amazonorderid, <br /> marketplaceName, <br /> sellingPartnerId | PurchaseDate  | LastUpdateDate, <br /> PurchaseDate, <br /> amazonorderid |
 |Inventory | [FBAManageInventoryHealthReport](models/AmazonSellerCentral/FBAManageInventoryHealthReport.sql)  | A detailed report which gives details about inventory age, current inventory levels, recommended inventory levels | snapshot_date, <br /> asin, <br /> sku, <br /> marketplaceId, <br /> sellingPartnerId | snapshot_date  | snapshot_date, <br /> asin, <br /> sku |
 |Inventory | [FBAManageInventory](models/AmazonSellerCentral/FBAManageInventory.sql)  | A report which gives details about inventory movement - inbound, outbound, sellable | ReportstartDate, <br /> sku, <br /> marketplaceName | ReportstartDate | ReportstartDate, <br /> sku |
@@ -125,6 +125,6 @@ This package contains models from the Amazon Selling Partner API which includes 
 ### For details about default configurations for Table Primary Key columns, Partition columns, Clustering columns, please refer the properties.yaml used for this package.
 
 ## Resources:
-- Have questions, feedback, or need [help](https://calendly.com/srinivas-janipalli/30min)? Schedule a call with our data experts or email us at info@sarasanalytics.com.
+- Have questions, feedback, or need [help](https://calendly.com/srinivas-janipalli/30min)? Schedule a call with our data experts or [contact us](https://sarasanalytics.com/contact).
 - Learn more about Daton [here](https://sarasanalytics.com/daton/).
 - Refer [this](https://youtu.be/6zDTbM6OUcs) to know more about how to create a dbt account & connect to {{Bigquery/Snowflake}}
