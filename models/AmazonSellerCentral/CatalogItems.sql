@@ -83,7 +83,7 @@
             {{extract_nested_value("summaries","style","string")}} as summaries_styleName,
             {{extract_nested_value("summaries","websiteDisplayGroup","string")}} as summaries_websiteDisplayGroup,
             {{extract_nested_value("summaries","websiteDisplayGroupName","string")}} as summaries_websiteDisplayGroupName,
-		{{daton_user_id()}} as _daton_user_id,
+        		{{daton_user_id()}} as _daton_user_id,
             {{daton_batch_runtime()}} as _daton_batch_runtime,
             {{daton_batch_id()}} as _daton_batch_id,
             current_timestamp() as _last_updated,
