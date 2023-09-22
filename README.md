@@ -5,7 +5,7 @@ This dbt package is for the Amazon Selling Partner data unification ingested by 
 
 ## How do I use Amazon Seller Partner dbt package?
 
-### Supported Datawarehouses:
+### Supported Data Warehouses:
 - [BigQuery](https://sarasanalytics.com/blog/what-is-google-bigquery/)
 - [Snowflake](https://sarasanalytics.com/daton/snowflake/)
 
@@ -121,10 +121,7 @@ This package contains models from the Amazon Selling Partner API which includes 
 |Sales | [SalesAndTrafficReportByChildASIN](models/AmazonSellerCentral/SalesAndTrafficReportByChildASIN.sql)|Provides sales & traffic at SKU level that we see in the Business Report in the UI | date, <br /> parentAsin, <br /> childAsin, <br /> marketplaceId, <br /> sellingPartnerId | date | ReportstartDate, <br /> date, <br /> parentAsin, <br /> childAsin |
 |Sales | [ListingOffersForASIN](models/AmazonSellerCentral/ListingOffersForASIN.sql)|Provides offers at ASIN level. | ASIN, <br /> itemCondition, <br /> sellingPartnerId | RequeststartDate | RequeststartDate, <br /> ASIN, <br /> itemCondition |
 
-
-### For details about default configurations for Table Primary Key columns, Partition columns, Clustering columns, please refer the properties.yaml used for this package.
-
-## Resources:
+## What Amazon Seller Partner dbt resources are available?
 - Have questions, feedback, or need [help](https://calendly.com/srinivas-janipalli/30min)? Schedule a call with our data experts or [contact us](https://sarasanalytics.com/contact).
 - Learn more about Daton [here](https://sarasanalytics.com/daton/).
 - Refer [this](https://youtu.be/6zDTbM6OUcs) to know more about how to create a dbt account & connect to {{Bigquery/Snowflake}}
