@@ -75,7 +75,7 @@ models:
     config:
       materialized: incremental
       incremental_strategy: merge
-      unique_key: ['ReportstartDate','sku','marketplaceId']
+      unique_key: ['ReportstartDate','sku','marketplaceId','sellingPartnerId']
       partition_by: { 'field': 'ReportstartDate','data_type':'timestamp','granularity': 'day' }
       cluster_by: ['sku']
     tests:
