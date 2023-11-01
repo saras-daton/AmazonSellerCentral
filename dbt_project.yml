@@ -8,9 +8,9 @@ config-version: 2
 require-dbt-version: [">=1.0.0", "<2.0.0"]
 
 vars:
-  raw_database: "Amazon" #equivalent to project_id in BigQuery
+  raw_database: "edm-saras" #equivalent to project_id in BigQuery
     # Example Database name
-  raw_schema: "SellerCentral" #equivalent to dataset in BigQuery
+  raw_schema: "EDM_Daton" #equivalent to dataset in BigQuery
     # Example Schema name
 
   get_brandname_from_tablename_flag: True
