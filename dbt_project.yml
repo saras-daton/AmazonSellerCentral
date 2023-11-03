@@ -66,6 +66,15 @@ vars:
   AllListingsReport_tbl_ptrn: '%alllistingsreport'
   AllListingsReport_tbl_exclude_ptrn: ''
   AllListingsReport_lookback: 2592000000
+
+  CatalogItems_tbl_ptrn: '%catalogitems'
+  CatalogItems_tbl_exclude_ptrn: ''
+  CatalogItems_lookback: 2592000000
+
+  FBAAmazonFulfilledShipmentsReport_tbl_ptrn: '%fulfilledshipments%'
+  FBAAmazonFulfilledShipmentsReport_tbl_exclude_ptrn: ''
+  FBAAmazonFulfilledShipmentsReport_lookback: 2592000000
+
   
 # These configurations specify where dbt should look for different types of files.
 # The `model-paths` config, for example, states that models in this project can be
