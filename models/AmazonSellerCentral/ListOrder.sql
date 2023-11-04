@@ -4,66 +4,39 @@
     {{ config( enabled = False ) }}
 {% endif %}
 
-    {% if is_incremental() %}
-    {%- set max_loaded_query -%}
-    select coalesce(max(_daton_batch_runtime) - 2592000000,0) from {{ this }}
-    {% endset %}
 
-    {%- set max_loaded_results = run_query(max_loaded_query) -%}
+{% set relations = dbt_utils.get_relations_by_pattern(
+schema_pattern=var('raw_schema'),
+table_pattern=var('ListOrder_tbl_ptrn'),
+exclude=var('ListOrder_tbl_exclude_ptrn'),
+database=var('raw_database')) %}
 
-    {%- if execute -%}
-    {% set max_loaded = max_loaded_results.rows[0].values()[0] %}
-    {% else %}
-    {% set max_loaded = 0 %}
-    {%- endif -%}
-    {% endif %}
-
-    {% set table_name_query %}
-    {{set_table_name('%listorder')}}    
-    {% endset %}  
-
-    {% set results = run_query(table_name_query) %}
-    {% if execute %}
-        {# Return the first column #}
-        {% set results_list = results.columns[0].values() %}
-        {% set tables_lowercase_list = results.columns[1].values() %}
-    {% else %}
-        {% set results_list = [] %}
-        {% set tables_lowercase_list = [] %}
-    {% endif %}
-
-
-    {% for i in results_list %}
+{% for i in relations %}
     {% if var('get_brandname_from_tablename_flag') %}
-         {% set brand =i.split('.')[2].split('_')[var('brandname_position_in_tablename')] %}
+        {% set brand =replace(i,'`','').split('.')[2].split('_')[var('brandname_position_in_tablename')] %}
     {% else %}
-         {% set brand = var('default_brandname') %}
+        {% set brand = var('default_brandname') %}
     {% endif %}
 
     {% if var('get_storename_from_tablename_flag') %}
-        {% set store =i.split('.')[2].split('_')[var('storename_position_in_tablename')] %}
+        {% set store =replace(i,'`','').split('.')[2].split('_')[var('storename_position_in_tablename')] %}
     {% else %}
         {% set store = var('default_storename') %}
     {% endif %}
 
-    {% if var('timezone_conversion_flag') and i.lower() in tables_lowercase_list and i in var('raw_table_timezone_offset_hours') %}
-        {% set hr = var('raw_table_timezone_offset_hours')[i] %}
-    {% else %}
-        {% set hr = 0 %}
-    {% endif %}
-    
-    select * from (
+    select *
+    from (
         select 
-        '{{brand}}' as brand,
-        '{{store}}' as store,
-        cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="RequestStartDate") }} as {{ dbt.type_timestamp() }}) as RequestStartDate,
-        cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="RequestEndDate") }} as {{ dbt.type_timestamp() }}) as RequestEndDate,
+        '{{brand|replace("`","")}}' as brand,
+        '{{store|replace("`","")}}' as store,
+        {{ timezone_conversion("RequestStartDate") }} as RequestStartDate,
+        {{ timezone_conversion("RequestEndDate") }} as RequestEndDate,
         sellingPartnerId,
         marketplaceName,
         coalesce(AmazonOrderId,'N/A') as AmazonOrderId,
         SellerOrderId,
-        cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="PurchaseDate") }} as {{ dbt.type_timestamp() }}) as PurchaseDate,
-        cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="LastUpdateDate") }} as {{ dbt.type_timestamp() }}) as LastUpdateDate,
+        {{ timezone_conversion("PurchaseDate") }} as PurchaseDate,
+        {{ timezone_conversion("LastUpdateDate") }} as LastUpdateDate,
         OrderStatus,
         FulfillmentChannel,
         SalesChannel,
@@ -105,12 +78,12 @@
         '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as _run_id
         from {{i}} 
         {{unnesting("BuyerInfo")}}
-            {% if is_incremental() %}
+        {% if is_incremental() %}
             {# /* -- this filter will only be applied on an incremental run */ #}
-            where {{daton_batch_runtime()}}  >= {{max_loaded}}
-            {% endif %}
+            where {{daton_batch_runtime()}}  >= (select coalesce(max(_daton_batch_runtime) - {{ var('ListOrder_lookback') }},0) from {{ this }})
+        {% endif %} 
     )
     qualify row_number() over (partition by date(PurchaseDate), AmazonOrderId, marketplaceName order by _daton_batch_runtime desc) = 1
 
     {% if not loop.last %} union all {% endif %}
-    {% endfor %}
+{% endfor %}

@@ -1,64 +1,39 @@
-{% if var('ListFinancialEventsOrderRevenue') %}
+{% if var('ListFinancialEvents') %}
     {{ config( enabled = True ) }}
 {% else %}
     {{ config( enabled = False ) }}
 {% endif %}
 
 {% if var('currency_conversion_flag') %}
- -- depends_on: {{ ref('ExchangeRates') }}  
+-- depends_on: {{ref('ExchangeRates')}}
 {% endif %}
+ 
 
-    {% if is_incremental() %}
-    {%- set max_loaded_query -%}
-    select coalesce(max(_daton_batch_runtime) - 2592000000,0) from {{ this }}
-    {% endset %}
+{% set relations = dbt_utils.get_relations_by_pattern(
+schema_pattern=var('raw_schema'),
+table_pattern=var('ListFinancialEvents_tbl_ptrn'),
+exclude=var('ListFinancialEvents_tbl_exclude_ptrn'),
+database=var('raw_database')) %}
 
-    {%- set max_loaded_results = run_query(max_loaded_query) -%}
-
-    {%- if execute -%}
-    {% set max_loaded = max_loaded_results.rows[0].values()[0] %}
+select *, row_number() over (partition by date(ShipmentEventlist_PostedDate), ShipmentEventlist_MarketplaceName, ShipmentEventlist_AmazonOrderId order by _daton_batch_runtime, ItemChargeList_ChargeType, ShipmentItemlist_QuantityShipped) as _seq_id
+from(
+{% for i in relations %}
+    {% if var('get_brandname_from_tablename_flag') %}
+        {% set brand =replace(i,'`','').split('.')[2].split('_')[var('brandname_position_in_tablename')] %}
     {% else %}
-    {% set max_loaded = 0 %}
-    {%- endif -%}
+        {% set brand = var('default_brandname') %}
     {% endif %}
 
-    select *, row_number() over (partition by date(ShipmentEventlist_PostedDate), ShipmentEventlist_MarketplaceName, ShipmentEventlist_AmazonOrderId order by _daton_batch_runtime, ItemChargeList_ChargeType, ShipmentItemlist_QuantityShipped) as _seq_id
-    from(
-    {% set table_name_query %}
-    {{set_table_name('%listfinancialevents')}}    
-    {% endset %}  
-
-    {% set results = run_query(table_name_query) %}
-    {% if execute %}
-    {# Return the first column #}
-    {% set results_list = results.columns[0].values() %}
+    {% if var('get_storename_from_tablename_flag') %}
+        {% set store =replace(i,'`','').split('.')[2].split('_')[var('storename_position_in_tablename')] %}
     {% else %}
-    {% set results_list = [] %}
+        {% set store = var('default_storename') %}
     {% endif %}
-
-    {% for i in results_list %}
-        {% if var('get_brandname_from_tablename_flag') %}
-            {% set brand =i.split('.')[2].split('_')[var('brandname_position_in_tablename')] %}
-        {% else %}
-            {% set brand = var('default_brandname') %}
-        {% endif %}
-
-        {% if var('get_storename_from_tablename_flag') %}
-            {% set store =i.split('.')[2].split('_')[var('storename_position_in_tablename')] %}
-        {% else %}
-            {% set store = var('default_storename') %}
-        {% endif %}
-
-        {% if var('timezone_conversion_flag') and i.lower() in tables_lowercase_list and i in var('raw_table_timezone_offset_hours') %}
-            {% set hr = var('raw_table_timezone_offset_hours')[i] %}
-        {% else %}
-            {% set hr = 0 %}
-        {% endif %}
 
     select * from (
         select 
-            '{{brand}}' as brand,
-            '{{store}}' as store,
+        '{{brand|replace("`","")}}' as brand,
+        '{{store|replace("`","")}}' as store,
             a.* {{exclude()}} (_daton_user_id, _daton_batch_runtime, _daton_batch_id),
             {% if var('currency_conversion_flag') %}
                 case when c.value is null then 1 else c.value end as exchange_currency_rate,
@@ -75,9 +50,9 @@
             from (
             select 
             {% if target.type=='snowflake' %} 
-                cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="ShipmentEventlist.value:PostedDate") }} as {{ dbt.type_timestamp() }}) as ShipmentEventlist_PostedDate,
+                {{ timezone_conversion("ShipmentEventlist.value:PostedDate") }} as ShipmentEventlist_PostedDate,
             {% else %}
-                cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="cast(ShipmentEventlist.PostedDate as timestamp)") }} as {{ dbt.type_timestamp() }}) as ShipmentEventlist_PostedDate,
+                {{ timezone_conversion("ShipmentEventlist.PostedDate") }} as ShipmentEventlist_PostedDate,
             {% endif %}
             coalesce({{extract_nested_value("ShipmentEventlist","AmazonOrderId","string")}},'N/A') as ShipmentEventlist_AmazonOrderId,
             coalesce({{extract_nested_value("ShipmentEventlist","MarketplaceName","string")}},'N/A') as ShipmentEventlist_MarketplaceName,
@@ -95,9 +70,9 @@
             {{multi_unnesting("ShipmentItemList","ItemChargeList")}}
             {{multi_unnesting("ItemChargeList","ChargeAmount")}}
             {% if is_incremental() %}
-            {# /* -- this filter will only be applied on an incremental run */ #}
-            where {{daton_batch_runtime()}}  >= {{max_loaded}}
-            {% endif %}
+                {# /* -- this filter will only be applied on an incremental run */ #}
+                where {{daton_batch_runtime()}}  >= (select coalesce(max(_daton_batch_runtime) - {{ var('ListFinancialEvents_lookback') }},0) from {{ this }})
+            {% endif %}  
             ) a
             {% if var('currency_conversion_flag') %}
             left join {{ref('ExchangeRates')}} c on date(ShipmentEventlist_PostedDate) = c.date and a.ChargeAmount_CurrencyCode = c.to_currency_code

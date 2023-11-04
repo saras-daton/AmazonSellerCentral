@@ -33,7 +33,7 @@ database=var('raw_database')) %}
         select 
         '{{brand|replace("`","")}}' as brand,
         '{{store|replace("`","")}}' as store,
-        {{ timezone_conversion("reportstartdate") }} as ReportreportstartdatestartDate,
+        {{ timezone_conversion("reportstartdate") }} as reportstartdate,
         {{ timezone_conversion("reportenddate") }} as reportenddate,
         {{ timezone_conversion("reportrequesttime") }} as reportrequesttime,
         sellingpartnerid,
@@ -57,10 +57,10 @@ database=var('raw_database')) %}
         current_timestamp() as _last_updated,
         '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as _run_id
         from {{i}} 
-            {% if is_incremental() %}
-                {# /* -- this filter will only be applied on an incremental run */ #}
-                where {{daton_batch_runtime()}}  >= (select coalesce(max(_daton_batch_runtime) - {{ var('InventoryLedgerDetailedReport_lookback') }},0) from {{ this }})
-            {% endif %}  
+        {% if is_incremental() %}
+            {# /* -- this filter will only be applied on an incremental run */ #}
+            where {{daton_batch_runtime()}}  >= (select coalesce(max(_daton_batch_runtime) - {{ var('InventoryLedgerDetailedReport_lookback') }},0) from {{ this }})
+        {% endif %}  
         )
     qualify row_number() over (partition by Date,asin, msku, fulfillment_center, event_type, reference_id, quantity, disposition, marketplaceid order by _daton_batch_runtime desc) = 1
     {% if not loop.last %} union all {% endif %}

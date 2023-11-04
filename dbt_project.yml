@@ -50,15 +50,7 @@ vars:
   FlatFileReturnsReportByReturnDate: True
   InventoryLedgerDetailedReport: True
   ListOrder: True
-  ListFinancialEventsOrderFees: True
-  ListFinancialEventsServiceFees: True
-  ListFinancialEventsOrderPromotions: True
-  ListFinancialEventsOrderRevenue: True
-  ListFinancialEventsOrderTaxes: True
-  ListFinancialEventsRefundFees: True
-  ListFinancialEventsRefundPromotions: True
-  ListFinancialEventsRefundRevenue: True
-  ListFinancialEventsRefundTaxes: True
+  ListFinancialEvents: True
   SalesAndTrafficReportByChildASIN: True
   ListingOffersForASIN: True
 
@@ -98,6 +90,22 @@ vars:
   InventoryLedgerDetailedReport_tbl_ptrn: '%ledgerdetail%'
   InventoryLedgerDetailedReport_tbl_exclude_ptrn: ''
   InventoryLedgerDetailedReport_lookback: 2592000000
+
+  ListFinancialEvents_tbl_ptrn: '%listfinancialevents'
+  ListFinancialEvents_tbl_exclude_ptrn: ''
+  ListFinancialEvents_lookback: 2592000000
+
+  ListOrder_tbl_ptrn: '%listorder'
+  ListOrder_tbl_exclude_ptrn: ''
+  ListOrder_lookback: 2592000000
+
+  ListingOffersForASIN_tbl_ptrn: '%listingoffersforasin'
+  ListingOffersForASIN_tbl_exclude_ptrn: ''
+  ListingOffersForASIN_lookback: 2592000000
+
+  SalesAndTrafficReportByChildASIN_tbl_ptrn: '%salesandtrafficreportbychildasin%'
+  SalesAndTrafficReportByChildASIN_tbl_exclude_ptrn: ''
+  SalesAndTrafficReportByChildASIN_lookback: 2592000000
 
 
   

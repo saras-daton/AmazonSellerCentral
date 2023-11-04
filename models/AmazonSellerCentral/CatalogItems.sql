@@ -28,7 +28,7 @@ database=var('raw_database')) %}
     '{{brand|replace("`","")}}' as brand,
     '{{store|replace("`","")}}' as store,
     {{ timezone_conversion("RequeststartDate") }} as RequeststartDate,
-    {{ timezone_conversion("RequestendDate") }} as RequeststartDate,
+    {{ timezone_conversion("RequestendDate") }} as RequestendDate,
     coalesce(ReferenceASIN,'N/A') as ReferenceASIN,
     sellingPartnerId,
     marketplaceName,
