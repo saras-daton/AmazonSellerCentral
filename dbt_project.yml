@@ -75,6 +75,31 @@ vars:
   FBAAmazonFulfilledShipmentsReport_tbl_exclude_ptrn: ''
   FBAAmazonFulfilledShipmentsReport_lookback: 2592000000
 
+  FBAManageInventory_tbl_ptrn: '%fbamanageinventory'
+  FBAManageInventory_tbl_exclude_ptrn: ''
+  FBAManageInventory_lookback: 2592000000
+
+  FBAManageInventoryHealthReport_tbl_ptrn: '%fbamanageinventoryhealthreport'
+  FBAManageInventoryHealthReport_tbl_exclude_ptrn: ''
+  FBAManageInventoryHealthReport_lookback: 2592000000
+
+  FBAReturnsReport_tbl_ptrn: '%fbareturnsreport'
+  FBAReturnsReport_tbl_exclude_ptrn: ''
+  FBAReturnsReport_lookback: 2592000000
+
+  FlatFileAllOrdersReportByLastUpdate_tbl_ptrn: '%flatfileallordersreportbylastupdate'
+  FlatFileAllOrdersReportByLastUpdate_tbl_exclude_ptrn: ''
+  FlatFileAllOrdersReportByLastUpdate_lookback: 2592000000
+
+  FlatFileReturnsReportByReturnDate_tbl_ptrn: '%flatfilereturnsreportbyreturndate'
+  FlatFileReturnsReportByReturnDate_tbl_exclude_ptrn: ''
+  FlatFileReturnsReportByReturnDate_lookback: 2592000000
+
+  InventoryLedgerDetailedReport_tbl_ptrn: '%ledgerdetail%'
+  InventoryLedgerDetailedReport_tbl_exclude_ptrn: ''
+  InventoryLedgerDetailedReport_lookback: 2592000000
+
+
   
 # These configurations specify where dbt should look for different types of files.
 # The `model-paths` config, for example, states that models in this project can be
