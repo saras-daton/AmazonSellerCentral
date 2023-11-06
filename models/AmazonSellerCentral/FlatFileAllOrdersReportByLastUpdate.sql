@@ -102,7 +102,7 @@ database=var('raw_database')) %}
             {% endif %}
             {% if is_incremental() %}
                 {# /* -- this filter will only be applied on an incremental run */ #}
-                where {{daton_batch_runtime()}}  >= (select coalesce(max(_daton_batch_runtime) - {{ var('FlatFileAllOrdersReportByLastUpdate_lookback') }},0) from {{ this }})
+                where a.{{daton_batch_runtime()}}  >= (select coalesce(max(_daton_batch_runtime) - {{ var('FlatFileAllOrdersReportByLastUpdate_lookback') }},0) from {{ this }})
             {% endif %}  
 
             ) 

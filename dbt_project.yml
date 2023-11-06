@@ -8,38 +8,22 @@ config-version: 2
 require-dbt-version: [">=1.0.0", "<2.0.0"]
 
 vars:
-  raw_database: "edm-saras" #equivalent to project_id in BigQuery
-    # Example Database name
-  raw_schema: "EDM_Daton" #equivalent to dataset in BigQuery
-    # Example Schema name
+  raw_database: "edm-saras" #equivalent to project_id in BigQuery, given values is an example name
+  raw_schema: "EDM_Daton" #equivalent to dataset in BigQuery, given values is an example name
 
   get_brandname_from_tablename_flag: True
-  brandname_position_in_tablename: 0
-    # Example- Daton Integration Name: Nike_US_SponsoredBrands --> Position 0, separated by '_'
-  default_brandname: "" 
-    # Example- default_brandname: "Nike" --> for Single Brand users, with no Brandname in Daton Integration Name
+  brandname_position_in_tablename: 0 # Example- Daton Integration Name: Nike_US_SponsoredBrands --> Position 0, separated by '_'
+  default_brandname: "" # Example- default_brandname: "Nike" --> for Single Brand users, with no Brandname in Daton Integration Name
 
   get_storename_from_tablename_flag: True 
-  storename_position_in_tablename: 1
-    # Example- Daton Integration Name: Nike_US_SponsoredBrands --> Position 1, separated by '_'
-  default_storename: "" 
-    # Example- default_storename: "US" --> for Single Store users, with no Storename in Daton Integration Name
+  storename_position_in_tablename: 1 # Example- Daton Integration Name: Nike_US_SponsoredBrands --> Position 1, separated by '_'
+  default_storename: "" # Example- default_storename: "US" --> for Single Store users, with no Storename in Daton Integration Name
 
-  # Variables used for dbt-tests
-  'dbt_date:time_zone': 'America/Los_Angeles'
+  currency_conversion_flag: True
+  timezone_conversion_flag: True
   to_timezone: 'America/Los_Angeles'
 
-
-  currency_conversion_flag: False
-  timezone_conversion_flag: False
-  raw_table_timezone_offset_hours: {
-    "Amazon.SellerCentral.Brand_UK_AmazonSellerCentral_FlatFileAllOrdersReportbyLastUpdate":-7,
-    "Amazon.SellerCentral.Brand_UK_AmazonSellerCentral_ListOrder":-7,
-    "Amazon.SellerCentral.Brand_UK_AmazonSellerCentral_FBAAmazonFulfilledShipmentsReport":-7,
-    "Amazon.SellerCentral.Brand_UK_AmazonSellerCentral_InventoryLedgerDetailedReport":-7
-    }
-      # Above are Example entries for raw table level input offset hours
-
+  # Flags to enable/disable models
   AllListingsReport: True
   CatalogItems: True
   FBAAmazonFulfilledShipmentsReport: True
@@ -54,7 +38,7 @@ vars:
   SalesAndTrafficReportByChildASIN: True
   ListingOffersForASIN: True
 
-
+  # Flags for raw table search patterns and lookback period
   AllListingsReport_tbl_ptrn: '%alllistingsreport'
   AllListingsReport_tbl_exclude_ptrn: ''
   AllListingsReport_lookback: 2592000000
@@ -107,7 +91,8 @@ vars:
   SalesAndTrafficReportByChildASIN_tbl_exclude_ptrn: ''
   SalesAndTrafficReportByChildASIN_lookback: 2592000000
 
-
+  # Variables used for dbt-tests
+  'dbt_date:time_zone': 'America/Los_Angeles'
   
 # These configurations specify where dbt should look for different types of files.
 # The `model-paths` config, for example, states that models in this project can be

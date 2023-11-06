@@ -93,7 +93,7 @@ database=var('raw_database')) %}
                 {% endif %}
                 {% if is_incremental() %}
                     {# /* -- this filter will only be applied on an incremental run */ #}
-                    where {{daton_batch_runtime()}}  >= (select coalesce(max(_daton_batch_runtime) - {{ var('FlatFileReturnsReportByReturnDate_lookback') }},0) from {{ this }})
+                    where a.{{daton_batch_runtime()}}  >= (select coalesce(max(_daton_batch_runtime) - {{ var('FlatFileReturnsReportByReturnDate_lookback') }},0) from {{ this }})
                 {% endif %}  
         ) 
         qualify dense_rank() over (partition by Return_request_date, Order_ID, ASIN, marketplaceId order by _daton_batch_runtime desc) = 1

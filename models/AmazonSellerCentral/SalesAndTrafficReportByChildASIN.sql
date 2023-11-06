@@ -81,7 +81,7 @@ database=var('raw_database')) %}
             {% endif %}
             {% if is_incremental() %}
                 {# /* -- this filter will only be applied on an incremental run */ #}
-                where {{daton_batch_runtime()}}  >= (select coalesce(max(_daton_batch_runtime) - {{ var('SalesAndTrafficReportByChildASIN_lookback') }},0) from {{ this }})
+                where a.{{daton_batch_runtime()}}  >= (select coalesce(max(_daton_batch_runtime) - {{ var('SalesAndTrafficReportByChildASIN_lookback') }},0) from {{ this }})
             {% endif %} 
 
             qualify row_number() over (partition by '{{brand}}', a.date, parentAsin, childASIN, marketplaceId  order by a.{{daton_batch_runtime()}} desc) = 1
