@@ -37,6 +37,8 @@ vars:
   ListFinancialEvents: True
   SalesAndTrafficReportByChildASIN: True
   ListingOffersForASIN: True
+  SuppressedListingsReport: True
+  FlatFileFeedbackReports: True
 
   # Flags for raw table search patterns and lookback period
   AllListingsReport_tbl_ptrn: '%alllistingsreport'
@@ -90,6 +92,14 @@ vars:
   SalesAndTrafficReportByChildASIN_tbl_ptrn: '%salesandtrafficreportbychildasin%'
   SalesAndTrafficReportByChildASIN_tbl_exclude_ptrn: ''
   SalesAndTrafficReportByChildASIN_lookback: 2592000000
+
+  FlatFileFeedbackReports_tbl_ptrn: '%flatfilefeedbackreport%'
+  FlatFileFeedbackReports_tbl_exclude_ptrn: ''
+  FlatFileFeedbackReports_lookback: 2592000000
+
+  SuppressedListingsReport_tbl_ptrn: '%suppressedlistingsreport%'
+  SuppressedListingsReport_tbl_exclude_ptrn: ''
+  SuppressedListingsReport_lookback: 2592000000
 
   # Variables used for dbt-tests
   'dbt_date:time_zone': 'America/Los_Angeles'

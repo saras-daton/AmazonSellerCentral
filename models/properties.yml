@@ -659,3 +659,18 @@ models:
         tests:
           - accepted_values:
               values: ['Default']
+  - name: FlatFileFeedbackReports
+    description: Product ratings 
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      unique_key: ['Order_ID', 'Date']
+      partition_by: { 'field': 'Date', 'data_type': 'date', 'granularity': 'day' }
+      cluster_by: ['Order_ID']
+  - name: SuppressedListingsReport
+    description: suppressed/canceled listings
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      unique_key: [ASIN,SKU,Status,Status_Change_Date]
+      cluster_by: ['ASIN',SKU]  
