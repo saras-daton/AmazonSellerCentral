@@ -8,28 +8,13 @@
 -- depends_on: {{ref('ExchangeRates')}}
 {% endif %} 
 
-{% set relations = dbt_utils.get_relations_by_pattern(
-schema_pattern=var('raw_schema'),
-table_pattern=var('FBAManageInventoryHealthReport_tbl_ptrn'),
-exclude=var('FBAManageInventoryHealthReport_tbl_exclude_ptrn'),
-database=var('raw_database')) %}
+{% set result =set_table_name("FBAManageInventoryHealthReport_tbl_ptrn","FBAManageInventoryHealthReport_tbl_exclude_ptrn") %}
 
-{% for i in relations %}
-    {% if var('get_brandname_from_tablename_flag') %}
-        {% set brand =replace(i,'`','').split('.')[2].split('_')[var('brandname_position_in_tablename')] %}
-    {% else %}
-        {% set brand = var('default_brandname') %}
-    {% endif %}
-
-    {% if var('get_storename_from_tablename_flag') %}
-        {% set store =replace(i,'`','').split('.')[2].split('_')[var('storename_position_in_tablename')] %}
-    {% else %}
-        {% set store = var('default_storename') %}
-    {% endif %}
+{% for i in result %}
 
     select 
-    '{{brand|replace("`","")}}' as brand,
-    '{{store|replace("`","")}}' as store,
+        '{{ extract_brand_and_store_name_from_table(i, var("brandname_position_in_tablename"), var("get_brandname_from_tablename_flag"), var("default_brandname")) }}' as brand,
+        '{{ extract_brand_and_store_name_from_table(i, var("storename_position_in_tablename"), var("get_storename_from_tablename_flag"), var("default_storename")) }}' as store,
     {{ timezone_conversion("ReportstartDate") }} as ReportstartDate,
     {{ timezone_conversion("ReportendDate") }} as ReportendDate,
     {{ timezone_conversion("ReportRequestTime") }} as ReportRequestTime,
@@ -37,9 +22,9 @@ database=var('raw_database')) %}
     marketplaceName,
     marketplaceId,
     cast(snapshot_date as DATE) snapshot_date,
-    coalesce(sku,'N/A') as sku,
+    sku,
     fnsku,
-    coalesce(asin,'N/A') as asin,
+    asin,
     product_name,
     condition,
     available,
@@ -97,13 +82,23 @@ database=var('raw_database')) %}
     inbound_shipped,
     inbound_received,
     no_sale_last_6_months,
-    {% if var('currency_conversion_flag') %}
-        case when c.value is null then 1 else c.value end as exchange_currency_rate,
-        case when c.from_currency_code is null then a.currency else c.from_currency_code end as exchange_currency_code,
-    {% else %}
-        cast(1 as decimal) as exchange_currency_rate,
-        a.currency as exchange_currency_code, 
-    {% endif %} 
+    reserved_quantity,
+    unfulfillable_quantity,
+    quantity_to_be_charged_ais_181_210_days, 
+    estimated_ais_181_210_days, 
+    quantity_to_be_charged_ais_211_240_days, 
+    estimated_ais_211_240_days, 
+    quantity_to_be_charged_ais_241_270_days, 
+    estimated_ais_241_270_days, 
+    quantity_to_be_charged_ais_271_300_days, 
+    estimated_ais_271_300_days, 
+    quantity_to_be_charged_ais_301_330_days, 
+    estimated_ais_301_330_days, 
+    quantity_to_be_charged_ais_331_365_days, 
+    estimated_ais_331_365_days, 
+    quantity_to_be_charged_ais_365_PLUS_days, 
+    estimated_ais_365_plus_days,
+    {{ currency_conversion('c.value', 'c.from_currency_code', 'a.currency') }},
     a.{{daton_user_id()}} as _daton_user_id,
     a.{{daton_batch_runtime()}} as _daton_batch_runtime,
     a.{{daton_batch_id()}} as _daton_batch_id,

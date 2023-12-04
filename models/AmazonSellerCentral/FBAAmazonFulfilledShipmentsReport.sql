@@ -9,37 +9,23 @@
 {% endif %}
 
 
-{% set relations = dbt_utils.get_relations_by_pattern(
-schema_pattern=var('raw_schema'),
-table_pattern=var('FBAAmazonFulfilledShipmentsReport_tbl_ptrn'),
-exclude=var('FBAAmazonFulfilledShipmentsReport_tbl_exclude_ptrn'),
-database=var('raw_database')) %}
+{% set result =set_table_name("FBAAmazonFulfilledShipmentsReport_tbl_ptrn","FBAAmazonFulfilledShipmentsReport_tbl_exclude_ptrn") %}
 
-{% for i in relations %}
-    {% if var('get_brandname_from_tablename_flag') %}
-        {% set brand =replace(i,'`','').split('.')[2].split('_')[var('brandname_position_in_tablename')] %}
-    {% else %}
-        {% set brand = var('default_brandname') %}
-    {% endif %}
+{% for i in result %}
 
-    {% if var('get_storename_from_tablename_flag') %}
-        {% set store =replace(i,'`','').split('.')[2].split('_')[var('storename_position_in_tablename')] %}
-    {% else %}
-        {% set store = var('default_storename') %}
-    {% endif %}
-
+ 
     select *, row_number() over (partition by purchase_date, sku, amazon_order_id order by _daton_batch_runtime, quantity_shipped) as _seq_id
     from (
-        select 
-        '{{brand|replace("`","")}}' as brand,
-        '{{store|replace("`","")}}' as store,
+       select 
+        {{ extract_brand_and_store_name_from_table(i, var("brandname_position_in_tablename"), var("get_brandname_from_tablename_flag"), var("default_brandname")) }} as brand,
+        {{ extract_brand_and_store_name_from_table(i, var("storename_position_in_tablename"), var("get_storename_from_tablename_flag"), var("default_storename")) }} as store,
         {{ timezone_conversion("ReportstartDate") }} as ReportstartDate,
         {{ timezone_conversion("ReportendDate") }} as ReportendDate,
         {{ timezone_conversion("ReportRequestTime") }} as ReportRequestTime,
         sellingPartnerId,
         marketplaceName,
         marketplaceId,
-        coalesce(amazon_order_id,'N/A') as amazon_order_id,
+        amazon_order_id,
         merchant_order_id,
         shipment_id,
         shipment_item_id,
@@ -52,7 +38,7 @@ database=var('raw_database')) %}
         buyer_email,
         buyer_name,
         buyer_phone_number,
-        coalesce(sku,'N/A') as sku,
+        sku,
         product_name,
         quantity_shipped,
         currency,
@@ -87,13 +73,7 @@ database=var('raw_database')) %}
         fulfillment_center_id,
         fulfillment_channel,
         sales_channel,
-        {% if var('currency_conversion_flag') %}
-            case when c.value is null then 1 else c.value end as exchange_currency_rate,
-            case when c.from_currency_code is null then a.currency else c.from_currency_code end as exchange_currency_code,
-        {% else %}
-            cast(1 as decimal) as exchange_currency_rate,
-            a.currency as exchange_currency_code, 
-        {% endif %} 
+        {{ currency_conversion('c.value', 'c.from_currency_code', 'a.currency') }},
         a.{{daton_user_id()}} as _daton_user_id,
         a.{{daton_batch_runtime()}} as _daton_batch_runtime,
         a.{{daton_batch_id()}} as _daton_batch_id,

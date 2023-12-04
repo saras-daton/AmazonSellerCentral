@@ -9,39 +9,22 @@
 {% endif %}
 
 
-{% set relations = dbt_utils.get_relations_by_pattern(
-schema_pattern=var('raw_schema'),
-table_pattern=var('FlatFileReturnsReportByReturnDate_tbl_ptrn'),
-exclude=var('FlatFileReturnsReportByReturnDate_tbl_exclude_ptrn'),
-database=var('raw_database')) %}
+{% set result =set_table_name("FlatFileReturnsReportByReturnDate_tbl_ptrn","FlatFileReturnsReportByReturnDate_tbl_exclude_ptrn") %}
 
-{% for i in relations %}
-    {% if var('get_brandname_from_tablename_flag') %}
-        {% set brand =replace(i,'`','').split('.')[2].split('_')[var('brandname_position_in_tablename')] %}
-    {% else %}
-        {% set brand = var('default_brandname') %}
-    {% endif %}
+{% for i in result %}
 
-    {% if var('get_storename_from_tablename_flag') %}
-        {% set store =replace(i,'`','').split('.')[2].split('_')[var('storename_position_in_tablename')] %}
-    {% else %}
-        {% set store = var('default_storename') %}
-    {% endif %}
 
     select *
     from (
-        select *
-        from (
-            select 
-            '{{brand|replace("`","")}}' as brand,
-            '{{store|replace("`","")}}' as store,
-            {{ timezone_conversion("ReportstartDate") }} as ReportstartDate,
+                   select 
+        {{ extract_brand_and_store_name_from_table(i, var("brandname_position_in_tablename"), var("get_brandname_from_tablename_flag"), var("default_brandname")) }} as brand,
+        {{ extract_brand_and_store_name_from_table(i, var("storename_position_in_tablename"), var("get_storename_from_tablename_flag"), var("default_storename")) }} as store,            {{ timezone_conversion("ReportstartDate") }} as ReportstartDate,
             {{ timezone_conversion("ReportendDate") }} as ReportendDate,
             {{ timezone_conversion("ReportRequestTime") }} as ReportRequestTime,
             sellingPartnerId,
             marketplaceName,
             marketplaceId,
-            coalesce(Order_ID,'N/A') as Order_ID,
+            Order_ID,
             Order_date,
             Return_request_date,
             Return_request_status,
@@ -56,7 +39,7 @@ database=var('raw_database')) %}
             Label_to_be_paid_by,
             A_to_z_claim,
             Is_prime,
-            coalesce(ASIN,'N/A') as ASIN,
+            ASIN,
             Merchant_SKU,
             Item_Name,
             Return_quantity,
@@ -75,13 +58,7 @@ database=var('raw_database')) %}
             SafeT_claim_reimbursement_amount,
             Refunded_Amount,
             Category,
-            {% if var('currency_conversion_flag') %}
-                case when c.value is null then 1 else c.value end as exchange_currency_rate,
-                case when c.from_currency_code is null then a.Currency_code else c.from_currency_code end as exchange_currency_code,
-            {% else %}
-                cast(1 as decimal) as exchange_currency_rate,
-                a.Currency_code as exchange_currency_code, 
-            {% endif %}
+            {{ currency_conversion('c.value', 'c.from_currency_code', 'a.Currency_code') }},
             a.{{daton_user_id()}} as _daton_user_id,
             a.{{daton_batch_runtime()}} as _daton_batch_runtime,
             a.{{daton_batch_id()}} as _daton_batch_id,
@@ -95,7 +72,7 @@ database=var('raw_database')) %}
                     {# /* -- this filter will only be applied on an incremental run */ #}
                     where a.{{daton_batch_runtime()}}  >= (select coalesce(max(_daton_batch_runtime) - {{ var('FlatFileReturnsReportByReturnDate_lookback') }},0) from {{ this }})
                 {% endif %}  
-        ) 
+        
         qualify dense_rank() over (partition by Return_request_date, Order_ID, ASIN, marketplaceId order by _daton_batch_runtime desc) = 1
     )
     qualify row_number() over(partition by Return_request_date, Order_ID, ASIN order by _daton_batch_runtime desc, Amazon_RMA_ID desc) = 1

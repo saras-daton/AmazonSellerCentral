@@ -674,3 +674,22 @@ models:
       incremental_strategy: merge
       unique_key: [ASIN,SKU,Status,Status_Change_Date]
       cluster_by: ['ASIN',SKU]  
+
+
+  - name: FBAStorageFeesReport
+    description: suppressed/canceled listings
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      unique_key: ['asin','fnsku','fulfillment_center','month_of_charge']
+      partition_by: { 'field': 'ReportRequestTime','data_type':'timestamp','granularity': 'day' }
+      cluster_by: ['month_of_charge','fnsku']
+
+  - name: FBALongTermStorageFeeChargesReport
+    description: suppressed/canceled listings
+    config:
+      materialized: incremental
+      incremental_strategy: merge
+      unique_key: ['snapshot_date','sku','asin']
+      partition_by: { 'field': 'snapshot_date','data_type':'datetime','granularity': 'day' }
+      cluster_by: ['sku']

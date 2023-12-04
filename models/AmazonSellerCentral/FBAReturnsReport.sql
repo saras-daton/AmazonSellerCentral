@@ -5,48 +5,34 @@
 {% endif %}
 
 
-{% set relations = dbt_utils.get_relations_by_pattern(
-schema_pattern=var('raw_schema'),
-table_pattern=var('FBAReturnsReport_tbl_ptrn'),
-exclude=var('FBAReturnsReport_tbl_exclude_ptrn'),
-database=var('raw_database')) %}
 
-{% for i in relations %}
-    {% if var('get_brandname_from_tablename_flag') %}
-        {% set brand =replace(i,'`','').split('.')[2].split('_')[var('brandname_position_in_tablename')] %}
-    {% else %}
-        {% set brand = var('default_brandname') %}
-    {% endif %}
+{% set result =set_table_name("FBAReturnsReport_tbl_ptrn","FBAReturnsReport_tbl_exclude_ptrn") %}
 
-    {% if var('get_storename_from_tablename_flag') %}
-        {% set store =replace(i,'`','').split('.')[2].split('_')[var('storename_position_in_tablename')] %}
-    {% else %}
-        {% set store = var('default_storename') %}
-    {% endif %}
+{% for i in result %}
 
+    
     select *, row_number() over (partition by date(return_date), asin, sku, order_id, fnsku, license_plate_number, fulfillment_center_id order by _daton_batch_runtime desc) as _seq_id 
     from (
-        select 
-        '{{brand|replace("`","")}}' as brand,
-        '{{store|replace("`","")}}' as store,
-        {{ timezone_conversion("ReportstartDate") }} as ReportstartDate,
+              select 
+        {{ extract_brand_and_store_name_from_table(i, var("brandname_position_in_tablename"), var("get_brandname_from_tablename_flag"), var("default_brandname")) }} as brand,
+        {{ extract_brand_and_store_name_from_table(i, var("storename_position_in_tablename"), var("get_storename_from_tablename_flag"), var("default_storename")) }} as store,        {{ timezone_conversion("ReportstartDate") }} as ReportstartDate,
         {{ timezone_conversion("ReportendDate") }} as ReportendDate,
         {{ timezone_conversion("ReportRequestTime") }} as ReportRequestTime,
         sellingPartnerId,
         marketplaceName,
         marketplaceId,
         cast(return_date as DATE) as return_date,
-        coalesce(order_id,'N/A') as order_id,
-        coalesce(sku,'N/A') as sku,
-        coalesce(asin,'N/A') as asin,
-        coalesce(fnsku,'N/A') as fnsku,
+        order_id,
+        sku,
+        asin,
+        fnsku,
         product_name,
         quantity,
-        coalesce(fulfillment_center_id,'N/A') as fulfillment_center_id,
+        fulfillment_center_id,
         detailed_disposition,
         reason,
         status,
-        coalesce(license_plate_number,'N/A') as license_plate_number,
+        license_plate_number,
         customer_comments,
         {{daton_user_id()}} as _daton_user_id,
         {{daton_batch_runtime()}} as _daton_batch_runtime,

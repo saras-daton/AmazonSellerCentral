@@ -9,28 +9,13 @@
 {% endif %}
 
 
-{% set relations = dbt_utils.get_relations_by_pattern(
-schema_pattern=var('raw_schema'),
-table_pattern=var('FlatFileFeedbackReports_tbl_ptrn'),
-exclude=var('FlatFileFeedbackReports_tbl_exclude_ptrn'),
-database=var('raw_database')) %}
+{% set result =set_table_name("FlatFileFeedbackReports_tbl_ptrn","FlatFileFeedbackReports_tbl_exclude_ptrn") %}
 
-{% for i in relations %}
-    {% if var('get_brandname_from_tablename_flag') %}
-        {% set brand =replace(i,'`','').split('.')[2].split('_')[var('brandname_position_in_tablename')] %}
-    {% else %}
-        {% set brand = var('default_brandname') %}
-    {% endif %}
+{% for i in result %}
 
-    {% if var('get_storename_from_tablename_flag') %}
-        {% set store =replace(i,'`','').split('.')[2].split('_')[var('storename_position_in_tablename')] %}
-    {% else %}
-        {% set store = var('default_storename') %}
-    {% endif %}
-            select 
-            '{{brand|replace("`","")}}' as brand,
-            '{{store|replace("`","")}}' as store,
-            {{ timezone_conversion("ReportstartDate") }} as ReportstartDate,
+       select 
+        {{ extract_brand_and_store_name_from_table(i, var("brandname_position_in_tablename"), var("get_brandname_from_tablename_flag"), var("default_brandname")) }} as brand,
+        {{ extract_brand_and_store_name_from_table(i, var("storename_position_in_tablename"), var("get_storename_from_tablename_flag"), var("default_storename")) }} as store,            {{ timezone_conversion("ReportstartDate") }} as ReportstartDate,
             {{ timezone_conversion("ReportendDate") }} as ReportendDate,
             {{ timezone_conversion("ReportRequestTime") }} as ReportRequestTime,
             sellingPartnerId,
