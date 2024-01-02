@@ -4,99 +4,61 @@
     {{ config( enabled = False ) }}
 {% endif %}
 
-    {% if is_incremental() %}
-    {%- set max_loaded_query -%}
-    select coalesce(max(_daton_batch_runtime) - 2592000000,0) from {{ this }}
-    {% endset %}
+{% set result =set_table_name("CatalogItems_tbl_ptrn","CatalogItems_tbl_exclude_ptrn") %}
+{# /*--iterating through all the tables */ #}
+{% for i in result %}
 
-    {%- set max_loaded_results = run_query(max_loaded_query) -%}
-
-    {%- if execute -%}
-    {% set max_loaded = max_loaded_results.rows[0].values()[0] %}
-    {% else %}
-    {% set max_loaded = 0 %}
-    {%- endif -%}
-    {% endif %}
-
-    {% set table_name_query %}
-    {{set_table_name('%catalogitems')}}    
-    {% endset %}   
-
-
-    {% set results = run_query(table_name_query) %}
-    {% if execute %}
-    {# Return the first column #}
-    {% set results_list = results.columns[0].values() %}
-    {% else %}
-    {% set results_list = [] %}
-    {% endif %}
-
-
-    {% for i in results_list %}
-        {% if var('get_brandname_from_tablename_flag') %}
-            {% set brand =i.split('.')[2].split('_')[var('brandname_position_in_tablename')] %}
-        {% else %}
-            {% set brand = var('default_brandname') %}
+    select 
+    {{ extract_brand_and_store_name_from_table(i, var("brandname_position_in_tablename"), var("get_brandname_from_tablename_flag"), var("default_brandname")) }} as brand,
+    {{ extract_brand_and_store_name_from_table(i, var("storename_position_in_tablename"), var("get_storename_from_tablename_flag"), var("default_storename")) }} as store,
+    {{ timezone_conversion("RequeststartDate") }} as RequeststartDate,
+    {{ timezone_conversion("RequestendDate") }} as RequestendDate,
+    ReferenceASIN,
+    sellingPartnerId,
+    marketplaceName,
+    a.marketplaceId,
+    asin,
+    {{extract_nested_value("salesRanks","marketplaceId","string")}} as salesRanks_marketplaceId,
+    {{extract_nested_value("classificationRanks","classificationId","string")}} as classificationRanks_classificationId,
+    {{extract_nested_value("classificationRanks","title","string")}} as classificationRanks_title,
+    {{extract_nested_value("classificationRanks","link","string")}} as classificationRanks_link,
+    {{extract_nested_value("classificationRanks","rank","integer")}} as classificationRanks_rank,
+    {{extract_nested_value("displayGroupRanks","websiteDisplayGroup","string")}} as displayGroupRanks_websiteDisplayGroup,
+    {{extract_nested_value("displayGroupRanks","title","string")}} as displayGroupRanks_title,
+    {{extract_nested_value("displayGroupRanks","link","string")}} as displayGroupRanks_link,
+    {{extract_nested_value("displayGroupRanks","rank","integer")}} as displayGroupRanks_rank,
+    {{extract_nested_value("summaries","marketplaceId","string")}} as summaries_marketplaceId,
+    {{extract_nested_value("summaries","brand","string")}} as summaries_brandName,
+    
+    {{extract_nested_value("browseClassification","displayName","string")}} as summaries_browseClassification_diplayName,
+    {{extract_nested_value("browseClassification","classificationId","string")}} as summaries_browseClassification_classificationId,
+    
+    {{extract_nested_value("summaries","color","string")}} as summaries_colorName,
+    {{extract_nested_value("summaries","itemClassification","string")}} as summaries_itemClassification,
+    {{extract_nested_value("summaries","itemName","string")}} as summaries_itemName,
+    {{extract_nested_value("summaries","manufacturer","string")}} as summaries_manufacturer,
+    {{extract_nested_value("summaries","modelNumber","string")}} as summaries_modelNumber,
+    {{extract_nested_value("summaries","packageQuantity","integer")}} as summaries_packageQuantity,
+    {{extract_nested_value("summaries","partNumber","string")}} as summaries_partNumber,
+    {{extract_nested_value("summaries","size","string")}} as summaries_sizeName,
+    {{extract_nested_value("summaries","style","string")}} as summaries_styleName,
+    {{extract_nested_value("summaries","websiteDisplayGroup","string")}} as summaries_websiteDisplayGroup,
+    {{extract_nested_value("summaries","websiteDisplayGroupName","string")}} as summaries_websiteDisplayGroupName,
+    a.{{daton_user_id()}} as _daton_user_id,
+    a.{{daton_batch_runtime()}} as _daton_batch_runtime,
+    a.{{daton_batch_id()}} as _daton_batch_id,
+    current_timestamp() as _last_updated,
+    '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as _run_id
+    from {{i}} a
+        {{unnesting("summaries")}}
+        {{multi_unnesting("summaries","browseClassification")}}
+        {{unnesting("salesRanks")}}
+        {{multi_unnesting("salesRanks","classificationRanks")}}
+        {{multi_unnesting("salesRanks","displayGroupRanks")}}
+        {% if is_incremental() %}
+            {# /* -- this filter will only be applied on an incremental run */ #}
+            where {{daton_batch_runtime()}}  >= (select coalesce(max(_daton_batch_runtime) - {{ var('CatalogItems_lookback') }},0) from {{ this }})
         {% endif %}
-
-        {% if var('get_storename_from_tablename_flag') %}
-            {% set store =i.split('.')[2].split('_')[var('storename_position_in_tablename')] %}
-        {% else %}
-            {% set store = var('default_storename') %}
-        {% endif %}
-
-        {% if var('timezone_conversion_flag') and i.lower() in tables_lowercase_list and i in var('raw_table_timezone_offset_hours') %}
-            {% set hr = var('raw_table_timezone_offset_hours')[i] %}
-        {% else %}
-            {% set hr = 0 %}
-        {% endif %}
-
-            select 
-            '{{brand}}' as brand,
-            '{{store}}' as store,
-            cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="cast(RequeststartDate as timestamp)") }} as {{ dbt.type_timestamp() }}) as RequeststartDate,
-            cast({{ dbt.dateadd(datepart="hour", interval=hr, from_date_or_timestamp="cast(RequestendDate as timestamp)") }} as {{ dbt.type_timestamp() }}) as RequestendDate,
-            coalesce(ReferenceASIN,'N/A') as ReferenceASIN,
-            sellingPartnerId,
-            marketplaceName,
-            a.marketplaceId,
-            asin,
-            {{extract_nested_value("salesRanks","marketplaceId","string")}} as salesRanks_marketplaceId,
-            {{extract_nested_value("classificationRanks","classificationId","string")}} as classificationRanks_classificationId,
-            {{extract_nested_value("classificationRanks","title","string")}} as classificationRanks_title,
-            {{extract_nested_value("classificationRanks","link","string")}} as classificationRanks_link,
-            {{extract_nested_value("classificationRanks","rank","integer")}} as classificationRanks_rank,
-            {{extract_nested_value("displayGroupRanks","websiteDisplayGroup","string")}} as displayGroupRanks_websiteDisplayGroup,
-            {{extract_nested_value("displayGroupRanks","title","string")}} as displayGroupRanks_title,
-            {{extract_nested_value("displayGroupRanks","link","string")}} as displayGroupRanks_link,
-            {{extract_nested_value("displayGroupRanks","rank","integer")}} as displayGroupRanks_rank,
-            {{extract_nested_value("summaries","marketplaceId","string")}} as summaries_marketplaceId,
-            coalesce({{extract_nested_value("summaries","brand","string")}},'N/A') as summaries_brandName,
-            {{extract_nested_value("summaries","color","string")}} as summaries_colorName,
-            {{extract_nested_value("summaries","itemClassification","string")}} as summaries_itemClassification,
-            {{extract_nested_value("summaries","itemName","string")}} as summaries_itemName,
-            {{extract_nested_value("summaries","manufacturer","string")}} as summaries_manufacturer,
-            coalesce({{extract_nested_value("summaries","modelNumber","string")}},'N/A') as summaries_modelNumber,
-            {{extract_nested_value("summaries","packageQuantity","integer")}} as summaries_packageQuantity,
-            {{extract_nested_value("summaries","partNumber","string")}} as summaries_partNumber,
-            {{extract_nested_value("summaries","size","string")}} as summaries_sizeName,
-            {{extract_nested_value("summaries","style","string")}} as summaries_styleName,
-            {{extract_nested_value("summaries","websiteDisplayGroup","string")}} as summaries_websiteDisplayGroup,
-            {{extract_nested_value("summaries","websiteDisplayGroupName","string")}} as summaries_websiteDisplayGroupName,
-        	{{daton_user_id()}} as _daton_user_id,
-            {{daton_batch_runtime()}} as _daton_batch_runtime,
-            {{daton_batch_id()}} as _daton_batch_id,
-            current_timestamp() as _last_updated,
-            '{{env_var("DBT_CLOUD_RUN_ID", "manual")}}' as _run_id
-    	    from {{i}} a
-                {{unnesting("summaries")}}
-                {{unnesting("salesRanks")}}
-                {{multi_unnesting("salesRanks","classificationRanks")}}
-                {{multi_unnesting("salesRanks","displayGroupRanks")}}
-                {% if is_incremental() %}
-                {# /* -- this filter will only be applied on an incremental run */ #}
-                where {{daton_batch_runtime()}}  >= {{max_loaded}}
-                {% endif %}   
-            qualify row_number() over (partition by {{extract_nested_value("summaries","brand","string")}},ReferenceASIN,{{extract_nested_value("summaries","modelNumber","string")}},{{extract_nested_value("summaries","marketplaceId","string")}} order by {{daton_batch_runtime()}} desc, {{daton_batch_id()}} desc) = 1
-        {% if not loop.last %} union all {% endif %}
-    {% endfor %}
+        qualify row_number() over (partition by {{extract_nested_value("summaries","brand","string")}},ReferenceASIN,{{extract_nested_value("summaries","modelNumber","string")}},{{extract_nested_value("summaries","marketplaceId","string")}} order by {{daton_batch_runtime()}} desc, {{daton_batch_id()}} desc) = 1
+    {% if not loop.last %} union all {% endif %}
+{% endfor %}

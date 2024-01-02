@@ -6,39 +6,25 @@ name: 'AmazonSellerCentral'
 version: '1.0.0'
 config-version: 2
 require-dbt-version: [">=1.0.0", "<2.0.0"]
+profile : edm_data_transformation
 
 vars:
-  raw_database: "AmazonSeller" #equivalent to project_id in BigQuery
-    # Example Database name
-  raw_schema: "Daton" #equivalent to dataset in BigQuery
-    # Example Schema name
+  raw_database: "edm" #equivalent to project_id in BigQuery, given values is an example name
+  raw_schema: "EDM" #equivalent to dataset in BigQuery, given values is an example name
 
   get_brandname_from_tablename_flag: True
-  brandname_position_in_tablename: 0
-    # Example- Daton Integration Name: Nike_US_SponsoredBrands --> Position 0, separated by '_'
-  default_brandname: "" 
-    # Example- default_brandname: "Nike" --> for Single Brand users, with no Brandname in Daton Integration Name
+  brandname_position_in_tablename: 0 # Example- Daton Integration Name: Nike_US_SponsoredBrands --> Position 0, separated by '_'
+  default_brandname: "" # Example- default_brandname: "Nike" --> for Single Brand users, with no Brandname in Daton Integration Name
 
-  get_storename_from_tablename_flag: True 
-  storename_position_in_tablename: 1
-    # Example- Daton Integration Name: Nike_US_SponsoredBrands --> Position 1, separated by '_'
-  default_storename: "" 
-    # Example- default_storename: "US" --> for Single Store users, with no Storename in Daton Integration Name
+  get_storename_from_tablename_flag: True
+  storename_position_in_tablename: 1 # Example- Daton Integration Name: Nike_US_SponsoredBrands --> Position 1, separated by '_'
+  default_storename: "" # Example- default_storename: "US" --> for Single Store users, with no Storename in Daton Integration Name
 
-  # Variables used for dbt-tests
-  'dbt_date:time_zone': 'America/Los_Angeles'
+  currency_conversion_flag: true
+  timezone_conversion_flag: True
+  to_timezone: 'America/Los_Angeles'
 
-
-  currency_conversion_flag: False
-  timezone_conversion_flag: False
-  raw_table_timezone_offset_hours: {
-    "Amazon.SellerCentral.Brand_UK_AmazonSellerCentral_FlatFileAllOrdersReportbyLastUpdate":-7,
-    "Amazon.SellerCentral.Brand_UK_AmazonSellerCentral_ListOrder":-7,
-    "Amazon.SellerCentral.Brand_UK_AmazonSellerCentral_FBAAmazonFulfilledShipmentsReport":-7,
-    "Amazon.SellerCentral.Brand_UK_AmazonSellerCentral_InventoryLedgerDetailedReport":-7
-    }
-      # Above are Example entries for raw table level input offset hours
-
+  # Flags to enable/disable models
   AllListingsReport: True
   CatalogItems: True
   FBAAmazonFulfilledShipmentsReport: True
@@ -49,18 +35,85 @@ vars:
   FlatFileReturnsReportByReturnDate: True
   InventoryLedgerDetailedReport: True
   ListOrder: True
-  ListFinancialEventsOrderFees: True
-  ListFinancialEventsServiceFees: True
-  ListFinancialEventsOrderPromotions: True
-  ListFinancialEventsOrderRevenue: True
-  ListFinancialEventsOrderTaxes: True
-  ListFinancialEventsRefundFees: True
-  ListFinancialEventsRefundPromotions: True
-  ListFinancialEventsRefundRevenue: True
-  ListFinancialEventsRefundTaxes: True
+  ListFinancialEvents: True
   SalesAndTrafficReportByChildASIN: True
   ListingOffersForASIN: True
+  SuppressedListingsReport: True
+  FlatFileFeedbackReports: True
+  FBAStorageFeesReport: True
+  FBALongTermStorageFeeChargesReport: True
 
+  # Flags for raw table search patterns and lookback period
+  AllListingsReport_tbl_ptrn: '%alllistingsreport'
+  AllListingsReport_tbl_exclude_ptrn: ''
+  AllListingsReport_lookback: 172800000
+
+  CatalogItems_tbl_ptrn: '%catalogitems'
+  CatalogItems_tbl_exclude_ptrn: ''
+  CatalogItems_lookback: 172800000
+
+  FBAAmazonFulfilledShipmentsReport_tbl_ptrn: '%fulfilledshipments%'
+  FBAAmazonFulfilledShipmentsReport_tbl_exclude_ptrn: ''
+  FBAAmazonFulfilledShipmentsReport_lookback: 172800000
+
+  FBAManageInventory_tbl_ptrn: '%fbamanageinventory'
+  FBAManageInventory_tbl_exclude_ptrn: ''
+  FBAManageInventory_lookback: 172800000
+
+  FBAManageInventoryHealthReport_tbl_ptrn: '%fbamanageinventoryhealthreport'
+  FBAManageInventoryHealthReport_tbl_exclude_ptrn: ''
+  FBAManageInventoryHealthReport_lookback: 172800000
+
+  FBAReturnsReport_tbl_ptrn: '%fbareturnsreport'
+  FBAReturnsReport_tbl_exclude_ptrn: ''
+  FBAReturnsReport_lookback: 172800000
+
+  FlatFileAllOrdersReportByLastUpdate_tbl_ptrn: '%flatfileallordersreportbylastupdate'
+  FlatFileAllOrdersReportByLastUpdate_tbl_exclude_ptrn: ''
+  FlatFileAllOrdersReportByLastUpdate_lookback: 172800000
+
+  FlatFileReturnsReportByReturnDate_tbl_ptrn: '%flatfilereturnsreportbyreturndate'
+  FlatFileReturnsReportByReturnDate_tbl_exclude_ptrn: ''
+  FlatFileReturnsReportByReturnDate_lookback: 172800000
+
+  InventoryLedgerDetailedReport_tbl_ptrn: '%ledgerdetail%'
+  InventoryLedgerDetailedReport_tbl_exclude_ptrn: ''
+  InventoryLedgerDetailedReport_lookback: 172800000
+
+  ListFinancialEvents_tbl_ptrn: '%listfinancialevents'
+  ListFinancialEvents_tbl_exclude_ptrn: ''
+  ListFinancialEvents_lookback: 172800000
+
+  ListOrder_tbl_ptrn: '%listorder'
+  ListOrder_tbl_exclude_ptrn: ''
+  ListOrder_lookback: 172800000
+
+  ListingOffersForASIN_tbl_ptrn: '%listingoffersforasin'
+  ListingOffersForASIN_tbl_exclude_ptrn: ''
+  ListingOffersForASIN_lookback: 172800000
+
+  SalesAndTrafficReportByChildASIN_tbl_ptrn: '%salesandtrafficreportbychildasin%'
+  SalesAndTrafficReportByChildASIN_tbl_exclude_ptrn: ''
+  SalesAndTrafficReportByChildASIN_lookback: 172800000
+
+  FlatFileFeedbackReports_tbl_ptrn: '%flatfilefeedbackreport%'
+  FlatFileFeedbackReports_tbl_exclude_ptrn: ''
+  FlatFileFeedbackReports_lookback: 172800000
+
+  SuppressedListingsReport_tbl_ptrn: '%suppressedlistingsreport%'
+  SuppressedListingsReport_tbl_exclude_ptrn: ''
+  SuppressedListingsReport_lookback: 172800000
+
+  FBAStorageFeesReport_tbl_ptrn: '%fbastoragefeesreport'
+  FBAStorageFeesReport_tbl_exclude_ptrn: ''
+  FBAStorageFeesReport_lookback: 172800000
+
+  FBALongTermStorageFeeChargesReport_tbl_ptrn: '%fbalongtermstoragefeechargesreport'
+  FBALongTermStorageFeeChargesReport_tbl_exclude_ptrn: ''
+  FBALongTermStorageFeeChargesReport_lookback: 172800000
+
+  # Variables used for dbt-tests
+  'dbt_date:time_zone': 'America/Los_Angeles'
   
 # These configurations specify where dbt should look for different types of files.
 # The `model-paths` config, for example, states that models in this project can be
